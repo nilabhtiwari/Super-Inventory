@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "QEXmanage POS",
+    "slug": "qexmanage-pos",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F0F1A"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.qexmanage.pos",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Camera is used to scan product barcodes",
+        "NSBluetoothAlwaysUsageDescription": "Bluetooth is used to connect barcode scanner"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F0F1A"
+      },
+      "package": "com.qexmanage.pos",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-camera",
+        { "cameraPermission": "Allow QEXmanage to access your camera to scan barcodes." }
+      ]
+    ]
+  }
+}

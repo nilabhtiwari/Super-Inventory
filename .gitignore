@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+.expo/
+dist/
+build/
+.next/
+
+# Environment
+.env
+*.env.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Build artifacts
+*.apk
+*.aab
+*.ipa
+*.jks
+*.p12
+*.mobileprovision
+
+# Expo
+.expo-shared/
+
+# MySQL data (Docker volume)
+mysql_data/
