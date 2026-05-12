@@ -1,0 +1,12 @@
+# Normalize line endings to LF for all source files on checkout
+* text=auto eol=lf
+
+# Windows-specific binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.apk binary
+*.aab binary
+*.ipa binary
