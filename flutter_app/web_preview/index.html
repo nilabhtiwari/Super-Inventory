@@ -682,7 +682,7 @@
       </div>
 
       <!-- ============================================================ -->
-      <!-- DEDICATED FINANCIAL INSIGHTS & PROFIT/LOSS SCREEN -->
+      <!-- DEDICATED STITCH BUSINESS INSIGHTS & P&L SCREEN -->
       <!-- ============================================================ -->
       <div id="screen-finance" class="hidden space-y-4 text-left">
         <!-- Sub-page Header -->
@@ -690,61 +690,148 @@
           <button onclick="switchScreen('dashboard')" class="p-2 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-white hover:bg-brand-surface transition flex items-center">
             <span class="material-symbols-outlined text-lg">arrow_back</span>
           </button>
-          <h2 class="text-sm font-black text-white">Financial Insights & P&L</h2>
+          <div class="text-center">
+            <h2 class="text-sm font-black text-white">Business Insights</h2>
+            <p class="text-[10px] text-brand-muted">Performance overview for Main Branch</p>
+          </div>
           <div class="w-8"></div>
         </div>
 
         <!-- Filter Selector -->
-        <div class="p-1 bg-brand-surface border border-brand-surfaceBorder rounded-xl flex">
-          <button onclick="setFinancialTab('monthly')" id="fin-btn-monthly" class="flex-1 py-1.5 bg-brand-primary text-white font-bold text-xs rounded-lg shadow">Monthly</button>
-          <button onclick="setFinancialTab('quarterly')" id="fin-btn-quarterly" class="flex-1 py-1.5 text-brand-muted font-bold text-xs rounded-lg">Quarterly</button>
-          <button onclick="setFinancialTab('yearly')" id="fin-btn-yearly" class="flex-1 py-1.5 text-brand-muted font-bold text-xs rounded-lg">Yearly</button>
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-black text-white">Financial KPI Metrics</span>
+          <div class="p-1 bg-brand-surface border border-brand-surfaceBorder rounded-xl flex gap-1">
+            <button onclick="setFinancialTab('monthly')" id="fin-btn-monthly" class="px-3 py-1 bg-brand-primary text-white font-bold text-xs rounded-lg shadow">Monthly</button>
+            <button onclick="setFinancialTab('yearly')" id="fin-btn-yearly" class="px-3 py-1 text-brand-muted font-bold text-xs rounded-lg">Yearly</button>
+          </div>
         </div>
 
-        <!-- Hero Financial Card -->
-        <div class="p-5 bg-gradient-to-r from-brand-primary to-brand-tertiary rounded-3xl space-y-3 shadow-xl">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] font-extrabold tracking-wider text-white/80 uppercase" id="finPeriodLabel">This Month Gross Revenue</span>
-            <span class="px-2 py-0.5 bg-emerald-500/20 border border-emerald-400 text-emerald-300 text-[10px] font-bold rounded-lg">+18.4% vs Prev</span>
-          </div>
-          <h1 class="text-2xl font-black text-white" id="finGrossText">₹4,28,500.00</h1>
-          
-          <div class="border-t border-white/20 pt-3 flex justify-between items-center">
-            <div>
-              <p class="text-[10px] text-white/70">Net Profit</p>
-              <p class="text-base font-black text-emerald-300" id="finProfitText">₹1,12,040.00</p>
+        <!-- KPI Bento Grid (3 Cards) -->
+        <!-- 1. Total Revenue Card -->
+        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl relative overflow-hidden shadow-md">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5 text-brand-muted text-xs font-bold">
+              <span class="material-symbols-outlined text-sm text-brand-primaryContainer">trending_up</span>
+              <span>Total Revenue</span>
             </div>
-            <div class="text-right">
-              <p class="text-[10px] text-white/70">Profit Margin</p>
-              <p class="text-base font-black text-white" id="finMarginText">26.1%</p>
-            </div>
+            <span class="material-symbols-outlined text-2xl text-brand-primaryContainer opacity-40">payments</span>
           </div>
+          <h3 class="text-2xl font-black text-white mt-2" id="finGrossText">₹1,24,500.00</h3>
+          <p class="text-[11px] text-emerald-400 font-bold mt-1 flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">arrow_upward</span>
+            <span id="finGrowthText">+14.5% from last month</span>
+          </p>
         </div>
 
-        <!-- Profit / Loss Trajectory Chart -->
-        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3">
-          <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-white">Profit / Loss Trajectory</span>
-            <span class="material-symbols-outlined text-brand-secondary text-base">bar_chart</span>
-          </div>
-          <div class="h-24 flex justify-around items-end pt-2" id="finBarChart">
-            <div class="flex flex-col items-center gap-1.5"><div class="w-7 h-12 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[9px] text-brand-muted font-semibold">Week 1</span></div>
-            <div class="flex flex-col items-center gap-1.5"><div class="w-7 h-16 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[9px] text-brand-muted font-semibold">Week 2</span></div>
-            <div class="flex flex-col items-center gap-1.5"><div class="w-7 h-20 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[9px] text-brand-muted font-semibold">Week 3</span></div>
-            <div class="flex flex-col items-center gap-1.5"><div class="w-7 h-14 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[9px] text-brand-muted font-semibold">Week 4</span></div>
-          </div>
-        </div>
-
-        <!-- Financial Breakdown -->
+        <!-- 2 & 3. Net Profit and Customer Reach in Row -->
         <div class="grid grid-cols-2 gap-2.5">
-          <div class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl">
-            <p class="text-[10px] text-brand-muted">Cost of Goods (COGS)</p>
-            <p class="text-xs font-bold text-white mt-1" id="finCogsText">₹2,78,500.00</p>
+          <!-- Net Profit -->
+          <div class="p-3.5 bg-brand-surface border border-brand-surfaceBorder rounded-2xl relative overflow-hidden shadow-md">
+            <div class="flex items-center justify-between text-brand-muted text-[11px] font-bold">
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs text-brand-secondary">monitoring</span>
+                Net Profit
+              </span>
+              <span class="material-symbols-outlined text-lg text-brand-secondary opacity-40">account_balance_wallet</span>
+            </div>
+            <h4 class="text-base font-black text-white mt-1.5" id="finProfitText">₹32,840.00</h4>
+            <p class="text-[10px] text-emerald-400 font-bold mt-0.5 flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-[10px]">arrow_upward</span>
+              <span>+8.2% margin</span>
+            </p>
           </div>
-          <div class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl">
-            <p class="text-[10px] text-brand-muted">GST Collected</p>
-            <p class="text-xs font-bold text-brand-primaryContainer mt-1" id="finTaxText">₹37,960.00</p>
+
+          <!-- Customer Reach -->
+          <div class="p-3.5 bg-brand-surface border border-brand-surfaceBorder rounded-2xl relative overflow-hidden shadow-md">
+            <div class="flex items-center justify-between text-brand-muted text-[11px] font-bold">
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs text-brand-tertiary">groups</span>
+                Reach
+              </span>
+              <span class="material-symbols-outlined text-lg text-brand-tertiary opacity-40">group_add</span>
+            </div>
+            <h4 class="text-base font-black text-white mt-1.5" id="finReachText">4,892</h4>
+            <p class="text-[10px] text-brand-tertiary font-bold mt-0.5 flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-[10px]">arrow_upward</span>
+              <span>+2.1% footfall</span>
+            </p>
           </div>
+        </div>
+
+        <!-- Main P&L Dual-Bar Chart -->
+        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3 shadow-md">
+          <div class="flex justify-between items-center">
+            <h4 class="text-xs font-bold text-white">Profit & Loss Overview</h4>
+            <span class="material-symbols-outlined text-brand-muted text-base">more_horiz</span>
+          </div>
+
+          <!-- Dual-Bar Chart Visualization -->
+          <div class="h-28 flex justify-around items-end pt-2 border-b border-brand-surfaceBorder pb-2" id="finBarChart">
+            <div class="flex flex-col items-center gap-1.5">
+              <div class="flex items-end gap-1">
+                <div class="w-3.5 h-12 bg-brand-primary rounded-t-sm"></div>
+                <div class="w-3.5 h-6 bg-brand-tertiary rounded-t-sm"></div>
+              </div>
+              <span class="text-[9px] text-brand-muted font-semibold">Jan</span>
+            </div>
+            <div class="flex flex-col items-center gap-1.5">
+              <div class="flex items-end gap-1">
+                <div class="w-3.5 h-16 bg-brand-primary rounded-t-sm"></div>
+                <div class="w-3.5 h-8 bg-brand-tertiary rounded-t-sm"></div>
+              </div>
+              <span class="text-[9px] text-brand-muted font-semibold">Feb</span>
+            </div>
+            <div class="flex flex-col items-center gap-1.5">
+              <div class="flex items-end gap-1">
+                <div class="w-3.5 h-14 bg-brand-primary rounded-t-sm"></div>
+                <div class="w-3.5 h-10 bg-brand-tertiary rounded-t-sm"></div>
+              </div>
+              <span class="text-[9px] text-brand-muted font-semibold">Mar</span>
+            </div>
+            <div class="flex flex-col items-center gap-1.5">
+              <div class="flex items-end gap-1">
+                <div class="w-3.5 h-20 bg-brand-primary rounded-t-sm shadow-md shadow-brand-primary/40"></div>
+                <div class="w-3.5 h-12 bg-brand-tertiary rounded-t-sm"></div>
+              </div>
+              <span class="text-[9px] text-brand-primaryContainer font-black">Apr</span>
+            </div>
+          </div>
+
+          <!-- Chart Legend -->
+          <div class="flex justify-center gap-6 pt-1">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 bg-brand-primary rounded-full"></span>
+              <span class="text-[10px] text-brand-muted font-medium">Revenue</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 bg-brand-tertiary rounded-full"></span>
+              <span class="text-[10px] text-brand-muted font-medium">Expenses</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Performance Insights Card -->
+        <div class="p-4 bg-[#1C1428] border border-brand-tertiary/30 rounded-2xl space-y-3 shadow-md relative overflow-hidden">
+          <div class="absolute -right-4 -top-4 w-16 h-16 bg-brand-tertiary/20 rounded-full blur-xl"></div>
+          <div>
+            <h4 class="text-xs font-bold text-white">Performance Insight</h4>
+            <p class="text-[10px] text-brand-muted">AI-generated summary based on April's data.</p>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div class="p-2.5 bg-brand-surface/80 border border-white/10 rounded-xl flex items-start gap-2">
+              <span class="material-symbols-outlined text-brand-primaryContainer text-base mt-0.5">tips_and_updates</span>
+              <p class="text-[10px] text-white/90 leading-tight">Revenue peaked in mid-April, driven by the spring promotional campaign. Consider repeating similar targeted offers.</p>
+            </div>
+            <div class="p-2.5 bg-brand-surface/80 border border-white/10 rounded-xl flex items-start gap-2">
+              <span class="material-symbols-outlined text-red-400 text-base mt-0.5">warning</span>
+              <p class="text-[10px] text-white/90 leading-tight">Operational expenses are trending 5% higher than projected. Review supply chain and supplier invoices.</p>
+            </div>
+          </div>
+
+          <button onclick="alert('✓ Detailed P&L report exported to PDF!')" class="w-full py-2.5 bg-brand-primary hover:bg-brand-primaryGlow text-white text-xs font-bold rounded-xl shadow transition">
+            Generate Detailed Report
+          </button>
         </div>
       </div>
 
