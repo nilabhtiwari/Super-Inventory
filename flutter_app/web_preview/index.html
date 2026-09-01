@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Super Inventory - For All Inventory Ecosystem</title>
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -79,9 +82,21 @@
         </p>
       </div>
     </div>
-    <div class="flex items-center gap-2">
-      <button onclick="switchScreen('settings')" class="text-xs bg-brand-surfaceElevated border border-brand-surfaceBorder hover:bg-brand-surface px-2.5 py-1.5 rounded-xl font-bold text-brand-muted flex items-center gap-1">
-        <span class="material-symbols-outlined text-sm">settings</span> Settings
+    <div class="flex items-center gap-1.5 flex-wrap justify-end">
+      <button onclick="switchScreen('login')" class="text-[11px] bg-brand-surfaceElevated border border-brand-primary/40 hover:bg-brand-primary/20 px-2 py-1 rounded-lg font-bold text-brand-primaryContainer flex items-center gap-1">
+        <span class="material-symbols-outlined text-xs">login</span> Sign In
+      </button>
+      <button onclick="switchScreen('settings')" class="text-[11px] bg-brand-surfaceElevated border border-brand-surfaceBorder hover:bg-brand-surface px-2 py-1 rounded-lg font-bold text-white flex items-center gap-1">
+        <span class="material-symbols-outlined text-xs">settings</span> Settings
+      </button>
+      <button onclick="switchScreen('hardware')" class="text-[11px] bg-brand-surfaceElevated border border-brand-secondary/40 hover:bg-brand-secondary/20 px-2 py-1 rounded-lg font-bold text-brand-secondary flex items-center gap-1">
+        <span class="material-symbols-outlined text-xs">print</span> Hardware
+      </button>
+      <button onclick="switchScreen('finance')" class="text-[11px] bg-brand-surfaceElevated border border-brand-tertiary/40 hover:bg-brand-tertiary/20 px-2 py-1 rounded-lg font-bold text-brand-tertiary flex items-center gap-1">
+        <span class="material-symbols-outlined text-xs">insights</span> Finance
+      </button>
+      <button onclick="switchScreen('edit-profile')" class="text-[11px] bg-brand-surfaceElevated border border-white/20 hover:bg-white/10 px-2 py-1 rounded-lg font-bold text-white flex items-center gap-1">
+        <span class="material-symbols-outlined text-xs">edit_square</span> Profile
       </button>
     </div>
   </header>
