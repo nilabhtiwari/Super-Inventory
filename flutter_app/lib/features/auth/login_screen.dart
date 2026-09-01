@@ -230,85 +230,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // BRAND LOGO HEADER WITH WHITE CAPITAL 'S' + ARROW
+                    // BESPOKE GOLD & EMERALD SUPER INVENTORY LOGO
                     Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            height: 46,
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFFF6A00), Color(0xFF1E1035)],
-                                begin: Alignment.bottomLeft,
-                                end: Alignment.topRight,
-                              ),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: const Color(0xFFFF6A00).withOpacity(0.5)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFFFF6A00).withOpacity(0.35),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'S',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                    letterSpacing: 0,
-                                  ),
-                                ),
-                                SizedBox(width: 3),
-                                Icon(
-                                  Icons.arrow_upward_rounded,
-                                  color: Color(0xFF00D4AA),
-                                  size: 16,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'SUPER',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 2,
-                                  color: Colors.white,
-                                  height: 1.1,
-                                ),
-                              ),
-                              Text(
-                                'INVENTORY',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 2,
-                                  color: Colors.white,
-                                  height: 1.1,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        height: 52,
+                        fit: BoxFit.contain,
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'For All Inventory Ecosystem',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF8C91B0), fontWeight: FontWeight.w500),
-                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
 
