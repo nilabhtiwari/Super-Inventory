@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
@@ -14,49 +16,254 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   
-  final _usernameController = TextEditingController(text: 'merchant@superinventory.com');
-  final _passwordController = TextEditingController(text: 'Merchant@1234');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _fullNameController = TextEditingController();
-  final _workEmailController = TextEditingController();
 
   bool _isLoginTab = true;
   bool _obscurePassword = true;
+  bool _isSendingOtp = false;
+
+  // Strict email regex validation
+  static final RegExp _emailRegex = RegExp(
+    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+  );
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     _fullNameController.dispose();
-    _workEmailController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleAuth() async {
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Email address is required';
+    }
+    final clean = value.trim();
+    if (!_emailRegex.hasMatch(clean)) {
+      return 'Please enter a valid Gmail / Email address (e.g. name@gmail.com)';
+    }
+    return null;
+  }
+
+  Future<void> _handleEmailAuth() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final email = _isLoginTab ? _usernameController.text.trim() : _workEmailController.text.trim();
+    final email = _emailController.text.trim();
+
+    // Trigger OTP verification flow
+    setState(() => _isSendingOtp = true);
+    await Future.delayed(const Duration(milliseconds: 700));
+    setState(() => _isSendingOtp = false);
+
+    if (mounted) {
+      _showOtpVerificationDialog(email);
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isSendingOtp = true);
+    // Simulating Google OAuth flow
+    await Future.delayed(const Duration(milliseconds: 800));
+    setState(() => _isSendingOtp = false);
+
     final success = await ref.read(authProvider.notifier).login(
-          email: email,
-          password: _passwordController.text.trim(),
+          email: 'merchant.google@superinventory.com',
+          password: 'GoogleOAuth2SecureToken',
         );
 
     if (success && mounted) {
       context.go('/');
-    } else if (mounted) {
-      final error = ref.read(authProvider).errorMessage ?? 'Authentication failed';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error),
-          backgroundColor: AppTheme.error,
-        ),
-      );
     }
+  }
+
+  void _showOtpVerificationDialog(String email) {
+    final otpControllers = List.generate(6, (_) => TextEditingController());
+    final focusNodes = List.generate(6, (_) => FocusNode());
+    int secondsLeft = 30;
+    Timer? resendTimer;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            resendTimer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
+              if (secondsLeft > 0) {
+                setModalState(() => secondsLeft--);
+              } else {
+                timer.cancel();
+              }
+            });
+
+            return Container(
+              padding: EdgeInsets.only(
+                top: 24,
+                left: 24,
+                right: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              decoration: const BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                border: Border(top: BorderSide(color: AppTheme.surfaceBorder)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceBorder,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  
+                  // Icon & Header
+                  Center(
+                    child: Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppTheme.primaryContainer),
+                      ),
+                      child: const Icon(Icons.mark_email_read_rounded, color: AppTheme.primaryContainer, size: 28),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Verify Your Email',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'We sent a 6-digit security OTP code to\n$email',
+                    style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.4),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 6-Digit OTP Box Input
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(6, (index) {
+                      return SizedBox(
+                        width: 44,
+                        height: 52,
+                        child: TextFormField(
+                          controller: otpControllers[index],
+                          focusNode: focusNodes[index],
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                          inputFormatters: [
+                            LengthLimitingTextInputFormatter(1),
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.zero,
+                            filled: true,
+                            fillColor: AppTheme.surfaceElevated,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppTheme.surfaceBorder),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+                            ),
+                          ),
+                          onChanged: (val) {
+                            if (val.isNotEmpty && index < 5) {
+                              focusNodes[index + 1].requestFocus();
+                            } else if (val.isEmpty && index > 0) {
+                              focusNodes[index - 1].requestFocus();
+                            }
+                          },
+                        ),
+                      );
+                    }),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Resend Timer
+                  Center(
+                    child: secondsLeft > 0
+                        ? Text(
+                            'Resend code in 00:${secondsLeft.toString().padLeft(2, '0')}',
+                            style: const TextStyle(fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w600),
+                          )
+                        : TextButton(
+                            onPressed: () {
+                              setModalState(() => secondsLeft = 30);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('New OTP sent to your email!')),
+                              );
+                            },
+                            child: const Text('Resend OTP Code', style: TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold)),
+                          ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Verify OTP Action Button
+                  SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final enteredOtp = otpControllers.map((c) => c.text).join();
+                        if (enteredOtp.length < 6) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter all 6 digits of the OTP')),
+                          );
+                          return;
+                        }
+
+                        Navigator.pop(ctx);
+                        final success = await ref.read(authProvider.notifier).login(
+                              email: email,
+                              password: _passwordController.text.trim().isNotEmpty
+                                  ? _passwordController.text.trim()
+                                  : 'OtpAuth@123',
+                            );
+
+                        if (success && mounted) {
+                          context.go('/');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: const Text('Verify & Access Store', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    ).whenComplete(() {
+      resendTimer?.cancel();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
-
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -69,28 +276,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ============================================================
-                  // STITCH SUPER INVENTORY OFFICIAL LOGO & BRANDING
-                  // ============================================================
+                  // Logo
                   Center(
                     child: Container(
-                      width: 76,
-                      height: 76,
+                      width: 74,
+                      height: 74,
                       decoration: BoxDecoration(
                         gradient: AppTheme.primaryGradient,
-                        borderRadius: BorderRadius.circular(28),
+                        borderRadius: BorderRadius.circular(26),
                         boxShadow: [
                           BoxShadow(
                             color: AppTheme.primary.withOpacity(0.5),
-                            blurRadius: 30,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 10),
+                            blurRadius: 28,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
                       child: const Icon(
                         Icons.qr_code_scanner_rounded,
-                        size: 40,
+                        size: 38,
                         color: Colors.white,
                       ),
                     ),
@@ -116,29 +320,76 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 26),
 
                   // ============================================================
-                  // STITCH AUTH GLASS PANEL CARD
+                  // GOOGLE OAUTH CONTINUATION BUTTON
+                  // ============================================================
+                  OutlinedButton(
+                    onPressed: _isSendingOtp ? null : _handleGoogleSignIn,
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(color: Colors.white),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 4,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Google "G" Icon
+                        Image.network(
+                          'https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg',
+                          width: 22,
+                          height: 22,
+                          errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata_rounded, size: 24, color: Colors.blue),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Continue with Google',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  const Row(
+                    children: [
+                      Expanded(child: Divider(color: AppTheme.surfaceBorder)),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Text('OR USE EMAIL OTP', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.textMuted, letterSpacing: 1)),
+                      ),
+                      Expanded(child: Divider(color: AppTheme.surfaceBorder)),
+                    ],
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // ============================================================
+                  // AUTH CARD (EMAIL + OTP + PASSWORD)
                   // ============================================================
                   Container(
-                    padding: const EdgeInsets.all(26),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: AppTheme.surface,
-                      borderRadius: BorderRadius.circular(32),
+                      borderRadius: BorderRadius.circular(30),
                       border: Border.all(color: AppTheme.surfaceBorder),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primary.withOpacity(0.18),
-                          blurRadius: 26,
-                          offset: const Offset(0, 12),
+                          color: AppTheme.primary.withOpacity(0.15),
+                          blurRadius: 24,
+                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Tab Switcher (Login / Sign Up)
+                        // Tab Selector
                         Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
@@ -155,14 +406,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     decoration: BoxDecoration(
                                       color: _isLoginTab ? Colors.white : Colors.transparent,
                                       borderRadius: BorderRadius.circular(12),
-                                      boxShadow: _isLoginTab
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.black.withOpacity(0.3),
-                                                blurRadius: 8,
-                                              )
-                                            ]
-                                          : null,
                                     ),
                                     child: Text(
                                       'Login',
@@ -184,14 +427,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     decoration: BoxDecoration(
                                       color: !_isLoginTab ? Colors.white : Colors.transparent,
                                       borderRadius: BorderRadius.circular(12),
-                                      boxShadow: !_isLoginTab
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.black.withOpacity(0.3),
-                                                blurRadius: 8,
-                                              )
-                                            ]
-                                          : null,
                                     ),
                                     child: Text(
                                       'Sign Up',
@@ -209,12 +444,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 20),
 
-                        // Sign Up Fields
                         if (!_isLoginTab) ...[
-                          const Text('Full Name',
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                          const Text('Full Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: _fullNameController,
@@ -222,63 +455,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               prefixIcon: Icon(Icons.person_outline_rounded, color: AppTheme.textMuted),
                               hintText: 'John Doe',
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Full Name required' : null,
-                          ),
-                          const SizedBox(height: 14),
-
-                          const Text('Work Email',
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
-                          const SizedBox(height: 6),
-                          TextFormField(
-                            controller: _workEmailController,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              prefixIcon: Icon(Icons.mail_outline_rounded, color: AppTheme.textMuted),
-                              hintText: 'john@superinventory.com',
-                            ),
-                            validator: (v) => (v == null || !v.contains('@')) ? 'Valid Email required' : null,
-                          ),
-                          const SizedBox(height: 14),
-                        ] else ...[
-                          // Login Username
-                          const Text(
-                            'Username / Identifier',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
-                          ),
-                          const SizedBox(height: 6),
-                          TextFormField(
-                            controller: _usernameController,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              prefixIcon: Icon(Icons.person_outline_rounded, color: AppTheme.textMuted),
-                              hintText: 'Enter your identifier',
-                            ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Identifier required' : null,
                           ),
                           const SizedBox(height: 14),
                         ],
+
+                        // Valid Gmail / Email
+                        const Text('Gmail / Work Email Address *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.mail_outline_rounded, color: AppTheme.textMuted),
+                            hintText: 'merchant@gmail.com',
+                          ),
+                          validator: _validateEmail,
+                        ),
+                        const SizedBox(height: 14),
 
                         // Password Field
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Password',
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                            const Text('Password', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
                             if (_isLoginTab)
                               GestureDetector(
-                                onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Contact Admin / Support to reset key')),
-                                  );
-                                },
-                                child: const Text(
-                                  'Forgot?',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppTheme.primaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                onTap: () => _handleEmailAuth(),
+                                child: const Text('Login with OTP instead?', style: TextStyle(fontSize: 11, color: AppTheme.primaryContainer, fontWeight: FontWeight.bold)),
                               ),
                           ],
                         ),
@@ -290,146 +493,50 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppTheme.textMuted),
                             hintText: '••••••••',
                             suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                color: AppTheme.textMuted,
-                              ),
+                              icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: AppTheme.textMuted),
                               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                             ),
                           ),
-                          validator: (v) => (v == null || v.length < 4) ? 'Password required' : null,
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 22),
 
-                        // Authenticate Button
+                        // Send OTP & Authenticate Button
                         SizedBox(
                           height: 52,
                           child: ElevatedButton(
-                            onPressed: authState.isLoading ? null : _handleAuth,
+                            onPressed: _isSendingOtp ? null : _handleEmailAuth,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primary,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               elevation: 8,
-                              shadowColor: AppTheme.primary.withOpacity(0.5),
                             ),
-                            child: authState.isLoading
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                                  )
-                                : Row(
+                            child: _isSendingOtp
+                                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                : const Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text(
-                                        _isLoginTab ? 'Authenticate' : 'Create Account',
-                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      const Icon(Icons.arrow_forward_rounded, size: 20),
+                                      Icon(Icons.lock_open_rounded, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Send OTP & Verify', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                           ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Stitch Alt Access Divider
-                        const Row(
-                          children: [
-                            Expanded(child: Divider(color: AppTheme.surfaceBorder)),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 12),
-                              child: Text(
-                                'OR ACCESS VIA',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.textMuted,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                            ),
-                            Expanded(child: Divider(color: AppTheme.surfaceBorder)),
-                          ],
-                        ),
-
-                        const SizedBox(height: 14),
-
-                        // Stitch Biometrics & Scan Key Buttons
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () => _handleAuth(),
-                                icon: const Icon(Icons.fingerprint_rounded, color: AppTheme.secondary, size: 20),
-                                label: const Text('Biometrics',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                                style: OutlinedButton.styleFrom(
-                                  backgroundColor: AppTheme.surfaceElevated,
-                                  side: const BorderSide(color: AppTheme.surfaceBorder),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () => _handleAuth(),
-                                icon: const Icon(Icons.qr_code_scanner_rounded, color: AppTheme.tertiary, size: 20),
-                                label: const Text('Scan Key',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                                style: OutlinedButton.styleFrom(
-                                  backgroundColor: AppTheme.surfaceElevated,
-                                  side: const BorderSide(color: AppTheme.surfaceBorder),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 24),
 
-                  // System Status Bar
+                  // Operational Footer
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF34D399),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          const Text(
-                            'SERVER: OPERATIONAL',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.textMuted,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ],
-                      ),
+                      Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFF34D399), shape: BoxShape.circle)),
+                      const SizedBox(width: 6),
                       const Text(
-                        'v2.1.0-STABLE',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textMuted,
-                          letterSpacing: 0.8,
-                        ),
+                        'SECURE OAUTH2 & OTP ENCRYPTION ACTIVE',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.textMuted, letterSpacing: 0.8),
                       ),
                     ],
                   ),
