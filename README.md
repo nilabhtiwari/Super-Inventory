@@ -1,6 +1,6 @@
-# QEXmanage POS 🛒
+# Super Inventory 🛒
 
-A production-ready **Smart POS System** built with **React Native (Expo)**, **Node.js/Express**, and **MySQL**.
+A production-ready **Smart POS & Inventory Management Application** built with **Flutter**, **Node.js/Express**, and **MySQL/SQLite (Offline-First)**.
 
 ---
 

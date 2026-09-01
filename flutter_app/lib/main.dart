@@ -42,7 +42,7 @@ class SmartScanApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'SmartScan POS',
+      title: 'Super Inventory',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       routerConfig: router,

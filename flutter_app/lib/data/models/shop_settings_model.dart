@@ -17,14 +17,14 @@ class ShopSettingsModel {
 
   ShopSettingsModel({
     this.id,
-    this.shopName = 'SmartScan Store',
+    this.shopName = 'Super Inventory Store',
     this.address = '123 Market Road, City Centre',
     this.phone = '+91 9876543210',
-    this.email = 'store@smartscan.local',
+    this.email = 'store@superinventory.local',
     this.gstin = '27AAAAA0000A1Z5',
     this.logoUrl,
-    this.upiId = 'smartscan@upi',
-    this.upiName = 'SmartScan Retail Store',
+    this.upiId = 'superinventory@upi',
+    this.upiName = 'Super Inventory Retail Store',
     this.defaultCgst = 9.0,
     this.defaultSgst = 9.0,
     this.defaultIgst = 0.0,

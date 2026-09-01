@@ -135,14 +135,14 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE shop_settings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        shop_name TEXT NOT NULL DEFAULT 'SmartScan Retail Store',
+        shop_name TEXT NOT NULL DEFAULT 'Super Inventory Store',
         shop_address TEXT DEFAULT '123 Market Road, City Centre',
         shop_phone TEXT DEFAULT '+91 9876543210',
-        shop_email TEXT DEFAULT 'store@smartscan.local',
+        shop_email TEXT DEFAULT 'store@superinventory.local',
         gstin TEXT DEFAULT '27AAAAA0000A1Z5',
         logo_url TEXT,
-        upi_id TEXT DEFAULT 'smartscan@upi',
-        upi_name TEXT DEFAULT 'SmartScan Store',
+        upi_id TEXT DEFAULT 'superinventory@upi',
+        upi_name TEXT DEFAULT 'Super Inventory Store',
         default_cgst REAL NOT NULL DEFAULT 9.0,
         default_sgst REAL NOT NULL DEFAULT 9.0,
         default_igst REAL NOT NULL DEFAULT 0.0,

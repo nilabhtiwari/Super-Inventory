@@ -1,5 +1,5 @@
 class AppConstants {
-  static const String appName = 'SmartScan POS';
+  static const String appName = 'Super Inventory';
   static const String appVersion = '1.0.0';
 
   // API Default Fallback
