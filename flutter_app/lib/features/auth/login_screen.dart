@@ -13,18 +13,35 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'admin@superinventory.local');
-  final _passwordController = TextEditingController(text: 'Admin@1234');
-  final _nameController = TextEditingController();
+  
+  // Controllers
+  final _identifierController = TextEditingController();
+  final _passwordController = TextEditingController();
+  
+  // Sign Up Controllers
+  final _storeNameController = TextEditingController();
+  final _ownerNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _gstinController = TextEditingController();
 
   bool _isLoginTab = true;
   bool _obscurePassword = true;
+  String _selectedBranch = 'Main Branch (City Centre)';
+
+  final List<String> _storeBranches = [
+    'Main Branch (City Centre)',
+    'Branch 2 (Suburban Outlet)',
+    'Central Warehouse',
+  ];
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
-    _nameController.dispose();
+    _storeNameController.dispose();
+    _ownerNameController.dispose();
+    _phoneController.dispose();
+    _gstinController.dispose();
     super.dispose();
   }
 
@@ -32,7 +49,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final success = await ref.read(authProvider.notifier).login(
-          email: _emailController.text.trim(),
+          email: _identifierController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
@@ -49,13 +66,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  void _fillDemo(String email, String pass) {
-    setState(() {
-      _emailController.text = email;
-      _passwordController.text = pass;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
@@ -65,44 +75,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             child: Form(
               key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ============================================================
-                  // STITCH LOGO & HEADER
-                  // ============================================================
+                  // Logo / Branding
                   Center(
                     child: Container(
-                      width: 80,
-                      height: 80,
+                      width: 72,
+                      height: 72,
                       decoration: BoxDecoration(
                         gradient: AppTheme.primaryGradient,
-                        borderRadius: BorderRadius.circular(28),
+                        borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.primary.withOpacity(0.5),
-                            blurRadius: 28,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 10),
+                            color: AppTheme.primary.withOpacity(0.4),
+                            blurRadius: 24,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
                       child: const Icon(
-                        Icons.qr_code_scanner_rounded,
-                        size: 44,
+                        Icons.storefront_rounded,
+                        size: 38,
                         color: Colors.white,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 18),
                   const Text(
                     'Super Inventory',
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: AppTheme.textPrimary,
                       letterSpacing: -0.5,
@@ -111,37 +118,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'For All Inventory Ecosystem',
+                    'Multi-Store Retail & Inventory Management',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: AppTheme.textSecondary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
 
-                  // ============================================================
-                  // STITCH AUTH GLASS PANEL CARD
-                  // ============================================================
+                  // Auth Card
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: AppTheme.surface,
-                      borderRadius: BorderRadius.circular(32),
+                      borderRadius: BorderRadius.circular(28),
                       border: Border.all(color: AppTheme.surfaceBorder),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primary.withOpacity(0.15),
-                          blurRadius: 24,
-                          offset: const Offset(0, 12),
+                          color: Colors.black.withOpacity(0.4),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Tab Switcher (Login / Sign Up)
+                        // Tab Selector
                         Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
@@ -156,24 +161,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(vertical: 10),
                                     decoration: BoxDecoration(
-                                      color: _isLoginTab ? Colors.white : Colors.transparent,
+                                      color: _isLoginTab ? AppTheme.primary : Colors.transparent,
                                       borderRadius: BorderRadius.circular(12),
-                                      boxShadow: _isLoginTab
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.black.withOpacity(0.2),
-                                                blurRadius: 6,
-                                              )
-                                            ]
-                                          : null,
                                     ),
                                     child: Text(
-                                      'Login',
+                                      'Merchant Login',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
-                                        color: _isLoginTab ? AppTheme.primary : AppTheme.textMuted,
+                                        color: _isLoginTab ? Colors.white : AppTheme.textMuted,
                                       ),
                                     ),
                                   ),
@@ -185,24 +182,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(vertical: 10),
                                     decoration: BoxDecoration(
-                                      color: !_isLoginTab ? Colors.white : Colors.transparent,
+                                      color: !_isLoginTab ? AppTheme.primary : Colors.transparent,
                                       borderRadius: BorderRadius.circular(12),
-                                      boxShadow: !_isLoginTab
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.black.withOpacity(0.2),
-                                                blurRadius: 6,
-                                              )
-                                            ]
-                                          : null,
                                     ),
                                     child: Text(
-                                      'Sign Up',
+                                      'Register Store',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
-                                        color: !_isLoginTab ? AppTheme.primary : AppTheme.textMuted,
+                                        color: !_isLoginTab ? Colors.white : AppTheme.textMuted,
                                       ),
                                     ),
                                   ),
@@ -214,70 +203,124 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                         const SizedBox(height: 20),
 
+                        // Store Branch Selector
+                        const Text(
+                          'Store Location / Branch',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                        ),
+                        const SizedBox(height: 6),
+                        DropdownButtonFormField<String>(
+                          value: _selectedBranch,
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.location_on_outlined, color: AppTheme.primaryContainer),
+                          ),
+                          dropdownColor: AppTheme.surfaceElevated,
+                          items: _storeBranches
+                              .map((b) => DropdownMenuItem(value: b, child: Text(b, style: const TextStyle(fontSize: 13))))
+                              .toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => _selectedBranch = val);
+                          },
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Sign Up Specific Fields
                         if (!_isLoginTab) ...[
-                          const Text('Full Name',
+                          const Text('Business / Store Name *',
                               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
                           const SizedBox(height: 6),
                           TextFormField(
-                            controller: _nameController,
+                            controller: _storeNameController,
+                            decoration: const InputDecoration(
+                              prefixIcon: Icon(Icons.storefront_outlined, color: AppTheme.textMuted),
+                              hintText: 'e.g. Royal Supermarket',
+                            ),
+                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Store name is required' : null,
+                          ),
+                          const SizedBox(height: 14),
+
+                          const Text('Owner / Manager Name *',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _ownerNameController,
                             decoration: const InputDecoration(
                               prefixIcon: Icon(Icons.badge_outlined, color: AppTheme.textMuted),
-                              hintText: 'John Doe',
+                              hintText: 'e.g. Rajesh Kumar',
                             ),
+                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                          ),
+                          const SizedBox(height: 14),
+
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('Store Contact Phone *',
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                                    const SizedBox(height: 6),
+                                    TextFormField(
+                                      controller: _phoneController,
+                                      keyboardType: TextInputType.phone,
+                                      decoration: const InputDecoration(
+                                        prefixIcon: Icon(Icons.phone_outlined, color: AppTheme.textMuted),
+                                        hintText: '9876543210',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('GSTIN (Optional)',
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                                    const SizedBox(height: 6),
+                                    TextFormField(
+                                      controller: _gstinController,
+                                      decoration: const InputDecoration(
+                                        prefixIcon: Icon(Icons.receipt_outlined, color: AppTheme.textMuted),
+                                        hintText: '27AAAAA0000A1Z5',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 14),
                         ],
 
-                        // Username / Email Field
+                        // Email / Mobile Identifier
                         Text(
-                          _isLoginTab ? 'Username / Identifier' : 'Work Email',
-                          style: const TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
+                          _isLoginTab ? 'Merchant Email / Mobile' : 'Login Email *',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
                         ),
                         const SizedBox(height: 6),
                         TextFormField(
-                          controller: _emailController,
+                          controller: _identifierController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: const InputDecoration(
                             prefixIcon: Icon(Icons.person_outline_rounded, color: AppTheme.textMuted),
-                            hintText: 'admin@superinventory.local',
+                            hintText: 'merchant@store.com',
                           ),
-                          validator: (val) =>
-                              (val == null || val.trim().isEmpty) ? 'Identifier required' : null,
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Identifier required' : null,
                         ),
                         const SizedBox(height: 14),
 
-                        // Password Field
+                        // Password
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Password',
-                              style: TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
-                              ),
-                            ),
+                            const Text('Password',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
                             if (_isLoginTab)
-                              GestureDetector(
-                                onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Contact Admin to reset access key')),
-                                  );
-                                },
-                                child: const Text(
-                                  'Forgot?',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppTheme.tertiary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
+                              const Text('Forgot Password?',
+                                  style: TextStyle(fontSize: 11, color: AppTheme.primaryContainer, fontWeight: FontWeight.bold)),
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -292,28 +335,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                                 color: AppTheme.textMuted,
                               ),
-                              onPressed: () {
-                                setState(() => _obscurePassword = !_obscurePassword);
-                              },
+                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                             ),
                           ),
-                          validator: (val) =>
-                              (val == null || val.length < 4) ? 'Password required' : null,
+                          validator: (v) => (v == null || v.length < 4) ? 'Password required' : null,
                         ),
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 24),
 
-                        // Authenticate Action Button
+                        // Submit
                         SizedBox(
                           height: 52,
                           child: ElevatedButton(
                             onPressed: authState.isLoading ? null : _handleAuth,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 8,
-                              shadowColor: AppTheme.primary.withOpacity(0.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             child: authState.isLoading
                                 ? const SizedBox(
@@ -325,8 +361,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        _isLoginTab ? 'Authenticate' : 'Create Account',
-                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                        _isLoginTab ? 'Access Store POS' : 'Create & Register Store',
+                                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                                       ),
                                       const SizedBox(width: 8),
                                       const Icon(Icons.arrow_forward_rounded, size: 20),
@@ -334,130 +370,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                           ),
                         ),
-
-                        const SizedBox(height: 18),
-
-                        // Divider
-                        const Row(
-                          children: [
-                            Expanded(child: Divider(color: AppTheme.surfaceBorder)),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 12),
-                              child: Text(
-                                'OR ACCESS VIA',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.textMuted,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                            ),
-                            Expanded(child: Divider(color: AppTheme.surfaceBorder)),
-                          ],
-                        ),
-
-                        const SizedBox(height: 14),
-
-                        // Stitch Alternate Login Buttons
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () => _handleAuth(),
-                                icon: const Icon(Icons.fingerprint_rounded, color: AppTheme.secondary, size: 20),
-                                label: const Text('Biometrics',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                                style: OutlinedButton.styleFrom(
-                                  backgroundColor: AppTheme.surfaceElevated,
-                                  side: const BorderSide(color: AppTheme.surfaceBorder),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () => _handleAuth(),
-                                icon: const Icon(Icons.qr_code_scanner_rounded, color: AppTheme.tertiary, size: 20),
-                                label: const Text('Scan Key',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                                style: OutlinedButton.styleFrom(
-                                  backgroundColor: AppTheme.surfaceElevated,
-                                  side: const BorderSide(color: AppTheme.surfaceBorder),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Quick Demo Switcher
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceElevated,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.surfaceBorder),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        TextButton(
-                          onPressed: () => _fillDemo('admin@superinventory.local', 'Admin@1234'),
-                          child: const Text('Admin Mode', style: TextStyle(color: AppTheme.primaryContainer, fontSize: 11, fontWeight: FontWeight.bold)),
-                        ),
-                        Container(width: 1, height: 16, color: AppTheme.surfaceBorder),
-                        TextButton(
-                          onPressed: () => _fillDemo('manager@superinventory.local', 'Manager@1234'),
-                          child: const Text('Manager Mode', style: TextStyle(color: AppTheme.secondary, fontSize: 11, fontWeight: FontWeight.bold)),
-                        ),
-                        Container(width: 1, height: 16, color: AppTheme.surfaceBorder),
-                        TextButton(
-                          onPressed: () => _fillDemo('seller@superinventory.local', 'Seller@1234'),
-                          child: const Text('Cashier Mode', style: TextStyle(color: AppTheme.tertiary, fontSize: 11, fontWeight: FontWeight.bold)),
-                        ),
                       ],
                     ),
                   ),
 
                   const SizedBox(height: 24),
 
-                  // Stitch System Status Bar
+                  // Security & Operational Footer
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF34D399), // Emerald pulse
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          const Text(
-                            'SERVER: OPERATIONAL',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.textMuted,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ],
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF34D399),
+                          shape: BoxShape.circle,
+                        ),
                       ),
+                      const SizedBox(width: 6),
                       const Text(
-                        'v2.1.0-STABLE',
+                        'SECURE MULTI-STORE CLOUD SYNC ACTIVE',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Super Inventory - Interactive POS & Inventory Preview</title>
+  <title>Super Inventory - Multi-Store Retail & Inventory POS</title>
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Tailwind CSS -->
@@ -65,73 +65,75 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start p-2 sm:p-6 bg-black text-white">
 
-  <!-- TOP APP FRAME HEADER -->
-  <header class="w-full max-w-md mb-4 flex items-center justify-between px-4 py-3 glass-card rounded-2xl">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-primary to-brand-tertiary flex items-center justify-center font-bold text-white shadow-md">
-        SI
+  <!-- PROFESSIONAL STORE TOP BAR -->
+  <header class="w-full max-w-md mb-3 flex items-center justify-between px-4 py-3 glass-card rounded-2xl">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-primary to-brand-tertiary flex items-center justify-center font-bold text-white shadow-md">
+        <span class="material-symbols-outlined text-lg">storefront</span>
       </div>
       <div>
         <h1 class="text-sm font-extrabold tracking-tight">Super Inventory</h1>
         <p class="text-[10px] text-brand-secondary font-semibold flex items-center gap-1">
           <span class="w-1.5 h-1.5 rounded-full bg-brand-secondary animate-pulse"></span>
-          POS & Inventory Engine
+          Multi-Store Retail POS
         </p>
       </div>
     </div>
+    <!-- Store Location Selector -->
     <div class="flex items-center gap-2">
-      <span class="text-[10px] bg-brand-surfaceElevated border border-brand-surfaceBorder px-2.5 py-1 rounded-full text-brand-muted font-bold">v2.1.0</span>
-      <button onclick="switchScreen('login')" class="text-xs bg-brand-primary/20 text-brand-primaryContainer hover:bg-brand-primary/30 px-3 py-1 rounded-lg font-bold border border-brand-primary/30 transition">
-        Switch User
-      </button>
+      <select id="branchSelector" onchange="changeBranch(this.value)" class="bg-brand-surfaceElevated border border-brand-surfaceBorder text-xs text-brand-primaryContainer font-bold px-2 py-1.5 rounded-xl outline-none">
+        <option value="Main Branch (City Centre)">Main Branch</option>
+        <option value="Suburban Outlet">Suburban Outlet</option>
+        <option value="Central Warehouse">Warehouse</option>
+      </select>
     </div>
   </header>
 
-  <!-- SMARTPHONE MOCKUP WRAPPER -->
-  <div class="w-full max-w-md h-[820px] bg-brand-dark border-4 border-brand-surfaceBorder rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative">
+  <!-- SMARTPHONE DEVICE WRAPPER -->
+  <div class="w-full max-w-md h-[830px] bg-brand-dark border-4 border-brand-surfaceBorder rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative">
 
-    <!-- TOP STATUS BAR -->
-    <div class="w-full bg-brand-primary px-6 pt-3 pb-2 flex justify-between items-center text-xs font-semibold z-20">
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-full bg-white/20 border border-white/40 flex items-center justify-center font-bold text-white text-[11px]">
-          AO
+    <!-- TOP HEADER -->
+    <div class="w-full bg-brand-primary px-6 pt-3 pb-2 flex justify-between items-center text-xs font-semibold z-20 shadow-md">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full bg-white/20 border border-white/40 flex items-center justify-center font-bold text-white text-xs">
+          <span class="material-symbols-outlined text-base">storefront</span>
         </div>
         <div class="leading-tight">
           <div class="font-bold text-white text-[13px]" id="storeTitleText">Super Inventory Store</div>
-          <div class="text-[10px] text-white/80" id="cashierBadgeText">Admin Owner • Counter 1</div>
+          <div class="text-[10px] text-white/80" id="currentBranchDisplay">Main Branch (City Centre)</div>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button onclick="switchScreen('premium')" class="text-brand-tertiary bg-white/10 p-1.5 rounded-full hover:bg-white/20 transition">
+        <button onclick="switchScreen('premium')" class="text-brand-tertiary bg-white/10 p-1.5 rounded-full hover:bg-white/20 transition" title="GST & Expiry Reports">
           <span class="material-symbols-outlined text-[18px]">workspace_premium</span>
         </button>
-        <button onclick="switchScreen('inventory')" class="relative text-white/90 hover:text-white transition">
+        <button onclick="switchScreen('inventory')" class="relative text-white/90 hover:text-white transition" title="Stock Alerts">
           <span class="material-symbols-outlined text-[20px]">notifications</span>
           <span class="absolute top-0 right-0 w-2 h-2 bg-brand-tertiary rounded-full"></span>
         </button>
       </div>
     </div>
 
-    <!-- MAIN SCREEN VIEWPORT -->
+    <!-- MAIN SCROLLABLE VIEWPORT -->
     <div class="flex-1 overflow-y-auto custom-scroll p-4 pb-24 relative" id="screenContainer">
 
       <!-- ============================================================ -->
       <!-- 1. DASHBOARD SCREEN -->
       <!-- ============================================================ -->
       <div id="screen-dashboard" class="space-y-4">
-        <!-- Low Stock Banner -->
+        <!-- Low Stock Alert Banner -->
         <div onclick="switchScreen('inventory')" class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-amber-500/15 transition">
           <div class="flex items-center gap-2.5">
             <span class="material-symbols-outlined text-amber-400 text-xl">warning</span>
             <div>
               <p class="text-xs font-bold text-amber-300">2 Items Running Low on Stock</p>
-              <p class="text-[10px] text-amber-400/80">Dettol Liquid (8 pcs) • Organic Almond Milk (8 pcs)</p>
+              <p class="text-[10px] text-amber-400/80">Dettol Liquid (8 pcs) • Almond Milk (8 pcs)</p>
             </div>
           </div>
           <span class="material-symbols-outlined text-amber-400 text-sm">chevron_right</span>
         </div>
 
-        <!-- DOMINANT HERO "CREATE BILL" BUTTON -->
+        <!-- HERO "CREATE BILL" BUTTON -->
         <div onclick="switchScreen('billing')" class="w-full h-44 rounded-3xl bg-gradient-to-br from-brand-primary via-brand-primaryGlow to-brand-tertiary p-5 flex flex-col justify-between cursor-pointer hero-glow hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden group">
           <div class="absolute -right-6 -bottom-6 opacity-15 group-hover:scale-110 transition-transform">
             <span class="material-symbols-outlined text-[150px]">qr_code_scanner</span>
@@ -146,16 +148,16 @@
           </div>
           <div class="z-10">
             <h2 class="text-3xl font-black tracking-tight text-white">CREATE BILL</h2>
-            <p class="text-xs text-white/90 font-medium mt-1">Instant barcode camera scan • Fast checkout &lt; 30s</p>
+            <p class="text-xs text-white/90 font-medium mt-1">Instant barcode scan • Fast checkout &lt; 30s</p>
           </div>
         </div>
 
-        <!-- QUICK STATS -->
+        <!-- TODAY'S LIVE OVERVIEW -->
         <div>
-          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Today's Live Overview</h3>
+          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Today's Store Performance</h3>
           <div class="grid grid-cols-2 gap-3">
             <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl">
-              <span class="text-xs text-brand-muted font-medium">Total Sales</span>
+              <span class="text-xs text-brand-muted font-medium">Gross Revenue</span>
               <div class="flex items-baseline gap-2 mt-1">
                 <span class="text-xl font-black text-brand-primaryContainer" id="dashTotalSales">₹14,280.00</span>
                 <span class="text-[10px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">+12%</span>
@@ -171,9 +173,9 @@
           </div>
         </div>
 
-        <!-- QUICK ACTIONS GRID -->
+        <!-- QUICK ACTIONS -->
         <div>
-          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Quick Actions</h3>
+          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Merchant Tools</h3>
           <div class="grid grid-cols-3 gap-2.5">
             <button onclick="switchScreen('billing')" class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex flex-col items-center gap-1.5 hover:border-brand-primary transition">
               <div class="w-10 h-10 rounded-full bg-brand-primary/20 flex items-center justify-center text-brand-primaryContainer">
@@ -191,31 +193,30 @@
               <div class="w-10 h-10 rounded-full bg-brand-tertiary/20 flex items-center justify-center text-brand-tertiary">
                 <span class="material-symbols-outlined text-xl">inventory_2</span>
               </div>
-              <span class="text-[10px] font-bold text-center">Catalog</span>
+              <span class="text-[10px] font-bold text-center">Inventory</span>
             </button>
           </div>
         </div>
 
-        <!-- RECENT INVOICES -->
+        <!-- RECENT TRANSACTIONS -->
         <div>
           <div class="flex justify-between items-center mb-2">
-            <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider">Recent Transactions</h3>
-            <button onclick="switchScreen('history')" class="text-xs font-bold text-brand-primaryContainer hover:underline">View All</button>
+            <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider">Recent Invoices</h3>
+            <button onclick="switchScreen('history')" class="text-xs font-bold text-brand-primaryContainer hover:underline">View History</button>
           </div>
           <div class="space-y-2" id="dashRecentList">
-            <!-- Populated via JS -->
+            <!-- Rendered by JS -->
           </div>
         </div>
       </div>
 
       <!-- ============================================================ -->
-      <!-- 2. EXPRESS BILLING / CAMERA POS SCREEN -->
+      <!-- 2. EXPRESS BILLING SCREEN -->
       <!-- ============================================================ -->
       <div id="screen-billing" class="hidden space-y-3">
-        <!-- Live Camera Viewfinder Simulation -->
+        <!-- Live Camera Viewfinder -->
         <div class="w-full h-36 bg-black border-2 border-brand-primary rounded-2xl relative overflow-hidden flex flex-col items-center justify-center shadow-lg">
           <div class="absolute inset-0 bg-gradient-to-b from-transparent via-brand-primary/10 to-transparent animate-pulse pointer-events-none"></div>
-          <!-- Viewfinder Target Reticle -->
           <div class="w-44 h-16 border-2 border-brand-secondary rounded-xl flex items-center justify-center relative">
             <span class="material-symbols-outlined text-brand-secondary/40 text-3xl">qr_code_scanner</span>
             <div class="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-white"></div>
@@ -224,15 +225,15 @@
             <div class="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-white"></div>
           </div>
           <span class="text-[10px] font-bold text-brand-secondary bg-black/60 px-2.5 py-0.5 rounded-full mt-2">
-            Point camera or trigger barcode
+            Continuous Barcode Detection Active
           </span>
         </div>
 
-        <!-- Quick Scan Barcode Picker (Simulating Real Scans) -->
+        <!-- Quick Scan Product Triggers -->
         <div class="bg-brand-surface border border-brand-surfaceBorder p-3 rounded-2xl">
           <div class="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider mb-2 flex justify-between items-center">
-            <span>Simulate Real Barcode Scan</span>
-            <span class="text-brand-secondary">Tap to Scan:</span>
+            <span>Tap to simulate scan:</span>
+            <span class="text-brand-secondary">3-Tier Lookup Active</span>
           </div>
           <div class="flex gap-1.5 overflow-x-auto custom-scroll pb-1">
             <button onclick="scanProduct('8901030762512')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
@@ -248,23 +249,23 @@
               + Tata Tea (₹155)
             </button>
             <button onclick="promptCustomScan()" class="px-2.5 py-1.5 bg-brand-tertiary/20 hover:bg-brand-tertiary/30 border border-brand-tertiary/40 rounded-xl text-[11px] font-bold text-brand-tertiary whitespace-nowrap">
-              + Custom / New Item
+              + Quick Add New Item
             </button>
           </div>
         </div>
 
-        <!-- Cart Items List -->
+        <!-- Cart Items -->
         <div>
           <div class="flex justify-between items-center mb-1">
-            <h3 class="text-xs font-bold text-white">Cart Line Items (<span id="cartCountBadge">0</span>)</h3>
+            <h3 class="text-xs font-bold text-white">Cart Items (<span id="cartCountBadge">0</span>)</h3>
             <button onclick="clearCart()" class="text-[10px] text-red-400 hover:underline">Clear Cart</button>
           </div>
-          <div id="cartItemsContainer" class="space-y-2 max-h-56 overflow-y-auto custom-scroll pr-1">
-            <!-- Empty state or Cart rows -->
+          <div id="cartItemsContainer" class="space-y-2 max-h-52 overflow-y-auto custom-scroll pr-1">
+            <!-- Populated via JS -->
           </div>
         </div>
 
-        <!-- Sticky Totals & Pay -->
+        <!-- Sticky Totals -->
         <div class="bg-brand-surface border border-brand-surfaceBorder p-4 rounded-3xl space-y-3">
           <div class="space-y-1 text-xs">
             <div class="flex justify-between text-brand-muted">
@@ -272,12 +273,8 @@
               <span id="cartSubtotalText" class="text-white font-semibold">₹0.00</span>
             </div>
             <div class="flex justify-between text-brand-muted">
-              <span>GST Total (CGST + SGST):</span>
+              <span>GST (CGST + SGST):</span>
               <span id="cartGstText" class="text-white font-semibold">₹0.00</span>
-            </div>
-            <div class="flex justify-between text-brand-muted">
-              <span>Discount:</span>
-              <span id="cartDiscountText" class="text-green-400 font-semibold">-₹0.00</span>
             </div>
             <div class="border-t border-brand-surfaceBorder pt-2 flex justify-between items-baseline">
               <span class="text-xs font-bold text-brand-muted uppercase">Grand Total:</span>
@@ -285,18 +282,17 @@
             </div>
           </div>
 
-          <!-- Payment Method Selector -->
+          <!-- Payment Mode -->
           <div class="grid grid-cols-4 gap-1.5 pt-1">
             <button onclick="setPaymentMethod('CASH')" id="pay-cash" class="py-1.5 bg-brand-primary text-white text-[10px] font-bold rounded-xl border border-brand-primary">CASH</button>
             <button onclick="setPaymentMethod('UPI')" id="pay-upi" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">UPI QR</button>
             <button onclick="setPaymentMethod('CARD')" id="pay-card" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">CARD</button>
-            <button onclick="setPaymentMethod('MIXED')" id="pay-mixed" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">SPLIT</button>
+            <button onclick="setPaymentMethod('SPLIT')" id="pay-split" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">SPLIT</button>
           </div>
 
-          <!-- Action Button -->
           <button onclick="completeCheckout()" id="checkoutBtn" class="w-full py-3.5 bg-brand-secondary text-black font-extrabold text-sm rounded-2xl hover:bg-emerald-400 active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-lg shadow-brand-secondary/20">
             <span class="material-symbols-outlined text-lg">check_circle</span>
-            PAY & GENERATE INVOICE
+            PAY & PRINT INVOICE
           </button>
         </div>
       </div>
@@ -305,10 +301,9 @@
       <!-- 3. THERMAL RECEIPT & UPI QR SCREEN -->
       <!-- ============================================================ -->
       <div id="screen-receipt" class="hidden space-y-4">
-        <!-- Thermal Receipt Box -->
         <div class="p-5 bg-brand-surface border border-brand-surfaceBorder rounded-3xl space-y-3 text-center">
           <h2 class="text-xl font-black tracking-tight text-white" id="rcptShopName">Super Inventory Store</h2>
-          <p class="text-[11px] text-brand-muted" id="rcptShopAddress">123 Market Road, City Centre</p>
+          <p class="text-[11px] text-brand-muted" id="rcptShopAddress">Main Branch • City Centre Road</p>
           <p class="text-[11px] text-brand-primaryContainer font-bold" id="rcptGstin">GSTIN: 27AAAAA0000A1Z5</p>
           
           <div class="border-t border-dashed border-brand-surfaceBorder my-2"></div>
@@ -320,9 +315,8 @@
 
           <div class="border-t border-dashed border-brand-surfaceBorder my-2"></div>
 
-          <!-- Items Table -->
           <div class="space-y-1 text-left text-xs" id="rcptItemsList">
-            <!-- Line items inserted here -->
+            <!-- Line items -->
           </div>
 
           <div class="border-t border-dashed border-brand-surfaceBorder my-2"></div>
@@ -343,7 +337,7 @@
             <p class="text-[10px] text-brand-secondary font-bold pt-1" id="rcptPayMode">PAID VIA UPI QR</p>
           </div>
 
-          <!-- Dynamic UPI QR Code Section -->
+          <!-- Dynamic UPI QR -->
           <div class="border-t border-dashed border-brand-surfaceBorder pt-3 space-y-2">
             <p class="text-[11px] font-extrabold tracking-wider text-brand-primaryContainer uppercase">SCAN & PAY VIA ANY UPI APP</p>
             <div class="flex justify-center p-3 bg-white rounded-2xl w-fit mx-auto shadow-md" id="qrcodeCanvas"></div>
@@ -353,7 +347,6 @@
           <p class="text-[10px] text-brand-muted pt-1">Thank you for shopping with us! Visit again.</p>
         </div>
 
-        <!-- Action Buttons (Print, WhatsApp, New Bill) -->
         <div class="grid grid-cols-2 gap-2">
           <button onclick="simulatePrint()" class="py-3 bg-brand-primary text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-1.5 hover:bg-brand-primaryGlow transition">
             <span class="material-symbols-outlined text-base">print</span>
@@ -370,15 +363,14 @@
       </div>
 
       <!-- ============================================================ -->
-      <!-- 4. BILL HISTORY & PROFIT ANALYSIS SCREEN -->
+      <!-- 4. BILL HISTORY SCREEN -->
       <!-- ============================================================ -->
       <div id="screen-history" class="hidden space-y-4">
-        <h2 class="text-lg font-black text-white">Monthly Trends & Sales</h2>
+        <h2 class="text-lg font-black text-white">Monthly Trends & Invoices</h2>
         
-        <!-- KPI Cards -->
         <div class="grid grid-cols-2 gap-3">
           <div class="p-4 bg-brand-surface border border-brand-primary/40 rounded-2xl">
-            <p class="text-[10px] font-bold text-brand-muted uppercase">Total Revenue</p>
+            <p class="text-[10px] font-bold text-brand-muted uppercase">Gross Sales</p>
             <p class="text-lg font-black text-white mt-1">₹4,28,500</p>
             <p class="text-[10px] font-bold text-green-400 mt-1 flex items-center gap-0.5">
               <span class="material-symbols-outlined text-xs">trending_up</span> +12.5%
@@ -393,15 +385,14 @@
           </div>
         </div>
 
-        <!-- Invoices List -->
-        <h3 class="text-xs font-extrabold text-brand-muted uppercase tracking-wider pt-2">All Invoices</h3>
+        <h3 class="text-xs font-extrabold text-brand-muted uppercase tracking-wider pt-2">Invoice Records</h3>
         <div class="space-y-2" id="fullHistoryList">
-          <!-- Invoices list -->
+          <!-- Populated by JS -->
         </div>
       </div>
 
       <!-- ============================================================ -->
-      <!-- 5. PRODUCT CATALOG & INVENTORY -->
+      <!-- 5. PRODUCT CATALOG SCREEN -->
       <!-- ============================================================ -->
       <div id="screen-products" class="hidden space-y-3">
         <div class="p-4 rounded-3xl bg-gradient-to-r from-brand-primary to-brand-tertiary flex justify-between items-center shadow-lg">
@@ -414,24 +405,24 @@
           </button>
         </div>
 
-        <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider pt-1">Store Catalog</h3>
+        <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider pt-1">Store Inventory</h3>
         <div class="space-y-2" id="productsCatalogList">
-          <!-- Product list -->
+          <!-- Populated by JS -->
         </div>
       </div>
 
       <!-- ============================================================ -->
-      <!-- 6. BLUETOOTH PRINTER HARDWARE SCREEN -->
+      <!-- 6. BLUETOOTH HARDWARE SCREEN -->
       <!-- ============================================================ -->
       <div id="screen-hardware" class="hidden space-y-4">
-        <h2 class="text-lg font-black text-white">Bluetooth Devices</h2>
+        <h2 class="text-lg font-black text-white">Hardware Devices</h2>
         <div class="p-5 bg-brand-surface border border-brand-secondary/40 rounded-3xl flex items-center gap-4">
           <div class="w-12 h-12 rounded-2xl bg-brand-secondary/20 flex items-center justify-center text-brand-secondary">
             <span class="material-symbols-outlined text-2xl">print</span>
           </div>
           <div class="flex-1">
             <p class="text-sm font-bold text-white">Thermal Receipt Printer</p>
-            <p class="text-xs text-brand-secondary font-semibold">Ready (58mm ESC/POS)</p>
+            <p class="text-xs text-brand-secondary font-semibold">Connected (58mm ESC/POS)</p>
           </div>
           <button onclick="simulatePrint()" class="px-3 py-1.5 bg-brand-primary text-white text-xs font-bold rounded-xl">
             Test Slip
@@ -440,10 +431,10 @@
       </div>
 
       <!-- ============================================================ -->
-      <!-- 7. PREMIUM TOOLKIT & GST -->
+      <!-- 7. PREMIUM GST & EXPIRY TOOLKIT -->
       <!-- ============================================================ -->
       <div id="screen-premium" class="hidden space-y-4">
-        <h2 class="text-lg font-black text-white">Premium Toolkit</h2>
+        <h2 class="text-lg font-black text-white">GST & Expiry Toolkit</h2>
         <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-2">
           <div class="flex justify-between">
             <span class="text-xs font-bold text-white">Q3 Taxable Turnover</span>
@@ -460,32 +451,9 @@
         </div>
       </div>
 
-      <!-- ============================================================ -->
-      <!-- 8. LOGIN / SWITCH SCREEN -->
-      <!-- ============================================================ -->
-      <div id="screen-login" class="hidden space-y-4 py-8 text-center">
-        <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-brand-primary to-brand-tertiary mx-auto flex items-center justify-center text-white text-3xl font-black">
-          SI
-        </div>
-        <h2 class="text-2xl font-black">Super Inventory</h2>
-        <p class="text-xs text-brand-muted">For All Inventory Ecosystem</p>
-
-        <div class="p-6 bg-brand-surface border border-brand-surfaceBorder rounded-3xl space-y-3 mt-4 text-left">
-          <button onclick="switchUserRole('Admin Owner')" class="w-full py-3 bg-brand-primary text-white font-bold rounded-xl text-xs">
-            Continue as Admin Owner
-          </button>
-          <button onclick="switchUserRole('Store Manager')" class="w-full py-3 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-secondary font-bold rounded-xl text-xs">
-            Continue as Store Manager
-          </button>
-          <button onclick="switchUserRole('Cashier Seller')" class="w-full py-3 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-tertiary font-bold rounded-xl text-xs">
-            Continue as Cashier Seller
-          </button>
-        </div>
-      </div>
-
     </div>
 
-    <!-- BOTTOM APP NAVIGATION BAR -->
+    <!-- BOTTOM APP NAVIGATION -->
     <nav class="w-full bg-brand-surface/95 backdrop-blur-md border-t border-brand-surfaceBorder px-4 py-2 flex justify-between items-center absolute bottom-0 left-0 z-30">
       <button onclick="switchScreen('dashboard')" id="nav-home" class="flex flex-col items-center gap-0.5 text-brand-primaryContainer">
         <span class="material-symbols-outlined text-2xl">dashboard</span>
@@ -515,7 +483,6 @@
   </div>
 
   <script>
-    // In-memory Database & Catalog
     const sampleProducts = [
       { id: 1, barcode: '8901030762512', name: 'Parle-G Gold Biscuits 800g', price: 80.0, gst: 5.0, qty: 120, unit: 'pack' },
       { id: 2, barcode: '8901058000491', name: 'Amul Butter 500g', price: 275.0, gst: 12.0, qty: 45, unit: 'pack' },
@@ -532,8 +499,12 @@
       { id: 'INV-20260901-0012', total: 45.0, items: 1, time: '40 mins ago', status: 'Paid' },
     ];
 
+    function changeBranch(branchName) {
+      document.getElementById('currentBranchDisplay').innerText = branchName;
+    }
+
     function switchScreen(screenId) {
-      const screens = ['dashboard', 'billing', 'receipt', 'history', 'products', 'hardware', 'premium', 'login', 'inventory'];
+      const screens = ['dashboard', 'billing', 'receipt', 'history', 'products', 'hardware', 'premium', 'inventory'];
       screens.forEach(s => {
         const el = document.getElementById(`screen-${s}`);
         if (el) el.classList.add('hidden');
@@ -541,15 +512,9 @@
       const target = document.getElementById(`screen-${screenId}`);
       if (target) target.classList.remove('hidden');
 
-      // Refresh data
       if (screenId === 'dashboard') renderDashboard();
       if (screenId === 'products') renderProducts();
       if (screenId === 'history') renderHistory();
-    }
-
-    function switchUserRole(role) {
-      document.getElementById('cashierBadgeText').innerText = `${role} • Counter 1`;
-      switchScreen('dashboard');
     }
 
     function scanProduct(barcode) {
@@ -597,7 +562,7 @@
 
     function setPaymentMethod(mode) {
       paymentMode = mode;
-      ['cash', 'upi', 'card', 'mixed'].forEach(m => {
+      ['cash', 'upi', 'card', 'split'].forEach(m => {
         const btn = document.getElementById(`pay-${m}`);
         if (btn) {
           if (m.toUpperCase() === mode) {
@@ -671,7 +636,6 @@
       const grandTotal = subtotal + totalGst;
       const invNo = `INV-20260901-${String(Math.floor(1000 + Math.random() * 9000))}`;
 
-      // Populate Receipt Screen
       document.getElementById('rcptInvoiceNo').innerText = invNo;
       document.getElementById('rcptSubtotal').innerText = `₹${subtotal.toFixed(2)}`;
       document.getElementById('rcptTax').innerText = `₹${totalGst.toFixed(2)}`;
@@ -685,7 +649,6 @@
         </div>
       `).join('');
 
-      // Generate Live UPI QR Code
       const qrEl = document.getElementById('qrcodeCanvas');
       qrEl.innerHTML = '';
       const upiUrl = `upi://pay?pa=superinventory@upi&pn=Super+Inventory&am=${grandTotal.toFixed(2)}&tn=${invNo}&cu=INR`;
@@ -698,7 +661,6 @@
         correctLevel: QRCode.CorrectLevel.M
       });
 
-      // Add to completed invoices
       completedInvoices.unshift({
         id: invNo,
         total: grandTotal,
