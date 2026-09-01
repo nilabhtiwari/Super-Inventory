@@ -262,39 +262,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Form(
-              key: _formKey,
-              // CONSTRAINED COMPACT PROFESSIONAL WIDTH
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 380),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Seamless Transparent Logo
-                    Center(
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        height: 58,
-                        fit: BoxFit.contain,
-                        errorBuilder: (ctx, err, stack) => const Icon(
-                          Icons.qr_code_scanner_rounded,
-                          size: 42,
-                          color: AppTheme.primaryContainer,
+            physics: const ClampingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Center(
+              child: Form(
+                key: _formKey,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 380),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // High-Contrast Transparent Logo
+                      Center(
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          height: 65,
+                          fit: BoxFit.contain,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'For All Inventory Ecosystem',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(height: 8),
+                      const Text(
+                        'For All Inventory Ecosystem',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
                     const SizedBox(height: 22),
 
                     // Google OAuth Button
