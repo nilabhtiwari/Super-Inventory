@@ -230,31 +230,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // BRAND LOGO HEADER
+                    // BRAND LOGO HEADER WITH WHITE CAPITAL 'S' + ARROW
                     Center(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            width: 44,
-                            height: 44,
+                            height: 46,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFFFF6A00), Color(0xFF00D4AA)],
+                                colors: [Color(0xFFFF6A00), Color(0xFF1E1035)],
                                 begin: Alignment.bottomLeft,
                                 end: Alignment.topRight,
                               ),
                               borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: const Color(0xFFFF6A00).withOpacity(0.5)),
                               boxShadow: [
                                 BoxShadow(
                                   color: const Color(0xFFFF6A00).withOpacity(0.35),
-                                  blurRadius: 18,
+                                  blurRadius: 16,
                                   offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
-                            child: const Center(
-                              child: Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 24),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'S',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Icon(
+                                  Icons.arrow_upward_rounded,
+                                  color: Color(0xFF00D4AA),
+                                  size: 22,
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 12),
