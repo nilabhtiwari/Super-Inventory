@@ -1296,38 +1296,60 @@
       }
       document.getElementById('emailErrorText').classList.add('hidden');
 
-      if (currentAuthMode === 'login') {
-        if (!pw) {
-          alert('Please enter your password.');
-          return;
-        }
-        document.getElementById('settingsUserEmail').innerText = identifier;
-        alert(`✓ Authentication successful! Logged in as ${identifier}.`);
-        switchScreen('dashboard');
-      } else if (currentAuthMode === 'signup') {
-        const storeName = document.getElementById('authStoreName').value.trim() || 'Super Inventory';
-        const phone = document.getElementById('authSignupPhone').value.trim() || '+91 9876543210';
-        
-        // Auto-configure store
-        document.getElementById('headerShopName').innerText = storeName;
-        document.getElementById('settingsStoreName').innerText = storeName;
-        document.getElementById('settingsUserEmail').innerText = identifier;
-        document.getElementById('drawerPhone').innerText = phone;
-        document.getElementById('rcptShopName').innerText = storeName;
+      if (currentAuthMode === 'login' && !pw) {
+        alert('Please enter your password.');
+        return;
+      }
 
-        alert(`🎉 Account created for "${storeName}"! Instant launch to dashboard.`);
-        switchScreen('dashboard');
-      } else if (currentAuthMode === 'forgot') {
+      if (currentAuthMode === 'forgot') {
         const newPw = document.getElementById('authNewPasswordInput').value.trim();
         if (!newPw || newPw.length < 6) {
           alert('Please enter a new password (at least 6 characters).');
           return;
         }
-        document.getElementById('settingsUserEmail').innerText = identifier;
-        alert(`✓ Password successfully reset for ${identifier}! Signed in with new credentials.`);
-        setAuthView('login');
-        switchScreen('dashboard');
       }
+
+      // Format OTP Target (Email or Phone)
+      const isPhone = /^[0-9+ ]+$/.test(identifier);
+      const targetLabel = isPhone ? `Mobile SMS (${identifier})` : `Email Inbox (${identifier})`;
+      document.getElementById('otpTargetEmail').innerText = targetLabel;
+      document.getElementById('settingsUserEmail').innerText = identifier;
+
+      // Show OTP Verification Modal
+      document.getElementById('otpModal').classList.remove('hidden');
+    }
+
+    function verifyOtpAndLogin() {
+      const identifier = document.getElementById('authEmailInput').value.trim();
+      closeOtpModal();
+
+      if (currentAuthMode === 'signup') {
+        const storeName = document.getElementById('authStoreName').value.trim() || 'Super Inventory';
+        const phone = document.getElementById('authSignupPhone').value.trim() || '+91 9876543210';
+        document.getElementById('headerShopName').innerText = storeName;
+        document.getElementById('settingsStoreName').innerText = storeName;
+        document.getElementById('drawerPhone').innerText = phone;
+        document.getElementById('rcptShopName').innerText = storeName;
+        alert(`✓ OTP Verified! Account created for "${storeName}". Welcome to Super Inventory!`);
+      } else if (currentAuthMode === 'forgot') {
+        alert(`✓ OTP Verified! Password successfully updated for ${identifier}.`);
+        setAuthView('login');
+      } else {
+        alert(`✓ OTP Verified! Signed in successfully as ${identifier}.`);
+      }
+
+      switchScreen('dashboard');
+    }
+
+    function handleOtpInput(index, event) {
+      if (event.target.value && index < 6) {
+        const nextInput = document.getElementById(`otp-${index + 1}`);
+        if (nextInput) nextInput.focus();
+      }
+    }
+
+    function closeOtpModal() {
+      document.getElementById('otpModal').classList.add('hidden');
     }
 
     function handleGoogleSignIn() {

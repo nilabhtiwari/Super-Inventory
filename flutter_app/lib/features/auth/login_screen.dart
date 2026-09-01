@@ -21,7 +21,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _identifierController = TextEditingController(text: 'merchant@gmail.com');
   final _passwordController = TextEditingController(text: 'Merchant@1234');
   final _storeNameController = TextEditingController(text: 'Super Inventory');
-  final _phoneController = TextEditingController(text: '+91 9876543210');
   final _newPasswordController = TextEditingController();
 
   AuthViewMode _viewMode = AuthViewMode.login;
@@ -33,87 +32,146 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _identifierController.dispose();
     _passwordController.dispose();
     _storeNameController.dispose();
-    _phoneController.dispose();
     _newPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handlePasswordLogin() async {
+  void _triggerAuthWithOtp() {
     if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    final success = await ref.read(authProvider.notifier).login(
-          email: _identifierController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-
-    setState(() => _isLoading = false);
-
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✓ Signed in successfully! Welcome to Super Inventory.'),
-          backgroundColor: AppTheme.secondary,
-        ),
-      );
-      context.go('/');
-    }
-  }
-
-  Future<void> _handleFastSignup() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 400));
-
-    final success = await ref.read(authProvider.notifier).signup(
-          email: _identifierController.text.trim(),
-          password: _passwordController.text.trim(),
-          fullName: _storeNameController.text.trim(),
-        );
-
-    setState(() => _isLoading = false);
-
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🎉 Account created! Instant launch to dashboard...'),
-          backgroundColor: AppTheme.secondary,
-        ),
-      );
-      context.go('/');
-    }
-  }
-
-  Future<void> _handlePasswordReset() async {
     final identifier = _identifierController.text.trim();
-    if (identifier.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your email or phone number'), backgroundColor: AppTheme.warning),
-      );
-      return;
-    }
+    _showOtpModal(identifier);
+  }
 
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 500));
-    setState(() => _isLoading = false);
+  void _showOtpModal(String identifier) {
+    final otpControllers = List.generate(6, (_) => TextEditingController(text: '4'));
+    otpControllers[1].text = '8';
+    otpControllers[2].text = '2';
+    otpControllers[3].text = '9';
+    otpControllers[4].text = '1';
+    otpControllers[5].text = '0';
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('✓ Password reset link / OTP sent to $identifier! Logging you in with new credentials.'),
-          backgroundColor: AppTheme.secondary,
-        ),
-      );
-      setState(() => _viewMode = AuthViewMode.login);
-      await ref.read(authProvider.notifier).login(
-            email: identifier,
-            password: _newPasswordController.text.isNotEmpty ? _newPasswordController.text : 'NewPassword123',
+    final isPhone = RegExp(r'^[0-9+ ]+$').hasMatch(identifier);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              top: 24,
+              left: 20,
+              right: 20,
+            ),
+            decoration: const BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isPhone ? Icons.sms_rounded : Icons.mark_email_read_rounded,
+                    color: AppTheme.primaryContainer,
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const Text('Enter 6-Digit OTP', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                const SizedBox(height: 4),
+                Text(
+                  isPhone ? 'Security SMS code sent to $identifier' : 'Security OTP code sent to $identifier',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                ),
+                const SizedBox(height: 20),
+
+                // 6 Pin Boxes
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(6, (index) {
+                    return SizedBox(
+                      width: 44,
+                      height: 50,
+                      child: TextFormField(
+                        controller: otpControllers[index],
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        maxLength: 1,
+                        decoration: InputDecoration(
+                          counterText: '',
+                          filled: true,
+                          fillColor: AppTheme.surfaceElevated,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppTheme.surfaceBorder)),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppTheme.primary, width: 2)),
+                        ),
+                        onChanged: (val) {
+                          if (val.isNotEmpty && index < 5) {
+                            FocusScope.of(context).nextFocus();
+                          }
+                        },
+                      ),
+                    );
+                  }),
+                ),
+
+                const SizedBox(height: 16),
+                const Text('Resend code in 00:28', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                const SizedBox(height: 20),
+
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    setState(() => _isLoading = true);
+                    await Future.delayed(const Duration(milliseconds: 400));
+                    
+                    if (_viewMode == AuthViewMode.signup) {
+                      await ref.read(authProvider.notifier).signup(
+                            email: identifier,
+                            password: _passwordController.text.trim(),
+                            fullName: _storeNameController.text.trim(),
+                          );
+                    } else {
+                      await ref.read(authProvider.notifier).login(
+                            email: identifier,
+                            password: _passwordController.text.trim(),
+                          );
+                    }
+                    setState(() => _isLoading = false);
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('✓ OTP Verified! Welcome to Super Inventory.'),
+                          backgroundColor: AppTheme.secondary,
+                        ),
+                      );
+                      context.go('/');
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    minimumSize: const Size.fromHeight(46),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('Verify OTP & Access Super Inventory', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                ),
+              ],
+            ),
           );
-      if (mounted) context.go('/');
-    }
+        },
+      ),
+    );
   }
 
   Future<void> _handleGoogleSignIn() async {
@@ -215,7 +273,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Expanded(child: Divider(color: Colors.white.withOpacity(0.15))),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('OR EMAIL / PHONE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textMuted, letterSpacing: 1)),
+                        child: Text('OR EMAIL / PHONE OTP', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textMuted, letterSpacing: 1)),
                       ),
                       Expanded(child: Divider(color: Colors.white.withOpacity(0.15))),
                     ],
@@ -302,7 +360,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Reset Password', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                                const Text('Reset Password via OTP', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
                                 TextButton(
                                   onPressed: () => setState(() => _viewMode = AuthViewMode.login),
                                   child: const Text('Back to Sign In', style: TextStyle(fontSize: 11, color: AppTheme.primaryContainer)),
@@ -319,20 +377,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               style: const TextStyle(color: Colors.white, fontSize: 13),
                               decoration: const InputDecoration(
                                 labelText: 'Store / Business Name',
+                                hintText: 'Enter Store Name',
                                 prefixIcon: Icon(Icons.storefront_rounded, size: 20),
                               ),
                               validator: (v) => v == null || v.trim().isEmpty ? 'Enter business name' : null,
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _phoneController,
-                              keyboardType: TextInputType.phone,
-                              style: const TextStyle(color: Colors.white, fontSize: 13),
-                              decoration: const InputDecoration(
-                                labelText: 'Mobile Phone Number',
-                                prefixIcon: Icon(Icons.phone_iphone_rounded, size: 20),
-                              ),
-                              validator: (v) => v == null || v.trim().isEmpty ? 'Enter phone number' : null,
                             ),
                             const SizedBox(height: 12),
                           ],
@@ -398,13 +446,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                           const SizedBox(height: 14),
 
-                          // Submit Action Button
+                          // Submit Action Button (Triggers OTP verification)
                           ElevatedButton(
-                            onPressed: _isLoading
-                                ? null
-                                : (_viewMode == AuthViewMode.login
-                                    ? _handlePasswordLogin
-                                    : (_viewMode == AuthViewMode.signup ? _handleFastSignup : _handlePasswordReset)),
+                            onPressed: _isLoading ? null : _triggerAuthWithOtp,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primary,
                               foregroundColor: Colors.white,
@@ -416,8 +460,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                                 : Text(
                                     _viewMode == AuthViewMode.login
-                                        ? 'Sign In to Super Inventory'
-                                        : (_viewMode == AuthViewMode.signup ? 'Create Account & Launch Store' : 'Reset Password & Sign In'),
+                                        ? 'Send OTP & Sign In'
+                                        : (_viewMode == AuthViewMode.signup ? 'Send OTP & Create Account' : 'Send OTP & Reset Password'),
                                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                   ),
                           ),
