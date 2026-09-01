@@ -294,61 +294,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // GOOGLE & BIOMETRICS ROW
-                    Row(
-                      children: [
-                        // Continue with Google
-                        Expanded(
-                          flex: 3,
-                          child: OutlinedButton(
-                            onPressed: _isLoading ? null : _handleGoogleSignIn,
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black87,
-                              padding: const EdgeInsets.symmetric(vertical: 11),
-                              side: BorderSide.none,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              elevation: 2,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.network(
-                                  'https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg',
-                                  width: 17,
-                                  height: 17,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 20, color: Colors.blue),
-                                ),
-                                const SizedBox(width: 8),
-                                const Text('Google', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
-                              ],
-                            ),
+                    // FULL-WIDTH CLEAN GOOGLE ONE-TAP BUTTON AT TOP
+                    OutlinedButton(
+                      onPressed: _isLoading ? null : _handleGoogleSignIn,
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide.none,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        elevation: 2,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.network(
+                            'https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg',
+                            width: 18,
+                            height: 18,
+                            errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 22, color: Colors.blue),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        // Biometrics One-Tap Button
-                        Expanded(
-                          flex: 3,
-                          child: OutlinedButton(
-                            onPressed: _isLoading ? null : _handleBiometricAuth,
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: const Color(0xFF161926),
-                              foregroundColor: AppTheme.secondary,
-                              padding: const EdgeInsets.symmetric(vertical: 11),
-                              side: const BorderSide(color: Color(0xFF282D42)),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.fingerprint_rounded, size: 18, color: AppTheme.secondary),
-                                SizedBox(width: 8),
-                                Text('Biometrics', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                          const SizedBox(width: 10),
+                          const Text('Continue with Google', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        ],
+                      ),
                     ),
 
                     const SizedBox(height: 14),
@@ -519,6 +488,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         Text('Send OTP & Verify', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                                       ],
                                     ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          // BIOMETRICS OPTION AT THE BOTTOM OF CARD
+                          OutlinedButton.icon(
+                            onPressed: _isLoading ? null : _handleBiometricAuth,
+                            icon: const Icon(Icons.fingerprint_rounded, size: 20, color: AppTheme.secondary),
+                            label: const Text('Unlock with Biometrics', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: const Color(0xFF161926),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              side: const BorderSide(color: Color(0xFF282D42)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ],
