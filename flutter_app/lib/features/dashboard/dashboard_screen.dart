@@ -811,6 +811,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     },
                   ),
                   ListTile(
+                    leading: const Icon(Icons.insights_rounded, color: Color(0xFF00D4AA)),
+                    title: const Text('Financial Insights & P&L', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/finance');
+                    },
+                  ),
+                  ListTile(
                     leading: const Icon(Icons.print_rounded, color: AppTheme.secondary),
                     title: const Text('Thermal Printer Settings', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                     onTap: () {

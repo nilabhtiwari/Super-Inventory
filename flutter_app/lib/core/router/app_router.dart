@@ -13,6 +13,7 @@ import '../../features/products/add_edit_product_screen.dart';
 import '../../features/inventory/inventory_screen.dart';
 import '../../features/hardware/bluetooth_device_screen.dart';
 import '../../features/reports/reports_screen.dart';
+import '../../features/reports/finance_insights_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/settings/edit_profile_screen.dart';
 import '../../features/shell/main_shell.dart';
@@ -84,6 +85,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/edit-profile',
         builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/finance',
+        builder: (context, state) => const FinanceInsightsScreen(),
       ),
       GoRoute(
         path: '/hardware',
