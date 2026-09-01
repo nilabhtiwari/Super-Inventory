@@ -173,7 +173,7 @@
 
         <!-- Drawer Navigation Links -->
         <div class="space-y-1.5 pt-2">
-          <button onclick="toggleStoreDrawer(); openProfileEditModal();" class="w-full py-2.5 px-3 bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-xs font-bold rounded-xl flex items-center gap-2.5 hover:border-brand-primary transition">
+          <button onclick="toggleStoreDrawer(); switchScreen('edit-profile');" class="w-full py-2.5 px-3 bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-xs font-bold rounded-xl flex items-center gap-2.5 hover:border-brand-primary transition">
             <span class="material-symbols-outlined text-brand-primary text-base">edit_square</span>
             Edit Profile & Ads
           </button>
@@ -608,7 +608,7 @@
         <h2 class="text-lg font-black text-white">Settings & Store Profile</h2>
         
         <!-- 1. CLICKABLE PROFILE CARD -->
-        <div onclick="openProfileEditModal()" class="p-4 bg-gradient-to-r from-brand-primary to-brand-tertiary rounded-2xl space-y-2 cursor-pointer hover:opacity-95 shadow-lg transition text-left">
+        <div onclick="switchScreen('edit-profile')" class="p-4 bg-gradient-to-r from-brand-primary to-brand-tertiary rounded-2xl space-y-2 cursor-pointer hover:opacity-95 shadow-lg transition text-left">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="w-12 h-12 rounded-2xl bg-white/20 border border-white/40 flex items-center justify-center text-white">
@@ -617,7 +617,7 @@
               <div>
                 <p class="text-sm font-black text-white" id="settingsStoreName">Super Inventory</p>
                 <p class="text-[11px] text-white/80" id="settingsTimingsDisplay">Hours: Mon-Sun 8:00 AM - 10:30 PM</p>
-                <p class="text-[10px] text-white/70">Helpline: 9876543210</p>
+                <p class="text-[10px] text-white/70">Helpline: +91 9876543210</p>
               </div>
             </div>
             <span class="text-xs bg-black/30 text-white font-bold px-2.5 py-1 rounded-lg">Edit Profile & Ads →</span>
@@ -685,6 +685,112 @@
           <button onclick="handleLogOut()" class="w-full py-3 bg-red-500/10 border border-red-500/40 text-red-400 font-extrabold text-xs rounded-2xl hover:bg-red-500/20 active:scale-95 transition flex items-center justify-center gap-2">
             <span class="material-symbols-outlined text-base">logout</span>
             LOG OUT OF SUPER INVENTORY
+          </button>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- DEDICATED STITCH BUSINESS PROFILE & ADS EDITOR SCREEN -->
+      <!-- ============================================================ -->
+      <div id="screen-edit-profile" class="hidden space-y-4 text-left">
+        <!-- Sub-page Header -->
+        <div class="flex items-center justify-between pb-2 border-b border-brand-surfaceBorder">
+          <button onclick="switchScreen('settings')" class="p-2 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-white hover:bg-brand-surface transition flex items-center">
+            <span class="material-symbols-outlined text-lg">arrow_back</span>
+          </button>
+          <h2 class="text-sm font-black text-white">Edit Profile & Ads</h2>
+          <div class="w-8"></div>
+        </div>
+
+        <!-- 1. Photo Upload Section -->
+        <div class="flex flex-col items-center justify-center py-2">
+          <div class="relative group cursor-pointer">
+            <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-brand-primary to-brand-secondary border-4 border-white/20 flex items-center justify-center shadow-lg">
+              <span class="material-symbols-outlined text-white text-3xl">storefront</span>
+            </div>
+            <div class="absolute bottom-0 right-0 bg-brand-secondary text-black w-6 h-6 rounded-full flex items-center justify-center shadow-md">
+              <span class="material-symbols-outlined text-xs">edit</span>
+            </div>
+          </div>
+          <p class="text-[11px] text-brand-muted mt-2 font-medium">Business or Store Photo</p>
+        </div>
+
+        <!-- 2. Basic Information Form -->
+        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3 shadow-md">
+          <h3 class="text-xs font-bold text-brand-primaryContainer flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base">storefront</span> Basic Details
+          </h3>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-brand-muted block">Business Name</label>
+            <input type="text" id="stitchBusinessName" value="Super Inventory" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" placeholder="Enter business name" />
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-brand-muted block">Phone Number (Customer Support & Grievances)</label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3 top-2 text-brand-muted text-base">call</span>
+              <input type="tel" id="stitchPhone" value="+91 9876543210" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl pl-9 pr-3 py-2 text-xs text-white outline-none focus:border-brand-primary" placeholder="Enter phone number" />
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-brand-muted block">Location / Address</label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3 top-2.5 text-brand-muted text-base">location_on</span>
+              <textarea id="stitchAddress" rows="2" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl pl-9 pr-3 py-2 text-xs text-white outline-none focus:border-brand-primary resize-none" placeholder="Enter store address">123 Market Street, City Centre</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Availability Section -->
+        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3 shadow-md">
+          <h3 class="text-xs font-bold text-brand-secondary flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base">schedule</span> Operating Hours
+          </h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[10px] font-bold text-brand-muted block mb-1">Opening Time</label>
+              <input type="text" id="stitchOpenTime" value="08:00 AM" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-brand-muted block mb-1">Closing Time</label>
+              <input type="text" id="stitchCloseTime" value="10:30 PM" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Promotional Section -->
+        <div class="p-4 bg-[#1C1428] border border-brand-tertiary/30 rounded-2xl space-y-3 shadow-md relative overflow-hidden">
+          <div class="absolute -right-4 -top-4 w-16 h-16 bg-brand-tertiary/20 rounded-full blur-xl"></div>
+          <h3 class="text-xs font-bold text-brand-tertiary flex items-center gap-1.5 relative z-10">
+            <span class="material-symbols-outlined text-base">celebration</span> Offers & Announcements
+          </h3>
+          <div class="space-y-1 relative z-10">
+            <label class="text-[10px] font-bold text-brand-muted block">Current Promotion (Shows on receipts & bills)</label>
+            <textarea id="stitchOffer" rows="2" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-tertiary resize-none" placeholder="E.g., 10% off on festive season!">🎉 Festive Special: Flat 10% OFF on purchases above ₹1,000! Call for free home delivery.</textarea>
+          </div>
+        </div>
+
+        <!-- 5. Products Sold Summary -->
+        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3 shadow-md">
+          <h3 class="text-xs font-bold text-brand-primaryContainer flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base">category</span> Top Categories Sold
+          </h3>
+          <div class="flex flex-wrap gap-2 pt-1">
+            <span class="px-2.5 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-[11px] font-medium rounded-full">Groceries</span>
+            <span class="px-2.5 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-[11px] font-medium rounded-full">Dairy & Beverages</span>
+            <span class="px-2.5 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-[11px] font-medium rounded-full">Daily Essentials</span>
+            <span class="px-2.5 py-1 border border-dashed border-brand-primaryContainer text-brand-primaryContainer text-[11px] font-medium rounded-full cursor-pointer flex items-center gap-1">+ Add more</span>
+          </div>
+        </div>
+
+        <!-- 6. Save Action Area -->
+        <div class="pt-2 pb-6 space-y-3">
+          <div class="bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl p-3 flex items-start gap-2.5 text-[10px] text-brand-muted">
+            <span class="material-symbols-outlined text-brand-primary text-sm mt-0.5">info</span>
+            <span>The details provided above will be printed on customer bills and digital receipts for customer support and promotional advertising.</span>
+          </div>
+          <button onclick="saveStitchProfileUpdates()" class="w-full bg-brand-primary hover:bg-brand-primaryGlow text-white font-extrabold text-xs py-3.5 rounded-2xl shadow-lg transition flex items-center justify-center gap-2 active:scale-95">
+            <span class="material-symbols-outlined text-base">save</span>
+            Save Profile Updates
           </button>
         </div>
       </div>
@@ -912,44 +1018,37 @@
       }
     }
 
-    function openProfileEditModal() {
-      document.getElementById('profileEditModal').classList.remove('hidden');
-    }
-
-    function closeProfileEditModal() {
-      document.getElementById('profileEditModal').classList.add('hidden');
-    }
-
-    function saveBusinessProfile() {
-      const name = document.getElementById('profStoreNameInput').value.trim();
-      const phone = document.getElementById('profPhoneInput').value.trim();
-      const helpline = document.getElementById('profHelplineInput').value.trim();
-      const address = document.getElementById('profAddressInput').value.trim();
-      const timings = document.getElementById('profTimingsInput').value.trim();
-      const offer = document.getElementById('profOfferInput').value.trim();
+    function saveStitchProfileUpdates() {
+      const name = document.getElementById('stitchBusinessName').value.trim();
+      const phone = document.getElementById('stitchPhone').value.trim();
+      const address = document.getElementById('stitchAddress').value.trim();
+      const openTime = document.getElementById('stitchOpenTime').value.trim();
+      const closeTime = document.getElementById('stitchCloseTime').value.trim();
+      const offer = document.getElementById('stitchOffer').value.trim();
+      const timings = `${openTime} - ${closeTime}`;
 
       // Update Header & Side Drawer
       document.getElementById('headerShopName').innerText = name || 'Super Inventory';
       document.getElementById('headerStoreStatus').innerText = `OPEN • ${timings}`;
       document.getElementById('drawerShopName').innerText = name || 'Super Inventory';
       document.getElementById('drawerTimings').innerText = timings;
-      document.getElementById('drawerPhone').innerText = helpline || phone;
+      document.getElementById('drawerPhone').innerText = phone;
       document.getElementById('drawerAddress').innerText = address;
       document.getElementById('drawerOffer').innerText = offer;
 
-      // Update Settings Profile Banner
+      // Update Settings Screen Banner
       document.getElementById('settingsStoreName').innerText = name || 'Super Inventory';
       document.getElementById('settingsTimingsDisplay').innerText = `Hours: ${timings}`;
 
-      // Update Live Receipt Fields
+      // Update Live Thermal Receipt Fields & Ads
       document.getElementById('rcptShopName').innerText = name || 'Super Inventory';
       document.getElementById('rcptShopAddress').innerText = address;
       document.getElementById('rcptTimings').innerText = timings;
-      document.getElementById('rcptHelpline').innerText = helpline || phone;
+      document.getElementById('rcptHelpline').innerText = phone;
       document.getElementById('rcptOfferBanner').innerText = offer;
 
-      closeProfileEditModal();
-      alert('✓ Business Profile, Header, & Receipt Ads updated successfully!');
+      alert('✓ Profile updates saved! Details are now synchronized across Dashboard, Drawer, Settings, and Thermal Receipts.');
+      switchScreen('settings');
     }
 
     function setFinancialTab(tab) {

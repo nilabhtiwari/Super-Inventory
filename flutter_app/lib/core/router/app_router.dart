@@ -14,6 +14,7 @@ import '../../features/inventory/inventory_screen.dart';
 import '../../features/hardware/bluetooth_device_screen.dart';
 import '../../features/reports/reports_screen.dart';
 import '../../features/settings/settings_screen.dart';
+import '../../features/settings/edit_profile_screen.dart';
 import '../../features/shell/main_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -79,6 +80,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/inventory',
         builder: (context, state) => const InventoryScreen(),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        builder: (context, state) => const EditProfileScreen(),
       ),
       GoRoute(
         path: '/hardware',

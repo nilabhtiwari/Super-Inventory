@@ -289,7 +289,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // 1. CLICKABLE PROFILE CARD WITH EDIT ACTION
               // ============================================================
               InkWell(
-                onTap: _openEditProfileModal,
+                onTap: () => context.push('/edit-profile'),
                 borderRadius: BorderRadius.circular(24),
                 child: Container(
                   padding: const EdgeInsets.all(18),

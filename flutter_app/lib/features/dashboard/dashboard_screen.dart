@@ -807,7 +807,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     title: const Text('Edit Business Profile & Ads', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                     onTap: () {
                       Navigator.pop(context);
-                      context.push('/settings');
+                      context.push('/edit-profile');
                     },
                   ),
                   ListTile(
