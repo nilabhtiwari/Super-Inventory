@@ -544,12 +544,18 @@
       <!-- ============================================================ -->
       <!-- 9. EXACT STITCH LOGIN & GOOGLE AUTH / GMAIL OTP PAGE (CENTERED) -->
       <!-- ============================================================ -->
-      <div id="screen-login" class="hidden min-h-[700px] flex flex-col justify-center items-center py-4 px-2 text-center max-w-[360px] mx-auto">
-        <!-- High-Contrast Super Inventory Logo -->
-        <div class="flex justify-center items-center py-1">
-          <img src="logo.png" alt="Super Inventory Logo" class="h-14 object-contain" />
+      <div id="screen-login" class="hidden min-h-[720px] flex flex-col justify-center items-center py-6 px-3 text-center max-w-[350px] mx-auto">
+        <!-- Razor-Sharp Super Inventory Brand Header -->
+        <div class="flex items-center justify-center gap-3 mb-1">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#FF6A00] to-[#00D4AA] flex items-center justify-center shadow-lg shadow-orange-500/20">
+            <span class="material-symbols-outlined text-white text-xl">arrow_upward</span>
+          </div>
+          <div class="text-left leading-tight">
+            <div class="text-sm font-black tracking-widest text-white">SUPER</div>
+            <div class="text-sm font-black tracking-widest text-white">INVENTORY</div>
+          </div>
         </div>
-        <p class="text-[11px] text-brand-muted -mt-1.5 mb-2">For All Inventory Ecosystem</p>
+        <p class="text-[10px] text-brand-muted font-medium mb-4">For All Inventory Ecosystem</p>
 
         <!-- Continue with Google Button -->
         <button onclick="handleGoogleSignIn()" class="w-full py-2.5 bg-white text-black font-extrabold text-xs rounded-xl shadow hover:bg-gray-100 active:scale-95 transition flex items-center justify-center gap-2">
@@ -562,52 +568,50 @@
           Continue with Google
         </button>
 
-        <div class="flex items-center gap-2 pt-0.5">
-          <div class="flex-1 h-[1px] bg-brand-surfaceBorder"></div>
-          <span class="text-[9px] font-bold text-brand-muted uppercase tracking-wider">OR SIGN IN WITH GMAIL</span>
-          <div class="flex-1 h-[1px] bg-brand-surfaceBorder"></div>
+        <div class="flex items-center gap-2 w-full my-3">
+          <div class="flex-1 h-[1px] bg-white/10"></div>
+          <span class="text-[9px] font-bold text-brand-muted uppercase tracking-wider">OR EMAIL</span>
+          <div class="flex-1 h-[1px] bg-white/10"></div>
         </div>
 
-        <!-- Glass Auth Box with Refined Width & Proportional Padding -->
-        <div class="p-5 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3.5 text-left shadow-xl">
-          <div class="p-1 bg-brand-surfaceElevated rounded-xl flex">
-            <button onclick="setAuthTab('login')" id="tab-login" class="flex-1 py-1.5 bg-white text-brand-primary font-bold text-xs rounded-lg shadow">Login</button>
+        <!-- Sleek Auth Box -->
+        <div class="w-full p-4 bg-[#11131D] border border-white/10 rounded-2xl space-y-3 text-left shadow-2xl">
+          <div class="p-1 bg-[#1A1D2C] rounded-xl flex">
+            <button onclick="setAuthTab('login')" id="tab-login" class="flex-1 py-1.5 bg-white text-black font-bold text-xs rounded-lg shadow">Login</button>
             <button onclick="setAuthTab('signup')" id="tab-signup" class="flex-1 py-1.5 text-brand-muted font-bold text-xs rounded-lg">Sign Up</button>
           </div>
 
-          <div id="authSignupFields" class="hidden space-y-2.5">
+          <div id="authSignupFields" class="hidden space-y-2">
             <div>
-              <label class="text-[10px] font-bold text-brand-muted block mb-1">Full Name</label>
-              <input type="text" id="authFullName" placeholder="Rajesh Kumar" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+              <label class="text-[10px] font-semibold text-brand-muted block mb-1">Full Name</label>
+              <input type="text" id="authFullName" placeholder="Rajesh Kumar" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
             </div>
           </div>
 
-          <div class="space-y-2.5">
+          <div class="space-y-2">
             <div>
-              <label class="text-[10px] font-bold text-brand-muted block mb-1">Gmail / Work Email Address *</label>
-              <input type="email" id="authEmailInput" placeholder="merchant@gmail.com" value="merchant@gmail.com" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
-              <p id="emailErrorText" class="hidden text-[10px] text-red-400 font-bold mt-1">Please enter a valid email address (e.g. name@gmail.com)</p>
+              <label class="text-[10px] font-semibold text-brand-muted block mb-1">Gmail / Work Email Address</label>
+              <input type="email" id="authEmailInput" placeholder="merchant@gmail.com" value="merchant@gmail.com" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+              <p id="emailErrorText" class="hidden text-[10px] text-red-400 font-bold mt-1">Please enter a valid email address</p>
             </div>
             <div>
               <div class="flex justify-between items-center mb-1">
-                <label class="text-[10px] font-bold text-brand-muted">Password</label>
+                <label class="text-[10px] font-semibold text-brand-muted">Password</label>
                 <span class="text-[10px] text-brand-primaryContainer font-bold cursor-pointer">Login via OTP?</span>
               </div>
-              <input type="password" value="••••••••" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+              <input type="password" value="••••••••" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
             </div>
           </div>
 
-          <button onclick="triggerEmailOtpAuth()" class="w-full py-2.5 bg-brand-primary text-white font-extrabold text-xs rounded-xl shadow hover:bg-brand-primaryGlow transition flex items-center justify-center gap-1.5">
+          <button onclick="triggerEmailOtpAuth()" class="w-full py-2.5 bg-brand-primary text-white font-bold text-xs rounded-xl shadow hover:bg-brand-primaryGlow transition flex items-center justify-center gap-1.5">
             <span class="material-symbols-outlined text-sm">mail</span>
             <span>Send OTP & Verify</span>
           </button>
         </div>
 
-        <div class="flex justify-between text-[10px] text-brand-muted font-bold px-1 pt-1">
-          <span class="flex items-center gap-1 text-green-400">
-            <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span> SERVER: OPERATIONAL
-          </span>
-          <span>v2.1.0-STABLE</span>
+        <div class="flex items-center justify-center gap-1.5 text-[9px] text-brand-muted font-bold pt-3">
+          <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+          <span>256-BIT ENCRYPTED & SECURED</span>
         </div>
       </div>
 
