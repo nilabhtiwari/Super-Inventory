@@ -823,7 +823,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     title: const Text('Thermal Printer Settings', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                     onTap: () {
                       Navigator.pop(context);
-                      context.push('/settings');
+                      context.push('/hardware');
                     },
                   ),
                   ListTile(
