@@ -230,15 +230,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // BESPOKE GOLD & EMERALD SUPER INVENTORY LOGO
+                    // BOLD GOLD & EMERALD SUPER INVENTORY LOGO (PROMINENT SIZE, NO SUBTITLES)
                     Center(
                       child: Image.asset(
                         'assets/images/logo.png',
-                        height: 52,
+                        height: 75,
                         fit: BoxFit.contain,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 22),
 
                     // FULL-WIDTH CLEAN GOOGLE ONE-TAP BUTTON AT TOP
                     OutlinedButton(
