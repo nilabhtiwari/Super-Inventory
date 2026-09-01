@@ -24,7 +24,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscurePassword = true;
   bool _isSendingOtp = false;
 
-  // Strict email regex validation
   static final RegExp _emailRegex = RegExp(
     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
   );
@@ -43,7 +42,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
     final clean = value.trim();
     if (!_emailRegex.hasMatch(clean)) {
-      return 'Please enter a valid Gmail / Email address (e.g. name@gmail.com)';
+      return 'Please enter a valid Gmail / Email address';
     }
     return null;
   }
@@ -53,9 +52,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final email = _emailController.text.trim();
 
-    // Trigger OTP verification flow
     setState(() => _isSendingOtp = true);
-    await Future.delayed(const Duration(milliseconds: 700));
+    await Future.delayed(const Duration(milliseconds: 600));
     setState(() => _isSendingOtp = false);
 
     if (mounted) {
@@ -65,12 +63,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isSendingOtp = true);
-    // Simulating Google OAuth flow
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 700));
     setState(() => _isSendingOtp = false);
 
     final success = await ref.read(authProvider.notifier).login(
-          email: 'merchant.google@superinventory.com',
+          email: 'merchant.google@gmail.com',
           password: 'GoogleOAuth2SecureToken',
         );
 
@@ -128,46 +125,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 18),
                   
-                  // Icon & Header
                   Center(
                     child: Container(
-                      width: 56,
-                      height: 56,
+                      width: 54,
+                      height: 54,
                       decoration: BoxDecoration(
                         color: AppTheme.primary.withOpacity(0.2),
                         shape: BoxShape.circle,
                         border: Border.all(color: AppTheme.primaryContainer),
                       ),
-                      child: const Icon(Icons.mark_email_read_rounded, color: AppTheme.primaryContainer, size: 28),
+                      child: const Icon(Icons.mark_email_read_rounded, color: AppTheme.primaryContainer, size: 26),
                     ),
                   ),
                   const SizedBox(height: 14),
                   const Text(
                     'Verify Your Email',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
                     'We sent a 6-digit security OTP code to\n$email',
                     style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.4),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-                  // 6-Digit OTP Box Input
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: List.generate(6, (index) {
                       return SizedBox(
-                        width: 44,
-                        height: 52,
+                        width: 42,
+                        height: 48,
                         child: TextFormField(
                           controller: otpControllers[index],
                           focusNode: focusNodes[index],
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                           inputFormatters: [
                             LengthLimitingTextInputFormatter(1),
                             FilteringTextInputFormatter.digitsOnly,
@@ -197,9 +192,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     }),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
-                  // Resend Timer
                   Center(
                     child: secondsLeft > 0
                         ? Text(
@@ -217,11 +211,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
 
-                  // Verify OTP Action Button
                   SizedBox(
-                    height: 52,
+                    height: 50,
                     child: ElevatedButton(
                       onPressed: () async {
                         final enteredOtp = otpControllers.map((c) => c.text).join();
@@ -246,9 +239,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
-                      child: const Text('Verify & Access Store', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                      child: const Text('Verify & Access Store', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -269,265 +262,258 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: Form(
               key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Official Super Inventory Logo
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.04),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.08)),
-                      ),
+              // CONSTRAINED COMPACT PROFESSIONAL WIDTH
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 380),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Seamless Transparent Logo
+                    Center(
                       child: Image.asset(
                         'assets/images/logo.png',
-                        height: 64,
+                        height: 58,
                         fit: BoxFit.contain,
                         errorBuilder: (ctx, err, stack) => const Icon(
                           Icons.qr_code_scanner_rounded,
-                          size: 44,
+                          size: 42,
                           color: AppTheme.primaryContainer,
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'For All Inventory Ecosystem',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 26),
-
-                  // ============================================================
-                  // GOOGLE OAUTH CONTINUATION BUTTON
-                  // ============================================================
-                  OutlinedButton(
-                    onPressed: _isSendingOtp ? null : _handleGoogleSignIn,
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black87,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: Colors.white),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 4,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Google "G" Icon
-                        Image.network(
-                          'https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg',
-                          width: 22,
-                          height: 22,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata_rounded, size: 24, color: Colors.blue),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Continue with Google',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  const Row(
-                    children: [
-                      Expanded(child: Divider(color: AppTheme.surfaceBorder)),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('OR USE EMAIL OTP', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.textMuted, letterSpacing: 1)),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'For All Inventory Ecosystem',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
                       ),
-                      Expanded(child: Divider(color: AppTheme.surfaceBorder)),
-                    ],
-                  ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 22),
 
-                  const SizedBox(height: 18),
+                    // Google OAuth Button
+                    OutlinedButton(
+                      onPressed: _isSendingOtp ? null : _handleGoogleSignIn,
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: const BorderSide(color: Colors.white),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        elevation: 2,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.network(
+                            'https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg',
+                            width: 20,
+                            height: 20,
+                            errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata_rounded, size: 22, color: Colors.blue),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Continue with Google',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                          ),
+                        ],
+                      ),
+                    ),
 
-                  // ============================================================
-                  // AUTH CARD (EMAIL + OTP + PASSWORD)
-                  // ============================================================
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface,
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: AppTheme.surfaceBorder),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primary.withOpacity(0.15),
-                          blurRadius: 24,
-                          offset: const Offset(0, 10),
+                    const SizedBox(height: 16),
+
+                    const Row(
+                      children: [
+                        Expanded(child: Divider(color: AppTheme.surfaceBorder)),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Text('OR USE EMAIL OTP', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppTheme.textMuted, letterSpacing: 1)),
                         ),
+                        Expanded(child: Divider(color: AppTheme.surfaceBorder)),
                       ],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Tab Selector
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: AppTheme.surfaceElevated,
-                            borderRadius: BorderRadius.circular(16),
+
+                    const SizedBox(height: 16),
+
+                    // Compact Card Container
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surface,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: AppTheme.surfaceBorder),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.5),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
                           ),
-                          child: Row(
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Tab Switcher
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceElevated,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setState(() => _isLoginTab = true),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: _isLoginTab ? Colors.white : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(11),
+                                      ),
+                                      child: Text(
+                                        'Login',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: _isLoginTab ? AppTheme.primary : AppTheme.textMuted,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setState(() => _isLoginTab = false),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: !_isLoginTab ? Colors.white : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(11),
+                                      ),
+                                      child: Text(
+                                        'Sign Up',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: !_isLoginTab ? AppTheme.primary : AppTheme.textMuted,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          if (!_isLoginTab) ...[
+                            const Text('Full Name', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                            const SizedBox(height: 4),
+                            TextFormField(
+                              controller: _fullNameController,
+                              style: const TextStyle(fontSize: 13),
+                              decoration: const InputDecoration(
+                                prefixIcon: Icon(Icons.person_outline_rounded, color: AppTheme.textMuted, size: 18),
+                                hintText: 'Rajesh Kumar',
+                                contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+
+                          const Text('Gmail / Work Email Address *', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                          const SizedBox(height: 4),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            style: const TextStyle(fontSize: 13),
+                            decoration: const InputDecoration(
+                              prefixIcon: Icon(Icons.mail_outline_rounded, color: AppTheme.textMuted, size: 18),
+                              hintText: 'merchant@gmail.com',
+                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            ),
+                            validator: _validateEmail,
+                          ),
+                          const SizedBox(height: 12),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () => setState(() => _isLoginTab = true),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: _isLoginTab ? Colors.white : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      'Login',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: _isLoginTab ? AppTheme.primary : AppTheme.textMuted,
-                                      ),
-                                    ),
-                                  ),
+                              const Text('Password', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                              if (_isLoginTab)
+                                GestureDetector(
+                                  onTap: () => _handleEmailAuth(),
+                                  child: const Text('Login with OTP?', style: TextStyle(fontSize: 10, color: AppTheme.primaryContainer, fontWeight: FontWeight.bold)),
                                 ),
-                              ),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () => setState(() => _isLoginTab = false),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: !_isLoginTab ? Colors.white : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      'Sign Up',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: !_isLoginTab ? AppTheme.primary : AppTheme.textMuted,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
                             ],
                           ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        if (!_isLoginTab) ...[
-                          const Text('Full Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 4),
                           TextFormField(
-                            controller: _fullNameController,
-                            decoration: const InputDecoration(
-                              prefixIcon: Icon(Icons.person_outline_rounded, color: AppTheme.textMuted),
-                              hintText: 'John Doe',
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                        ],
-
-                        // Valid Gmail / Email
-                        const Text('Gmail / Work Email Address *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            prefixIcon: Icon(Icons.mail_outline_rounded, color: AppTheme.textMuted),
-                            hintText: 'merchant@gmail.com',
-                          ),
-                          validator: _validateEmail,
-                        ),
-                        const SizedBox(height: 14),
-
-                        // Password Field
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Password', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
-                            if (_isLoginTab)
-                              GestureDetector(
-                                onTap: () => _handleEmailAuth(),
-                                child: const Text('Login with OTP instead?', style: TextStyle(fontSize: 11, color: AppTheme.primaryContainer, fontWeight: FontWeight.bold)),
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            style: const TextStyle(fontSize: 13),
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppTheme.textMuted, size: 18),
+                              hintText: '••••••••',
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              suffixIcon: IconButton(
+                                icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: AppTheme.textMuted, size: 18),
+                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword,
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppTheme.textMuted),
-                            hintText: '••••••••',
-                            suffixIcon: IconButton(
-                              icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: AppTheme.textMuted),
-                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 22),
+                          const SizedBox(height: 18),
 
-                        // Send OTP & Authenticate Button
-                        SizedBox(
-                          height: 52,
-                          child: ElevatedButton(
-                            onPressed: _isSendingOtp ? null : _handleEmailAuth,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primary,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              elevation: 8,
+                          SizedBox(
+                            height: 48,
+                            child: ElevatedButton(
+                              onPressed: _isSendingOtp ? null : _handleEmailAuth,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                elevation: 4,
+                              ),
+                              child: _isSendingOtp
+                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                  : const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.mail_rounded, size: 16),
+                                        SizedBox(width: 8),
+                                        Text('Send OTP & Verify', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
                             ),
-                            child: _isSendingOtp
-                                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                : const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.lock_open_rounded, size: 18),
-                                      SizedBox(width: 8),
-                                      Text('Send OTP & Verify', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
                           ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFF34D399), shape: BoxShape.circle)),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'SECURE ENCRYPTION ACTIVE',
+                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppTheme.textMuted, letterSpacing: 0.8),
                         ),
                       ],
                     ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Operational Footer
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFF34D399), shape: BoxShape.circle)),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'SECURE OAUTH2 & OTP ENCRYPTION ACTIVE',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.textMuted, letterSpacing: 0.8),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
