@@ -11,7 +11,7 @@ class PremiumToolkitScreen extends ConsumerStatefulWidget {
 }
 
 class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
-  bool _isSubscribed = false; // By default locked / non-subscriber mode
+  bool _isSubscribed = false; // Locked mode by default for non-subscribers
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: AppTheme.primary,
-        title: const Text('Super Inventory • Insights'),
+        title: const Text('Super Inventory • Insights & Tax Optimizer'),
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
@@ -36,7 +36,7 @@ class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(_isSubscribed
-                        ? '🎉 Premium Active! All AI Insights & Expiry Trackers Unlocked.'
+                        ? '🎉 Premium Active! All AI Insights, Expiry Trackers & Tax Optimizers Unlocked.'
                         : '🔒 Locked preview mode for non-subscribers.'),
                     backgroundColor: _isSubscribed ? AppTheme.secondary : AppTheme.primary,
                   ),
@@ -54,8 +54,8 @@ class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
                   Icon(_isSubscribed ? Icons.check_circle_rounded : Icons.workspace_premium_rounded),
                   const SizedBox(width: 8),
                   Text(
-                    _isSubscribed ? 'Subscribed: Full Analytics Active' : 'Subscribe to Premium (₹499/mo)',
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    _isSubscribed ? 'Subscribed: Full Analytics & Tax Optimizer Active' : 'Subscribe to Premium (₹499/mo)',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -74,13 +74,13 @@ class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
             ),
             const SizedBox(height: 4),
             const Text(
-              'Automated GST analytics, predictive expiry protection, and AI profit suggestions.',
+              'Smart GST tax savings, profit maximization, and predictive inventory protection.',
               style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 20),
 
             // ============================================================
-            // 1. EXPIRATION ALERT HINT (ALWAYS VISIBLE TO NON-SUBSCRIBERS)
+            // 1. GENERIC EXPIRY ALERT HINT (NO SECTORS / CATEGORIES DISCLOSED)
             // ============================================================
             Container(
               padding: const EdgeInsets.all(16),
@@ -114,8 +114,8 @@ class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    '⚠️ Risk of stock wastage detected across Dairy, Beverages & Pharma categories.',
-                    style: TextStyle(fontSize: 12, color: Colors.white70),
+                    '⚠️ Risk of stock loss & profit leakage detected. Subscribe to Premium to identify affected products, batch numbers, and trigger automated flash clearances.',
+                    style: TextStyle(fontSize: 12, color: Colors.white70, height: 1.4),
                   ),
                 ],
               ),
@@ -124,12 +124,12 @@ class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
             const SizedBox(height: 16),
 
             // ============================================================
-            // 2. DETAILED EXPIRY LIST (BLURRED / LOCKED FOR NON-SUBSCRIBERS)
+            // 2. DETAILED EXPIRY LIST (BLURRED FOR NON-SUBSCRIBERS)
             // ============================================================
             _buildLockedSection(
               isLocked: !_isSubscribed,
-              lockedTitle: 'Batch Expiry Breakdown & Auto-Discounting',
-              lockedSubtitle: 'Unlock exact batch numbers, expiry dates, and 1-tap clearance flash sales.',
+              lockedTitle: 'Exact Batch Expiry Breakdown & Auto-Clearance',
+              lockedSubtitle: 'Unlock batch numbers, days remaining, and 1-tap automated discounting to recover revenue.',
               child: Column(
                 children: [
                   _buildExpiryRow('Paracetamol 500mg Strip', 'Batch #A902 • Expires in 4 days', '40 units', AppTheme.error),
@@ -144,12 +144,82 @@ class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
             const SizedBox(height: 24),
 
             // ============================================================
-            // 3. GST FILING & TAX BREAKDOWN (BLURRED FOR NON-SUBSCRIBERS)
+            // 3. NEW PREMIUM FEATURE: SMART GST TAX OPTIMIZER & PROFIT MAXIMIZER
+            // ============================================================
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1E1035), Color(0xFF12131C)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppTheme.primaryContainer.withOpacity(0.4)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondary.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.savings_rounded, color: AppTheme.secondary, size: 22),
+                      ),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Smart GST Tax Optimizer',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+                            ),
+                            Text(
+                              'Save GST & maximize net profit margins',
+                              style: TextStyle(fontSize: 11, color: AppTheme.secondary, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  _buildTaxSavingsPill(
+                    icon: Icons.account_balance_wallet_rounded,
+                    title: 'Input Tax Credit (ITC) Recovery',
+                    description: 'Identifies uncollected purchase tax credits to directly reduce payable GST by up to 18%.',
+                  ),
+                  const SizedBox(height: 10),
+                  _buildTaxSavingsPill(
+                    icon: Icons.price_change_rounded,
+                    title: 'Tax Slabs Margin Optimizer',
+                    description: 'AI pricing model adjusts margins across 0%, 5%, 12%, 18%, 28% slabs to maximize gross profit.',
+                  ),
+                  const SizedBox(height: 10),
+                  _buildTaxSavingsPill(
+                    icon: Icons.bolt_rounded,
+                    title: '1-Click CA-Ready Tax Filing Assistant',
+                    description: 'Automates GSTR-1 and GSTR-3B filings, eliminating penalties and saving CA auditing costs.',
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ============================================================
+            // 4. GST TAX BREAKDOWN & SAVINGS (BLURRED FOR NON-SUBSCRIBERS)
             // ============================================================
             _buildLockedSection(
               isLocked: !_isSubscribed,
-              lockedTitle: 'Automated GST Filings & ITC Input Credit',
-              lockedSubtitle: 'Unlock GSTR-1, GSTR-3B tax calculations, and 1-click CA export report.',
+              lockedTitle: 'Live Tax Savings & Input Credit (ITC) Report',
+              lockedSubtitle: 'Unlock itemized GST savings, tax liability offset calculations, and 1-click CA filing summaries.',
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -165,34 +235,7 @@ class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
                     const Divider(color: AppTheme.surfaceBorder, height: 16),
                     _buildGstRow('SGST Collected (9%)', '₹1,30,680.00'),
                     const Divider(color: AppTheme.surfaceBorder, height: 16),
-                    _buildGstRow('Eligible Input Tax Credit (ITC)', '₹48,200.00', isHighlight: true),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // ============================================================
-            // 4. AI PROFIT PLANS & DEAD STOCK SUGGESTIONS
-            // ============================================================
-            _buildLockedSection(
-              isLocked: !_isSubscribed,
-              lockedTitle: 'AI Profit & Fast-Moving Stock Optimization',
-              lockedSubtitle: 'Get predictive restock alerts and bundle strategies to increase margins by up to 30%.',
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.surfaceBorder),
-                ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('💡 Plan: Bundle Parle-G with Tata Tea Gold (+18% margin boost)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    SizedBox(height: 6),
-                    Text('💡 Dead stock liquidation: Apply 10% discount on slow-moving noodles to free ₹14,000 cash.', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                    _buildGstRow('Direct ITC Tax Saved by App', '₹48,200.00', isHighlight: true),
                   ],
                 ),
               ),
@@ -201,6 +244,38 @@ class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
             const SizedBox(height: 30),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTaxSavingsPill({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceElevated,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.surfaceBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppTheme.primaryContainer, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white)),
+                const SizedBox(height: 2),
+                Text(description, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -223,7 +298,6 @@ class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
         borderRadius: BorderRadius.circular(24),
         child: Stack(
           children: [
-            // Blurred Background Child
             ImageFiltered(
               imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Padding(
@@ -231,8 +305,6 @@ class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
                 child: child,
               ),
             ),
-
-            // Overlay with Lock Icon and Hint
             Positioned.fill(
               child: Container(
                 color: Colors.black.withOpacity(0.65),
