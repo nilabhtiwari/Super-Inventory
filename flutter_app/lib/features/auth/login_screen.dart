@@ -260,17 +260,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 Text(
                                   'S',
                                   style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
                                     color: Colors.white,
-                                    letterSpacing: -0.5,
+                                    letterSpacing: 0,
                                   ),
                                 ),
-                                SizedBox(width: 4),
+                                SizedBox(width: 3),
                                 Icon(
                                   Icons.arrow_upward_rounded,
                                   color: Color(0xFF00D4AA),
-                                  size: 22,
+                                  size: 16,
                                 ),
                               ],
                             ),
