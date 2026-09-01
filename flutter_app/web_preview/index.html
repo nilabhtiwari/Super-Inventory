@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Super Inventory - Multi-Store Retail & Inventory POS</title>
+  <title>Super Inventory - For All Inventory Ecosystem</title>
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Tailwind CSS -->
@@ -65,32 +65,29 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start p-2 sm:p-6 bg-black text-white">
 
-  <!-- PROFESSIONAL STORE TOP BAR -->
+  <!-- TOP APP FRAME HEADER -->
   <header class="w-full max-w-md mb-3 flex items-center justify-between px-4 py-3 glass-card rounded-2xl">
     <div class="flex items-center gap-2.5">
       <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-primary to-brand-tertiary flex items-center justify-center font-bold text-white shadow-md">
-        <span class="material-symbols-outlined text-lg">storefront</span>
+        <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
       </div>
       <div>
         <h1 class="text-sm font-extrabold tracking-tight">Super Inventory</h1>
         <p class="text-[10px] text-brand-secondary font-semibold flex items-center gap-1">
           <span class="w-1.5 h-1.5 rounded-full bg-brand-secondary animate-pulse"></span>
-          Multi-Store Retail POS
+          For All Inventory Ecosystem
         </p>
       </div>
     </div>
-    <!-- Store Location Selector -->
     <div class="flex items-center gap-2">
-      <select id="branchSelector" onchange="changeBranch(this.value)" class="bg-brand-surfaceElevated border border-brand-surfaceBorder text-xs text-brand-primaryContainer font-bold px-2 py-1.5 rounded-xl outline-none">
-        <option value="Main Branch (City Centre)">Main Branch</option>
-        <option value="Suburban Outlet">Suburban Outlet</option>
-        <option value="Central Warehouse">Warehouse</option>
-      </select>
+      <button onclick="switchScreen('settings')" class="text-xs bg-brand-surfaceElevated border border-brand-surfaceBorder hover:bg-brand-surface px-2.5 py-1.5 rounded-xl font-bold text-brand-muted flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">settings</span> Settings
+      </button>
     </div>
   </header>
 
   <!-- SMARTPHONE DEVICE WRAPPER -->
-  <div class="w-full max-w-md h-[830px] bg-brand-dark border-4 border-brand-surfaceBorder rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative">
+  <div class="w-full max-w-md h-[840px] bg-brand-dark border-4 border-brand-surfaceBorder rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative">
 
     <!-- TOP HEADER -->
     <div class="w-full bg-brand-primary px-6 pt-3 pb-2 flex justify-between items-center text-xs font-semibold z-20 shadow-md">
@@ -99,8 +96,8 @@
           <span class="material-symbols-outlined text-base">storefront</span>
         </div>
         <div class="leading-tight">
-          <div class="font-bold text-white text-[13px]" id="storeTitleText">Super Inventory Store</div>
-          <div class="text-[10px] text-white/80" id="currentBranchDisplay">Main Branch (City Centre)</div>
+          <div class="font-bold text-white text-[13px]">Super Inventory</div>
+          <div class="text-[10px] text-white/80" id="currentBranchDisplay">Main Branch • Active Counter</div>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -154,17 +151,17 @@
 
         <!-- TODAY'S LIVE OVERVIEW -->
         <div>
-          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Today's Store Performance</h3>
+          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Today's Quick Stats</h3>
           <div class="grid grid-cols-2 gap-3">
             <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl">
-              <span class="text-xs text-brand-muted font-medium">Gross Revenue</span>
+              <span class="text-xs text-brand-muted font-medium">Total Sales</span>
               <div class="flex items-baseline gap-2 mt-1">
                 <span class="text-xl font-black text-brand-primaryContainer" id="dashTotalSales">₹14,280.00</span>
                 <span class="text-[10px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">+12%</span>
               </div>
             </div>
             <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl">
-              <span class="text-xs text-brand-muted font-medium">Bills Completed</span>
+              <span class="text-xs text-brand-muted font-medium">Bills Generated</span>
               <div class="flex items-baseline gap-2 mt-1">
                 <span class="text-xl font-black text-white" id="dashTotalBills">14</span>
                 <span class="text-[10px] text-brand-muted">invoices</span>
@@ -175,7 +172,7 @@
 
         <!-- QUICK ACTIONS -->
         <div>
-          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Merchant Tools</h3>
+          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Quick Actions</h3>
           <div class="grid grid-cols-3 gap-2.5">
             <button onclick="switchScreen('billing')" class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex flex-col items-center gap-1.5 hover:border-brand-primary transition">
               <div class="w-10 h-10 rounded-full bg-brand-primary/20 flex items-center justify-center text-brand-primaryContainer">
@@ -193,7 +190,7 @@
               <div class="w-10 h-10 rounded-full bg-brand-tertiary/20 flex items-center justify-center text-brand-tertiary">
                 <span class="material-symbols-outlined text-xl">inventory_2</span>
               </div>
-              <span class="text-[10px] font-bold text-center">Inventory</span>
+              <span class="text-[10px] font-bold text-center">Catalog</span>
             </button>
           </div>
         </div>
@@ -201,8 +198,8 @@
         <!-- RECENT TRANSACTIONS -->
         <div>
           <div class="flex justify-between items-center mb-2">
-            <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider">Recent Invoices</h3>
-            <button onclick="switchScreen('history')" class="text-xs font-bold text-brand-primaryContainer hover:underline">View History</button>
+            <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider">Recent Transactions</h3>
+            <button onclick="switchScreen('history')" class="text-xs font-bold text-brand-primaryContainer hover:underline">See All</button>
           </div>
           <div class="space-y-2" id="dashRecentList">
             <!-- Rendered by JS -->
@@ -249,7 +246,7 @@
               + Tata Tea (₹155)
             </button>
             <button onclick="promptCustomScan()" class="px-2.5 py-1.5 bg-brand-tertiary/20 hover:bg-brand-tertiary/30 border border-brand-tertiary/40 rounded-xl text-[11px] font-bold text-brand-tertiary whitespace-nowrap">
-              + Quick Add New Item
+              + Quick Add
             </button>
           </div>
         </div>
@@ -292,7 +289,7 @@
 
           <button onclick="completeCheckout()" id="checkoutBtn" class="w-full py-3.5 bg-brand-secondary text-black font-extrabold text-sm rounded-2xl hover:bg-emerald-400 active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-lg shadow-brand-secondary/20">
             <span class="material-symbols-outlined text-lg">check_circle</span>
-            PAY & PRINT INVOICE
+            PAY & GENERATE INVOICE
           </button>
         </div>
       </div>
@@ -302,9 +299,9 @@
       <!-- ============================================================ -->
       <div id="screen-receipt" class="hidden space-y-4">
         <div class="p-5 bg-brand-surface border border-brand-surfaceBorder rounded-3xl space-y-3 text-center">
-          <h2 class="text-xl font-black tracking-tight text-white" id="rcptShopName">Super Inventory Store</h2>
-          <p class="text-[11px] text-brand-muted" id="rcptShopAddress">Main Branch • City Centre Road</p>
-          <p class="text-[11px] text-brand-primaryContainer font-bold" id="rcptGstin">GSTIN: 27AAAAA0000A1Z5</p>
+          <h2 class="text-xl font-black tracking-tight text-white">Super Inventory</h2>
+          <p class="text-[11px] text-brand-muted">Main Branch • City Centre Road</p>
+          <p class="text-[11px] text-brand-primaryContainer font-bold">GSTIN: 27AAAAA0000A1Z5</p>
           
           <div class="border-t border-dashed border-brand-surfaceBorder my-2"></div>
           
@@ -366,11 +363,11 @@
       <!-- 4. BILL HISTORY SCREEN -->
       <!-- ============================================================ -->
       <div id="screen-history" class="hidden space-y-4">
-        <h2 class="text-lg font-black text-white">Monthly Trends & Invoices</h2>
+        <h2 class="text-lg font-black text-white">Monthly Trends & Profit Analysis</h2>
         
         <div class="grid grid-cols-2 gap-3">
           <div class="p-4 bg-brand-surface border border-brand-primary/40 rounded-2xl">
-            <p class="text-[10px] font-bold text-brand-muted uppercase">Gross Sales</p>
+            <p class="text-[10px] font-bold text-brand-muted uppercase">Total Revenue</p>
             <p class="text-lg font-black text-white mt-1">₹4,28,500</p>
             <p class="text-[10px] font-bold text-green-400 mt-1 flex items-center gap-0.5">
               <span class="material-symbols-outlined text-xs">trending_up</span> +12.5%
@@ -385,7 +382,7 @@
           </div>
         </div>
 
-        <h3 class="text-xs font-extrabold text-brand-muted uppercase tracking-wider pt-2">Invoice Records</h3>
+        <h3 class="text-xs font-extrabold text-brand-muted uppercase tracking-wider pt-2">Recent Bills</h3>
         <div class="space-y-2" id="fullHistoryList">
           <!-- Populated by JS -->
         </div>
@@ -405,7 +402,7 @@
           </button>
         </div>
 
-        <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider pt-1">Store Inventory</h3>
+        <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider pt-1">Product Catalog</h3>
         <div class="space-y-2" id="productsCatalogList">
           <!-- Populated by JS -->
         </div>
@@ -431,23 +428,195 @@
       </div>
 
       <!-- ============================================================ -->
-      <!-- 7. PREMIUM GST & EXPIRY TOOLKIT -->
+      <!-- 7. PREMIUM GST & EXPIRY TOOLKIT (BLURRED / LOCKED FOR NON-SUBSCRIBERS) -->
       <!-- ============================================================ -->
       <div id="screen-premium" class="hidden space-y-4">
-        <h2 class="text-lg font-black text-white">GST & Expiry Toolkit</h2>
-        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-2">
-          <div class="flex justify-between">
-            <span class="text-xs font-bold text-white">Q3 Taxable Turnover</span>
-            <span class="text-xs font-extrabold text-brand-primaryContainer">₹14,52,000</span>
+        <div>
+          <h2 class="text-lg font-black text-white">Super Inventory Insights</h2>
+          <p class="text-xs text-brand-muted">Automated GST analytics & AI expiry protection</p>
+        </div>
+
+        <!-- 1. WARNING HINT (ALWAYS VISIBLE) -->
+        <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-red-400 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-base">warning</span> 12 Items Near Expiry Warning
+            </span>
+            <span class="bg-red-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded">CRITICAL</span>
           </div>
-          <div class="flex justify-between">
-            <span class="text-xs font-bold text-white">Total GST Collected</span>
-            <span class="text-xs font-extrabold text-brand-tertiary">₹2,61,360</span>
+          <p class="text-[11px] text-white/80">Stock loss risk detected in Dairy & Pharma inventory batches.</p>
+        </div>
+
+        <!-- 2. DETAILED BATCH LIST (BLURRED / LOCKED) -->
+        <div class="relative rounded-2xl overflow-hidden border border-brand-surfaceBorder bg-brand-surface">
+          <!-- Blurred Content -->
+          <div class="p-4 space-y-2 filter blur-[4px] pointer-events-none opacity-50">
+            <div class="flex justify-between text-xs">
+              <span>Paracetamol 500mg (Batch #A902)</span>
+              <span class="text-red-400 font-bold">Expires in 4 days</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span>Organic Almond Milk 1L (Batch #E441)</span>
+              <span class="text-amber-400 font-bold">Expires in 12 days</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span>Amul Fresh Paneer 200g (Batch #P108)</span>
+              <span class="text-red-400 font-bold">Expires in 3 days</span>
+            </div>
+          </div>
+          <!-- Glass Lock Overlay -->
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center">
+            <div class="w-10 h-10 rounded-full bg-brand-primary/30 border border-brand-primaryContainer flex items-center justify-center text-brand-primaryContainer mb-2">
+              <span class="material-symbols-outlined text-lg">lock</span>
+            </div>
+            <p class="text-xs font-extrabold text-white">Batch Expiry Breakdown & Auto-Discounting</p>
+            <p class="text-[10px] text-brand-muted mt-0.5">Subscribe to view exact batch numbers & clearance triggers</p>
           </div>
         </div>
-        <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl space-y-1">
-          <span class="text-xs font-bold text-red-400">12 Items Near Expiry</span>
-          <p class="text-[11px] text-white/80">Paracetamol 500mg (Expires in 4 days)</p>
+
+        <!-- 3. GST FILING BREAKDOWN (BLURRED / LOCKED) -->
+        <div class="relative rounded-2xl overflow-hidden border border-brand-surfaceBorder bg-brand-surface">
+          <!-- Blurred Content -->
+          <div class="p-4 space-y-2 filter blur-[4px] pointer-events-none opacity-50">
+            <div class="flex justify-between text-xs">
+              <span>Taxable Turnover (Q3)</span>
+              <span class="font-bold">₹14,52,000</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span>Total GST (CGST + SGST)</span>
+              <span class="font-bold text-brand-tertiary">₹2,61,360</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span>Eligible Input Tax Credit (ITC)</span>
+              <span class="font-bold text-brand-secondary">₹48,200</span>
+            </div>
+          </div>
+          <!-- Glass Lock Overlay -->
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center">
+            <div class="w-10 h-10 rounded-full bg-brand-primary/30 border border-brand-primaryContainer flex items-center justify-center text-brand-primaryContainer mb-2">
+              <span class="material-symbols-outlined text-lg">lock</span>
+            </div>
+            <p class="text-xs font-extrabold text-white">Automated GST Reports (GSTR-1 & 3B)</p>
+            <p class="text-[10px] text-brand-muted mt-0.5">Subscribe to export 1-click CA filing summaries</p>
+          </div>
+        </div>
+
+        <!-- SUBSCRIBE BUTTON -->
+        <button onclick="alert('🎉 Thank you for upgrading to Super Inventory Pro! All AI insights & batch reports unlocked.')" class="w-full py-3.5 bg-gradient-to-r from-brand-primary to-brand-tertiary text-white font-extrabold text-xs rounded-2xl shadow-lg hover:opacity-95 transition flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-base">workspace_premium</span>
+          SUBSCRIBE TO PREMIUM (₹499/MO)
+        </button>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 8. SETTINGS SCREEN WITH PROMINENT LOG OUT -->
+      <!-- ============================================================ -->
+      <div id="screen-settings" class="hidden space-y-4">
+        <h2 class="text-lg font-black text-white">Super Inventory Settings</h2>
+        
+        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-primary to-brand-tertiary flex items-center justify-center text-white font-bold">
+              SI
+            </div>
+            <div>
+              <p class="text-sm font-black text-white">Super Inventory</p>
+              <p class="text-xs text-brand-muted">Main Branch • merchant@superinventory.com</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <div class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex justify-between items-center">
+            <span class="text-xs font-bold text-white">Thermal Roll Width</span>
+            <span class="text-xs font-bold text-brand-primaryContainer">58mm (2-inch)</span>
+          </div>
+          <div class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex justify-between items-center">
+            <span class="text-xs font-bold text-white">Merchant UPI VPA</span>
+            <span class="text-xs font-bold text-brand-secondary">superinventory@upi</span>
+          </div>
+        </div>
+
+        <!-- LOG OUT BUTTON -->
+        <div class="pt-4">
+          <button onclick="handleLogOut()" class="w-full py-3.5 bg-red-500/10 border border-red-500/40 text-red-400 font-extrabold text-xs rounded-2xl hover:bg-red-500/20 active:scale-95 transition flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-base">logout</span>
+            LOG OUT OF SUPER INVENTORY
+          </button>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 9. EXACT STITCH LOGIN & SIGN UP PAGE -->
+      <!-- ============================================================ -->
+      <div id="screen-login" class="hidden space-y-4 py-4 text-center">
+        <!-- Logo -->
+        <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-brand-primary to-brand-tertiary mx-auto flex items-center justify-center text-white text-3xl font-black shadow-xl">
+          <span class="material-symbols-outlined text-3xl">qr_code_scanner</span>
+        </div>
+        <h2 class="text-2xl font-black text-white">Super Inventory</h2>
+        <p class="text-xs text-brand-muted">For All Inventory Ecosystem</p>
+
+        <!-- Glass Auth Box -->
+        <div class="p-6 bg-brand-surface border border-brand-surfaceBorder rounded-3xl space-y-4 text-left shadow-2xl">
+          <!-- Tab Switcher -->
+          <div class="p-1 bg-brand-surfaceElevated rounded-2xl flex">
+            <button onclick="setAuthTab('login')" id="tab-login" class="flex-1 py-2 bg-white text-brand-primary font-bold text-xs rounded-xl shadow">Login</button>
+            <button onclick="setAuthTab('signup')" id="tab-signup" class="flex-1 py-2 text-brand-muted font-bold text-xs rounded-xl">Sign Up</button>
+          </div>
+
+          <div id="authSignupFields" class="hidden space-y-3">
+            <div>
+              <label class="text-[11px] font-bold text-brand-muted block mb-1">Full Name</label>
+              <input type="text" placeholder="John Doe" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-brand-muted block mb-1">Work Email</label>
+              <input type="email" placeholder="john@superinventory.com" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+            </div>
+          </div>
+
+          <div id="authLoginFields" class="space-y-3">
+            <div>
+              <label class="text-[11px] font-bold text-brand-muted block mb-1">Username / Identifier</label>
+              <input type="text" value="merchant@superinventory.com" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-[11px] font-bold text-brand-muted">Password</label>
+              <span class="text-[10px] text-brand-tertiary font-bold cursor-pointer">Forgot?</span>
+            </div>
+            <input type="password" value="••••••••" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+          </div>
+
+          <button onclick="switchScreen('dashboard')" class="w-full py-3 bg-brand-primary text-white font-extrabold text-xs rounded-xl shadow-lg hover:bg-brand-primaryGlow transition flex items-center justify-center gap-1.5">
+            <span id="authSubmitText">Authenticate</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
+
+          <div class="flex items-center gap-2 pt-1">
+            <div class="flex-1 h-[1px] bg-brand-surfaceBorder"></div>
+            <span class="text-[9px] font-bold text-brand-muted uppercase tracking-wider">OR ACCESS VIA</span>
+            <div class="flex-1 h-[1px] bg-brand-surfaceBorder"></div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="switchScreen('dashboard')" class="py-2.5 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl text-xs font-bold flex items-center justify-center gap-1 text-brand-secondary hover:border-brand-secondary">
+              <span class="material-symbols-outlined text-base">fingerprint</span> Biometrics
+            </button>
+            <button onclick="switchScreen('dashboard')" class="py-2.5 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl text-xs font-bold flex items-center justify-center gap-1 text-brand-tertiary hover:border-brand-tertiary">
+              <span class="material-symbols-outlined text-base">qr_code_scanner</span> Scan Key
+            </button>
+          </div>
+        </div>
+
+        <div class="flex justify-between text-[10px] text-brand-muted font-bold px-2 pt-2">
+          <span class="flex items-center gap-1 text-green-400">
+            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> SERVER: OPERATIONAL
+          </span>
+          <span>v2.1.0-STABLE</span>
         </div>
       </div>
 
@@ -475,7 +644,7 @@
         <span class="material-symbols-outlined text-2xl">receipt_long</span>
         <span class="text-[9px] font-bold">History</span>
       </button>
-      <button onclick="switchScreen('hardware')" id="nav-hardware" class="flex flex-col items-center gap-0.5 text-brand-muted hover:text-white">
+      <button onclick="switchScreen('settings')" id="nav-settings" class="flex flex-col items-center gap-0.5 text-brand-muted hover:text-white">
         <span class="material-symbols-outlined text-2xl">settings</span>
         <span class="text-[9px] font-bold">Settings</span>
       </button>
@@ -499,12 +668,36 @@
       { id: 'INV-20260901-0012', total: 45.0, items: 1, time: '40 mins ago', status: 'Paid' },
     ];
 
-    function changeBranch(branchName) {
-      document.getElementById('currentBranchDisplay').innerText = branchName;
+    function setAuthTab(tab) {
+      const loginBtn = document.getElementById('tab-login');
+      const signupBtn = document.getElementById('tab-signup');
+      const signupFields = document.getElementById('authSignupFields');
+      const loginFields = document.getElementById('authLoginFields');
+      const submitText = document.getElementById('authSubmitText');
+
+      if (tab === 'login') {
+        loginBtn.className = 'flex-1 py-2 bg-white text-brand-primary font-bold text-xs rounded-xl shadow';
+        signupBtn.className = 'flex-1 py-2 text-brand-muted font-bold text-xs rounded-xl';
+        signupFields.classList.add('hidden');
+        loginFields.classList.remove('hidden');
+        submitText.innerText = 'Authenticate';
+      } else {
+        signupBtn.className = 'flex-1 py-2 bg-white text-brand-primary font-bold text-xs rounded-xl shadow';
+        loginBtn.className = 'flex-1 py-2 text-brand-muted font-bold text-xs rounded-xl';
+        signupFields.classList.remove('hidden');
+        loginFields.classList.add('hidden');
+        submitText.innerText = 'Create Account';
+      }
+    }
+
+    function handleLogOut() {
+      if (confirm('Log out of Super Inventory?')) {
+        switchScreen('login');
+      }
     }
 
     function switchScreen(screenId) {
-      const screens = ['dashboard', 'billing', 'receipt', 'history', 'products', 'hardware', 'premium', 'inventory'];
+      const screens = ['dashboard', 'billing', 'receipt', 'history', 'products', 'hardware', 'premium', 'settings', 'login'];
       screens.forEach(s => {
         const el = document.getElementById(`screen-${s}`);
         if (el) el.classList.add('hidden');

@@ -1,17 +1,25 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 
-class PremiumToolkitScreen extends ConsumerWidget {
+class PremiumToolkitScreen extends ConsumerStatefulWidget {
   const PremiumToolkitScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PremiumToolkitScreen> createState() => _PremiumToolkitScreenState();
+}
+
+class _PremiumToolkitScreenState extends ConsumerState<PremiumToolkitScreen> {
+  bool _isSubscribed = false; // By default locked / non-subscriber mode
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: AppTheme.primary,
-        title: const Text('Premium Toolkit & GST'),
+        title: const Text('Super Inventory • Insights'),
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
@@ -24,27 +32,31 @@ class PremiumToolkitScreen extends ConsumerWidget {
             height: 54,
             child: ElevatedButton(
               onPressed: () {
+                setState(() => _isSubscribed = !_isSubscribed);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('All Super Inventory Pro features unlocked for your store!'),
-                    backgroundColor: AppTheme.secondary,
+                  SnackBar(
+                    content: Text(_isSubscribed
+                        ? '🎉 Premium Active! All AI Insights & Expiry Trackers Unlocked.'
+                        : '🔒 Locked preview mode for non-subscribers.'),
+                    backgroundColor: _isSubscribed ? AppTheme.secondary : AppTheme.primary,
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
+                backgroundColor: _isSubscribed ? AppTheme.secondary : AppTheme.primary,
+                foregroundColor: _isSubscribed ? Colors.black : Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 8,
-                shadowColor: AppTheme.primary.withOpacity(0.5),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.workspace_premium_rounded, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text('Unlock Premium Automation', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_rounded, size: 18),
+                  Icon(_isSubscribed ? Icons.check_circle_rounded : Icons.workspace_premium_rounded),
+                  const SizedBox(width: 8),
+                  Text(
+                    _isSubscribed ? 'Subscribed: Full Analytics Active' : 'Subscribe to Premium (₹499/mo)',
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
             ),
@@ -57,233 +69,202 @@ class PremiumToolkitScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Premium Toolkit',
+              'Super Inventory Insights',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.textPrimary),
             ),
             const SizedBox(height: 4),
             const Text(
-              'Unlock advanced GST filing analytics and automated expiry tracking for your store.',
+              'Automated GST analytics, predictive expiry protection, and AI profit suggestions.',
               style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
             ),
+            const SizedBox(height: 20),
+
+            // ============================================================
+            // 1. EXPIRATION ALERT HINT (ALWAYS VISIBLE TO NON-SUBSCRIBERS)
+            // ============================================================
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.error.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppTheme.error.withOpacity(0.4)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, color: AppTheme.error, size: 24),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          '12 Stock Batches Near Expiry',
+                          style: TextStyle(color: AppTheme.error, fontWeight: FontWeight.w800, fontSize: 15),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppTheme.error,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text('CRITICAL', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '⚠️ Risk of stock wastage detected across Dairy, Beverages & Pharma categories.',
+                    style: TextStyle(fontSize: 12, color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ============================================================
+            // 2. DETAILED EXPIRY LIST (BLURRED / LOCKED FOR NON-SUBSCRIBERS)
+            // ============================================================
+            _buildLockedSection(
+              isLocked: !_isSubscribed,
+              lockedTitle: 'Batch Expiry Breakdown & Auto-Discounting',
+              lockedSubtitle: 'Unlock exact batch numbers, expiry dates, and 1-tap clearance flash sales.',
+              child: Column(
+                children: [
+                  _buildExpiryRow('Paracetamol 500mg Strip', 'Batch #A902 • Expires in 4 days', '40 units', AppTheme.error),
+                  const SizedBox(height: 8),
+                  _buildExpiryRow('Organic Almond Milk 1L', 'Batch #E441 • Expires in 12 days', '18 units', AppTheme.warning),
+                  const SizedBox(height: 8),
+                  _buildExpiryRow('Amul Fresh Paneer 200g', 'Batch #P108 • Expires in 3 days', '25 units', AppTheme.error),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 24),
 
             // ============================================================
-            // 1. GST REPORTS SECTION
+            // 3. GST FILING & TAX BREAKDOWN (BLURRED FOR NON-SUBSCRIBERS)
             // ============================================================
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('GST Reports', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.tertiary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text('Q3 Data Active',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.tertiary)),
+            _buildLockedSection(
+              isLocked: !_isSubscribed,
+              lockedTitle: 'Automated GST Filings & ITC Input Credit',
+              lockedSubtitle: 'Unlock GSTR-1, GSTR-3B tax calculations, and 1-click CA export report.',
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.surfaceBorder),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppTheme.surfaceBorder),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Taxable Turnover', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
-                        const SizedBox(height: 6),
-                        const Text('₹14,52,000', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 10),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: const LinearProgressIndicator(
-                            value: 0.7,
-                            backgroundColor: AppTheme.surfaceElevated,
-                            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryContainer),
-                            minHeight: 6,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                child: Column(
+                  children: [
+                    _buildGstRow('Taxable Turnover (Q3)', '₹14,52,000.00'),
+                    const Divider(color: AppTheme.surfaceBorder, height: 16),
+                    _buildGstRow('CGST Collected (9%)', '₹1,30,680.00'),
+                    const Divider(color: AppTheme.surfaceBorder, height: 16),
+                    _buildGstRow('SGST Collected (9%)', '₹1,30,680.00'),
+                    const Divider(color: AppTheme.surfaceBorder, height: 16),
+                    _buildGstRow('Eligible Input Tax Credit (ITC)', '₹48,200.00', isHighlight: true),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppTheme.surfaceBorder),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Total GST Collected', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
-                        const SizedBox(height: 6),
-                        const Text('₹2,61,360', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.tertiary)),
-                        const SizedBox(height: 10),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: const LinearProgressIndicator(
-                            value: 0.5,
-                            backgroundColor: AppTheme.surfaceElevated,
-                            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.tertiary),
-                            minHeight: 6,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 28),
-
-            // ============================================================
-            // 2. EXPIRY ALERTS TRACKING SECTION
-            // ============================================================
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Expiry Alerts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.error.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text('12 Items Near Expiry',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.error)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppTheme.surfaceBorder),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceElevated,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.medication_rounded, color: AppTheme.primaryContainer, size: 22),
-                  ),
-                  const SizedBox(width: 14),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Paracetamol 500mg (Pack of 10)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        Text('Batch #A902 • Expires in 4 days', style: TextStyle(fontSize: 11, color: AppTheme.error, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.error.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text('URGENT', style: TextStyle(color: AppTheme.error, fontSize: 10, fontWeight: FontWeight.bold)),
-                  ),
-                ],
               ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 24),
 
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppTheme.surfaceBorder),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceElevated,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.local_drink_rounded, color: AppTheme.secondary, size: 22),
-                  ),
-                  const SizedBox(width: 14),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Organic Almond Milk 1L', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        Text('Batch #E441 • Expires in 12 days', style: TextStyle(fontSize: 11, color: AppTheme.warning, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.warning.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text('ALERT', style: TextStyle(color: AppTheme.warning, fontSize: 10, fontWeight: FontWeight.bold)),
-                  ),
-                ],
+            // ============================================================
+            // 4. AI PROFIT PLANS & DEAD STOCK SUGGESTIONS
+            // ============================================================
+            _buildLockedSection(
+              isLocked: !_isSubscribed,
+              lockedTitle: 'AI Profit & Fast-Moving Stock Optimization',
+              lockedSubtitle: 'Get predictive restock alerts and bundle strategies to increase margins by up to 30%.',
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.surfaceBorder),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('💡 Plan: Bundle Parle-G with Tata Tea Gold (+18% margin boost)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    SizedBox(height: 6),
+                    Text('💡 Dead stock liquidation: Apply 10% discount on slow-moving noodles to free ₹14,000 cash.', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                  ],
+                ),
               ),
             ),
 
-            const SizedBox(height: 28),
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
 
-            // ============================================================
-            // 3. ENTERPRISE VALUE PROPS
-            // ============================================================
-            Row(
-              children: [
-                Expanded(
-                  child: _buildValuePropCard(
-                    icon: Icons.speed_rounded,
-                    title: 'Priority Support',
-                    subtitle: '24/7 dedicated assistance',
-                  ),
+  Widget _buildLockedSection({
+    required bool isLocked,
+    required String lockedTitle,
+    required String lockedSubtitle,
+    required Widget child,
+  }) {
+    if (!isLocked) return child;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.surfaceBorder),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
+          children: [
+            // Blurred Background Child
+            ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: child,
+              ),
+            ),
+
+            // Overlay with Lock Icon and Hint
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withOpacity(0.65),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withOpacity(0.25),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppTheme.primaryContainer, width: 1.5),
+                      ),
+                      child: const Icon(Icons.lock_rounded, color: AppTheme.primaryContainer, size: 22),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      lockedTitle,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.white),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      lockedSubtitle,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _buildValuePropCard(
-                    icon: Icons.cloud_upload_rounded,
-                    title: 'Cloud Backup',
-                    subtitle: 'Secure real-time sync',
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _buildValuePropCard(
-                    icon: Icons.group_add_rounded,
-                    title: 'Multi-User',
-                    subtitle: 'Staff & role access',
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
         ),
@@ -291,31 +272,46 @@ class PremiumToolkitScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildValuePropCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
+  Widget _buildExpiryRow(String name, String detail, String qty, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        color: AppTheme.surfaceElevated,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.surfaceBorder),
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(icon, color: AppTheme.primaryContainer, size: 24),
-          const SizedBox(height: 8),
-          Text(title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryContainer)),
-          const SizedBox(height: 2),
-          Text(subtitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 9, color: AppTheme.textMuted)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(detail, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+          Text(qty, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         ],
       ),
+    );
+  }
+
+  Widget _buildGstRow(String label, String amount, {bool isHighlight = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+        Text(
+          amount,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: isHighlight ? AppTheme.secondary : Colors.white,
+          ),
+        ),
+      ],
     );
   }
 }
