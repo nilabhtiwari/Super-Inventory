@@ -77,12 +77,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       // ============================================================
       // STITCH STANDARDIZED PURPLE TOP APP BAR
       // ============================================================
+      drawer: _buildStoreDrawer(settings, authState),
       appBar: AppBar(
         backgroundColor: AppTheme.primary,
         elevation: 4,
-        title: Row(
-          children: [
-            Container(
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: Container(
               width: 36,
               height: 36,
               decoration: BoxDecoration(
@@ -90,32 +91,40 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.5),
               ),
-              child: Center(
-                child: Text(
-                  authState.user?.name.substring(0, 1).toUpperCase() ?? 'A',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              child: const Center(
+                child: Icon(Icons.storefront_rounded, color: Colors.white, size: 20),
+              ),
+            ),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
+        title: Builder(
+          builder: (ctx) => GestureDetector(
+            onTap: () => Scaffold.of(ctx).openDrawer(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      settings.shopName,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.expand_more_rounded, color: AppTheme.secondary, size: 18),
+                  ],
                 ),
-              ),
+                Text(
+                  "OPEN • ${settings.storeTimings}",
+                  style: const TextStyle(fontSize: 10, color: AppTheme.secondary, fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    settings.shopName,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    "Super Inventory • ${authState.user?.name ?? 'Cashier'}",
-                    style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.8)),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
         actions: [
           // Notifications Bell with Unread Indicator
@@ -650,6 +659,194 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
               style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStoreDrawer(dynamic settings, dynamic authState) {
+    return Drawer(
+      backgroundColor: AppTheme.surface,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Drawer Header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.white38),
+                    ),
+                    child: const Icon(Icons.storefront_rounded, size: 28, color: Colors.white),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          settings.shopName,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "Active: ${authState.user?.name ?? 'Merchant'}",
+                          style: const TextStyle(fontSize: 11, color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Store Quick Info Card
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceElevated,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.surfaceBorder),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.schedule_rounded, size: 16, color: AppTheme.secondary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            "Timings: ${settings.storeTimings}",
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.call_rounded, size: 16, color: AppTheme.primaryContainer),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            "Helpline: ${settings.grievanceHelpline}",
+                            style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on_rounded, size: 16, color: AppTheme.tertiary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            settings.address,
+                            style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Active Promotional Ad
+            if (settings.promotionalOffer.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppTheme.secondary.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('ACTIVE RECEIPT AD:', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.secondary)),
+                      const SizedBox(height: 4),
+                      Text(settings.promotionalOffer, style: const TextStyle(fontSize: 11, color: Colors.white)),
+                    ],
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 16),
+            const Divider(color: AppTheme.surfaceBorder, height: 1),
+
+            // Drawer Navigation List
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.edit_note_rounded, color: AppTheme.primaryContainer),
+                    title: const Text('Edit Business Profile & Ads', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/settings');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.print_rounded, color: AppTheme.secondary),
+                    title: const Text('Thermal Printer Settings', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/settings');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.auto_awesome_rounded, color: AppTheme.tertiary),
+                    title: const Text('Smart GST Tax Optimizer', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/premium');
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            // Log Out Button in Drawer
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await ref.read(authProvider.notifier).logout();
+                  if (mounted) context.go('/login');
+                },
+                icon: const Icon(Icons.logout_rounded, color: AppTheme.error, size: 18),
+                label: const Text('Log Out', style: TextStyle(color: AppTheme.error, fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.error),
+                  backgroundColor: AppTheme.error.withOpacity(0.08),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
             ),
           ],
         ),

@@ -89,24 +89,109 @@
   <!-- SMARTPHONE DEVICE WRAPPER -->
   <div class="w-full max-w-md h-[840px] bg-brand-dark border-4 border-brand-surfaceBorder rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative">
 
-    <!-- TOP HEADER -->
-    <div class="w-full bg-brand-primary px-6 pt-3 pb-2 flex justify-between items-center text-xs font-semibold z-20 shadow-md">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-full bg-white/20 border border-white/40 flex items-center justify-center font-bold text-white text-xs">
-          <span class="material-symbols-outlined text-base">storefront</span>
+    <!-- TOP APP BAR -->
+    <header class="p-4 border-b border-brand-surfaceBorder flex items-center justify-between bg-brand-surface sticky top-0 z-30 shadow-md">
+      <!-- Top Left Store Icon (Clickable Side Dropdown/Drawer) -->
+      <div onclick="toggleStoreDrawer()" class="flex items-center gap-2.5 cursor-pointer p-1.5 rounded-xl hover:bg-brand-surfaceElevated transition active:scale-95 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-primary to-brand-secondary flex items-center justify-center text-white shadow-md shadow-brand-primary/20 group-hover:scale-105 transition">
+          <span class="material-symbols-outlined text-xl">storefront</span>
         </div>
-        <div class="leading-tight">
-          <div class="font-bold text-white text-[13px]">Super Inventory</div>
-          <div class="text-[10px] text-white/80" id="currentBranchDisplay">Main Branch • Active Counter</div>
+        <div class="text-left">
+          <div class="flex items-center gap-1">
+            <span class="text-xs font-black text-white" id="headerShopName">Super Inventory</span>
+            <span class="material-symbols-outlined text-brand-secondary text-sm">expand_more</span>
+          </div>
+          <span class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+            <span id="headerStoreStatus">OPEN • 8:00 AM - 10:30 PM</span>
+          </span>
         </div>
       </div>
+
+      <!-- Right Header Actions -->
       <div class="flex items-center gap-2">
-        <button onclick="switchScreen('premium')" class="text-brand-tertiary bg-white/10 p-1.5 rounded-full hover:bg-white/20 transition" title="GST & Expiry Reports">
-          <span class="material-symbols-outlined text-[18px]">workspace_premium</span>
+        <button onclick="switchScreen('settings')" class="w-8 h-8 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder flex items-center justify-center text-brand-muted hover:text-white transition">
+          <span class="material-symbols-outlined text-base">settings</span>
         </button>
-        <button onclick="switchScreen('inventory')" class="relative text-white/90 hover:text-white transition" title="Stock Alerts">
-          <span class="material-symbols-outlined text-[20px]">notifications</span>
-          <span class="absolute top-0 right-0 w-2 h-2 bg-brand-tertiary rounded-full"></span>
+        <button onclick="handleLogOut()" class="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 hover:text-red-300 transition">
+          <span class="material-symbols-outlined text-base">logout</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- SLIDING STORE PROFILE & MULTI-STORE SIDE DRAWER -->
+    <!-- ============================================================ -->
+    <div id="storeDrawerOverlay" onclick="toggleStoreDrawer()" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-40 transition-opacity"></div>
+    <div id="storeSideDrawer" class="hidden fixed top-0 left-0 bottom-0 w-[290px] bg-brand-surface border-r border-brand-surfaceBorder z-50 p-5 flex flex-col justify-between shadow-2xl overflow-y-auto">
+      <div class="space-y-4 text-left">
+        <div class="flex items-center justify-between pb-3 border-b border-brand-surfaceBorder">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-primary to-brand-secondary flex items-center justify-center text-white font-bold text-lg">
+              SI
+            </div>
+            <div>
+              <h3 class="text-xs font-black text-white" id="drawerShopName">Super Inventory</h3>
+              <p class="text-[10px] text-emerald-400 font-bold">● Active Store</p>
+            </div>
+          </div>
+          <button onclick="toggleStoreDrawer()" class="p-1 rounded-lg hover:bg-brand-surfaceElevated text-brand-muted hover:text-white">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        <!-- Store Quick Details Card -->
+        <div class="p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl space-y-2 text-xs">
+          <div class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-sm text-brand-primaryContainer mt-0.5">schedule</span>
+            <div>
+              <p class="text-[10px] font-bold text-brand-muted">Store Timings</p>
+              <p class="text-white font-medium" id="drawerTimings">Mon-Sun: 8:00 AM - 10:30 PM</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-sm text-brand-secondary mt-0.5">call</span>
+            <div>
+              <p class="text-[10px] font-bold text-brand-muted">Helpline / Phone</p>
+              <p class="text-white font-medium" id="drawerPhone">9876543210</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-sm text-amber-400 mt-0.5">location_on</span>
+            <div>
+              <p class="text-[10px] font-bold text-brand-muted">Address</p>
+              <p class="text-white font-medium" id="drawerAddress">Main Branch, City Centre</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current Festive Ad / Offer Card -->
+        <div class="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl space-y-1 text-left">
+          <p class="text-[9px] font-extrabold text-emerald-400 uppercase tracking-wider">Active Receipt Ad</p>
+          <p class="text-[10px] text-white font-medium" id="drawerOffer">🎉 Festive 10% OFF on bills above ₹1,000!</p>
+        </div>
+
+        <!-- Drawer Navigation Links -->
+        <div class="space-y-1.5 pt-2">
+          <button onclick="toggleStoreDrawer(); openProfileEditModal();" class="w-full py-2.5 px-3 bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-xs font-bold rounded-xl flex items-center gap-2.5 hover:border-brand-primary transition">
+            <span class="material-symbols-outlined text-brand-primary text-base">edit_square</span>
+            Edit Profile & Ads
+          </button>
+          <button onclick="toggleStoreDrawer(); switchScreen('settings');" class="w-full py-2.5 px-3 bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-xs font-bold rounded-xl flex items-center gap-2.5 hover:border-brand-primary transition">
+            <span class="material-symbols-outlined text-brand-secondary text-base">print</span>
+            Thermal Printer Settings
+          </button>
+          <button onclick="toggleStoreDrawer(); switchScreen('premium');" class="w-full py-2.5 px-3 bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-xs font-bold rounded-xl flex items-center gap-2.5 hover:border-brand-primary transition">
+            <span class="material-symbols-outlined text-brand-tertiary text-base">auto_awesome</span>
+            Smart GST Tax Optimizer
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-brand-surfaceBorder">
+        <button onclick="toggleStoreDrawer(); handleLogOut();" class="w-full py-2.5 bg-red-500/10 border border-red-500/30 text-red-400 font-bold text-xs rounded-xl flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-sm">logout</span>
+          Log Out
         </button>
       </div>
     </div>
@@ -764,6 +849,18 @@
       document.getElementById('otpModal').classList.add('hidden');
     }
 
+    function toggleStoreDrawer() {
+      const drawer = document.getElementById('storeSideDrawer');
+      const overlay = document.getElementById('storeDrawerOverlay');
+      if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+        overlay.classList.remove('hidden');
+      } else {
+        drawer.classList.add('hidden');
+        overlay.classList.add('hidden');
+      }
+    }
+
     function openProfileEditModal() {
       document.getElementById('profileEditModal').classList.remove('hidden');
     }
@@ -780,6 +877,15 @@
       const timings = document.getElementById('profTimingsInput').value.trim();
       const offer = document.getElementById('profOfferInput').value.trim();
 
+      // Update Header & Side Drawer
+      document.getElementById('headerShopName').innerText = name || 'Super Inventory';
+      document.getElementById('headerStoreStatus').innerText = `OPEN • ${timings}`;
+      document.getElementById('drawerShopName').innerText = name || 'Super Inventory';
+      document.getElementById('drawerTimings').innerText = timings;
+      document.getElementById('drawerPhone').innerText = helpline || phone;
+      document.getElementById('drawerAddress').innerText = address;
+      document.getElementById('drawerOffer').innerText = offer;
+
       // Update Settings Profile Banner
       document.getElementById('settingsStoreName').innerText = name || 'Super Inventory';
       document.getElementById('settingsTimingsDisplay').innerText = `Hours: ${timings}`;
@@ -792,7 +898,7 @@
       document.getElementById('rcptOfferBanner').innerText = offer;
 
       closeProfileEditModal();
-      alert('✓ Business Profile & Receipt Ad updated successfully!');
+      alert('✓ Business Profile, Header, & Receipt Ads updated successfully!');
     }
 
     function setFinancialTab(tab) {
