@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/providers/auth_provider.dart';
 
+enum AuthViewMode { login, signup, forgotPassword }
+
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -16,48 +18,107 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   
-  final _emailController = TextEditingController(text: 'merchant@gmail.com');
+  final _identifierController = TextEditingController(text: 'merchant@gmail.com');
   final _passwordController = TextEditingController(text: 'Merchant@1234');
-  final _fullNameController = TextEditingController();
+  final _storeNameController = TextEditingController(text: 'Super Inventory');
+  final _phoneController = TextEditingController(text: '+91 9876543210');
+  final _newPasswordController = TextEditingController();
 
-  bool _isLoginTab = true;
+  AuthViewMode _viewMode = AuthViewMode.login;
   bool _obscurePassword = true;
   bool _isLoading = false;
 
-  static final RegExp _emailRegex = RegExp(
-    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-  );
-
   @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
-    _fullNameController.dispose();
+    _storeNameController.dispose();
+    _phoneController.dispose();
+    _newPasswordController.dispose();
     super.dispose();
   }
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty) return 'Email address is required';
-    if (!_emailRegex.hasMatch(value.trim())) return 'Please enter a valid email (e.g. name@gmail.com)';
-    return null;
-  }
-
-  Future<void> _handleAuth() async {
+  Future<void> _handlePasswordLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final email = _emailController.text.trim();
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final success = await ref.read(authProvider.notifier).login(
+          email: _identifierController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+
+    setState(() => _isLoading = false);
+
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✓ Signed in successfully! Welcome to Super Inventory.'),
+          backgroundColor: AppTheme.secondary,
+        ),
+      );
+      context.go('/');
+    }
+  }
+
+  Future<void> _handleFastSignup() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(milliseconds: 400));
+
+    final success = await ref.read(authProvider.notifier).signup(
+          email: _identifierController.text.trim(),
+          password: _passwordController.text.trim(),
+          fullName: _storeNameController.text.trim(),
+        );
+
+    setState(() => _isLoading = false);
+
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🎉 Account created! Instant launch to dashboard...'),
+          backgroundColor: AppTheme.secondary,
+        ),
+      );
+      context.go('/');
+    }
+  }
+
+  Future<void> _handlePasswordReset() async {
+    final identifier = _identifierController.text.trim();
+    if (identifier.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your email or phone number'), backgroundColor: AppTheme.warning),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(milliseconds: 500));
     setState(() => _isLoading = false);
 
     if (mounted) {
-      _showOtpModal(email);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✓ Password reset link / OTP sent to $identifier! Logging you in with new credentials.'),
+          backgroundColor: AppTheme.secondary,
+        ),
+      );
+      setState(() => _viewMode = AuthViewMode.login);
+      await ref.read(authProvider.notifier).login(
+            email: identifier,
+            password: _newPasswordController.text.isNotEmpty ? _newPasswordController.text : 'NewPassword123',
+          );
+      if (mounted) context.go('/');
     }
   }
 
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 500));
     setState(() => _isLoading = false);
 
     final success = await ref.read(authProvider.notifier).login(
@@ -73,7 +134,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleBiometricAuth() async {
     HapticFeedback.mediumImpact();
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 500));
     setState(() => _isLoading = false);
 
     final success = await ref.read(authProvider.notifier).login(
@@ -92,381 +153,305 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  void _showOtpModal(String email) {
-    final otpControllers = List.generate(6, (_) => TextEditingController());
-    final focusNodes = List.generate(6, (_) => FocusNode());
-    int secondsLeft = 30;
-    Timer? timer;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            timer ??= Timer.periodic(const Duration(seconds: 1), (t) {
-              if (secondsLeft > 0) {
-                setModalState(() => secondsLeft--);
-              } else {
-                t.cancel();
-              }
-            });
-
-            return Container(
-              padding: EdgeInsets.only(
-                top: 24,
-                left: 24,
-                right: 24,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-              ),
-              decoration: const BoxDecoration(
-                color: Color(0xFF131520),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-                border: Border(top: BorderSide(color: Color(0xFF2B2F48))),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.mark_email_read_outlined, color: AppTheme.primaryContainer, size: 26),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text('Enter 6-Digit OTP', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                  const SizedBox(height: 4),
-                  Text('Sent to $email', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: List.generate(6, (i) {
-                      return SizedBox(
-                        width: 44,
-                        height: 50,
-                        child: TextFormField(
-                          controller: otpControllers[i],
-                          focusNode: focusNodes[i],
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(1),
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.zero,
-                            filled: true,
-                            fillColor: const Color(0xFF1B1E30),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF2E3352))),
-                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppTheme.primary, width: 2)),
-                          ),
-                          onChanged: (val) {
-                            if (val.isNotEmpty && i < 5) focusNodes[i + 1].requestFocus();
-                            if (val.isEmpty && i > 0) focusNodes[i - 1].requestFocus();
-                          },
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    secondsLeft > 0 ? 'Resend code in 00:${secondsLeft.toString().padLeft(2, '0')}' : 'Did not receive code?',
-                    style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        Navigator.pop(ctx);
-                        final success = await ref.read(authProvider.notifier).login(
-                              email: email,
-                              password: _passwordController.text.trim(),
-                            );
-                        if (success && mounted) context.go('/');
-                      },
-                      style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-                      child: const Text('Verify & Continue', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    ).whenComplete(() => timer?.cancel());
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF07080C),
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Form(
-              key: _formKey,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // BOLD GOLD & EMERALD SUPER INVENTORY LOGO (PROMINENT SIZE, NO SUBTITLES)
-                    Center(
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        height: 75,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    const SizedBox(height: 22),
-
-                    // FULL-WIDTH CLEAN GOOGLE ONE-TAP BUTTON AT TOP
-                    OutlinedButton(
-                      onPressed: _isLoading ? null : _handleGoogleSignIn,
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black87,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide.none,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        elevation: 2,
-                      ),
-                      child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Logo
+                  Center(
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      height: 56,
+                      fit: BoxFit.contain,
+                      errorBuilder: (ctx, err, stack) => const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Image.network(
-                            'https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg',
-                            width: 18,
-                            height: 18,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 22, color: Colors.blue),
+                          Icon(Icons.inventory_2_rounded, color: AppTheme.secondary, size: 32),
+                          SizedBox(width: 8),
+                          Text(
+                            'SUPER INVENTORY',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
                           ),
-                          const SizedBox(width: 10),
-                          const Text('Continue with Google', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
                         ],
                       ),
                     ),
+                  ),
 
-                    const SizedBox(height: 14),
+                  const SizedBox(height: 24),
 
-                    const Row(
-                      children: [
-                        Expanded(child: Divider(color: Color(0xFF202334))),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: Text('OR EMAIL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Color(0xFF676C8E), letterSpacing: 1)),
+                  // Google Fast Sign In Button
+                  ElevatedButton.icon(
+                    onPressed: _isLoading ? null : _handleGoogleSignIn,
+                    icon: Image.network(
+                      'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                      height: 18,
+                      width: 18,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata_rounded, color: Colors.black, size: 22),
+                    ),
+                    label: const Text('Continue with Google', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 2,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.white.withOpacity(0.15))),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Text('OR EMAIL / PHONE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textMuted, letterSpacing: 1)),
+                      ),
+                      Expanded(child: Divider(color: Colors.white.withOpacity(0.15))),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Main Auth Box
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: AppTheme.surfaceBorder),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                         ),
-                        Expanded(child: Divider(color: Color(0xFF202334))),
                       ],
                     ),
-
-                    const SizedBox(height: 14),
-
-                    // SLEEK CARD CONTAINER
-                    Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF11131D),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFF212538)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.6),
-                            blurRadius: 24,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
+                    child: Form(
+                      key: _formKey,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Tab Switcher
-                          Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1A1D2C),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
+                          // Tab Switcher (Sign In vs Sign Up)
+                          if (_viewMode != AuthViewMode.forgotPassword)
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: AppTheme.surfaceElevated,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () => setState(() => _viewMode = AuthViewMode.login),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: _viewMode == AuthViewMode.login ? Colors.white : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          'Sign In',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: _viewMode == AuthViewMode.login ? Colors.black : AppTheme.textMuted,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () => setState(() => _viewMode = AuthViewMode.signup),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: _viewMode == AuthViewMode.signup ? Colors.white : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          'Sign Up',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: _viewMode == AuthViewMode.signup ? Colors.black : AppTheme.textMuted,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () => setState(() => _isLoginTab = true),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: _isLoginTab ? Colors.white : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Text(
-                                        'Login',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: _isLoginTab ? const Color(0xFF11131D) : const Color(0xFF8C91B0),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () => setState(() => _isLoginTab = false),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: !_isLoginTab ? Colors.white : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Text(
-                                        'Sign Up',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: !_isLoginTab ? const Color(0xFF11131D) : const Color(0xFF8C91B0),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                const Text('Reset Password', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                                TextButton(
+                                  onPressed: () => setState(() => _viewMode = AuthViewMode.login),
+                                  child: const Text('Back to Sign In', style: TextStyle(fontSize: 11, color: AppTheme.primaryContainer)),
                                 ),
                               ],
                             ),
-                          ),
 
-                          const SizedBox(height: 14),
-
-                          if (!_isLoginTab) ...[
-                            const Text('Full Name', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFA5A9C5))),
-                            const SizedBox(height: 4),
-                            TextFormField(
-                              controller: _fullNameController,
-                              style: const TextStyle(fontSize: 13),
-                              decoration: const InputDecoration(
-                                prefixIcon: Icon(Icons.person_outline_rounded, color: Color(0xFF676C8E), size: 18),
-                                hintText: 'Rajesh Kumar',
-                                contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-
-                          const Text('Gmail / Work Email Address', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFA5A9C5))),
-                          const SizedBox(height: 4),
-                          TextFormField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            style: const TextStyle(fontSize: 13),
-                            decoration: const InputDecoration(
-                              prefixIcon: Icon(Icons.mail_outline_rounded, color: Color(0xFF676C8E), size: 18),
-                              hintText: 'merchant@gmail.com',
-                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                            ),
-                            validator: _validateEmail,
-                          ),
-                          const SizedBox(height: 10),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Password', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFA5A9C5))),
-                              if (_isLoginTab)
-                                GestureDetector(
-                                  onTap: _handleAuth,
-                                  child: const Text('Login via OTP?', style: TextStyle(fontSize: 10, color: AppTheme.primaryContainer, fontWeight: FontWeight.bold)),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          TextFormField(
-                            controller: _passwordController,
-                            obscureText: _obscurePassword,
-                            style: const TextStyle(fontSize: 13),
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF676C8E), size: 18),
-                              hintText: '••••••••',
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              suffixIcon: IconButton(
-                                icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: const Color(0xFF676C8E), size: 18),
-                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                              ),
-                            ),
-                          ),
                           const SizedBox(height: 16),
 
-                          // SUBMIT BUTTON
-                          SizedBox(
-                            height: 46,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _handleAuth,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primary,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                elevation: 3,
+                          // Signup Extra Fields
+                          if (_viewMode == AuthViewMode.signup) ...[
+                            TextFormField(
+                              controller: _storeNameController,
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              decoration: const InputDecoration(
+                                labelText: 'Store / Business Name',
+                                prefixIcon: Icon(Icons.storefront_rounded, size: 20),
                               ),
-                              child: _isLoading
-                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                  : const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.mark_email_read_outlined, size: 16),
-                                        SizedBox(width: 8),
-                                        Text('Send OTP & Verify', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
+                              validator: (v) => v == null || v.trim().isEmpty ? 'Enter business name' : null,
                             ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _phoneController,
+                              keyboardType: TextInputType.phone,
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              decoration: const InputDecoration(
+                                labelText: 'Mobile Phone Number',
+                                prefixIcon: Icon(Icons.phone_iphone_rounded, size: 20),
+                              ),
+                              validator: (v) => v == null || v.trim().isEmpty ? 'Enter phone number' : null,
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+
+                          // Identifier Field (Email or Phone)
+                          TextFormField(
+                            controller: _identifierController,
+                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            decoration: InputDecoration(
+                              labelText: _viewMode == AuthViewMode.forgotPassword ? 'Email or Registered Phone' : 'Email Address or Phone',
+                              prefixIcon: const Icon(Icons.alternate_email_rounded, size: 20),
+                            ),
+                            validator: (v) => v == null || v.trim().isEmpty ? 'Enter email or phone number' : null,
                           ),
+
+                          const SizedBox(height: 12),
+
+                          // Password Field
+                          if (_viewMode != AuthViewMode.forgotPassword) ...[
+                            TextFormField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              decoration: InputDecoration(
+                                labelText: 'Password',
+                                prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                                suffixIcon: IconButton(
+                                  icon: Icon(_obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 18),
+                                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                ),
+                              ),
+                              validator: (v) => v == null || v.length < 6 ? 'Password must be at least 6 characters' : null,
+                            ),
+                            const SizedBox(height: 6),
+                            // Forgot Password Link
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () => setState(() => _viewMode = AuthViewMode.forgotPassword),
+                                style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(0, 0)),
+                                child: const Text(
+                                  'Forgot Password?',
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryContainer),
+                                ),
+                              ),
+                            ),
+                          ] else ...[
+                            TextFormField(
+                              controller: _newPasswordController,
+                              obscureText: _obscurePassword,
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              decoration: InputDecoration(
+                                labelText: 'New Password',
+                                prefixIcon: const Icon(Icons.lock_reset_rounded, size: 20),
+                                suffixIcon: IconButton(
+                                  icon: Icon(_obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 18),
+                                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                ),
+                              ),
+                            ),
+                          ],
 
                           const SizedBox(height: 14),
 
-                          // BIOMETRICS OPTION AT THE BOTTOM OF CARD
-                          OutlinedButton.icon(
-                            onPressed: _isLoading ? null : _handleBiometricAuth,
-                            icon: const Icon(Icons.fingerprint_rounded, size: 20, color: AppTheme.secondary),
-                            label: const Text('Unlock with Biometrics', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: const Color(0xFF161926),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              side: const BorderSide(color: Color(0xFF282D42)),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          // Submit Action Button
+                          ElevatedButton(
+                            onPressed: _isLoading
+                                ? null
+                                : (_viewMode == AuthViewMode.login
+                                    ? _handlePasswordLogin
+                                    : (_viewMode == AuthViewMode.signup ? _handleFastSignup : _handlePasswordReset)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              elevation: 4,
                             ),
+                            child: _isLoading
+                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                : Text(
+                                    _viewMode == AuthViewMode.login
+                                        ? 'Sign In to Super Inventory'
+                                        : (_viewMode == AuthViewMode.signup ? 'Create Account & Launch Store' : 'Reset Password & Sign In'),
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                  ),
                           ),
+
+                          const SizedBox(height: 12),
+
+                          // Biometrics Option
+                          if (_viewMode == AuthViewMode.login)
+                            OutlinedButton.icon(
+                              onPressed: _isLoading ? null : _handleBiometricAuth,
+                              icon: const Icon(Icons.fingerprint_rounded, size: 20, color: AppTheme.secondary),
+                              label: const Text('Unlock with Biometrics', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 11),
+                                side: BorderSide(color: AppTheme.secondary.withOpacity(0.4)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                backgroundColor: AppTheme.surfaceElevated,
+                              ),
+                            ),
                         ],
                       ),
                     ),
+                  ),
 
-                    const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.shield_outlined, size: 12, color: Color(0xFF34D399)),
-                        SizedBox(width: 6),
-                        Text('FINGERPRINT, OAUTH2 & OTP ENCRYPTED', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Color(0xFF676C8E), letterSpacing: 0.8)),
-                      ],
-                    ),
-                  ],
-                ),
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.shield_rounded, color: AppTheme.secondary, size: 14),
+                      SizedBox(width: 6),
+                      Text('256-BIT ENCRYPTED & SECURED', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppTheme.textMuted, letterSpacing: 1)),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),

@@ -1046,9 +1046,9 @@
       </div>
 
       <!-- ============================================================ -->
-      <!-- 9. EXACT STITCH LOGIN & GOOGLE AUTH / GMAIL OTP PAGE (CENTERED) -->
+      <!-- 9. FAST COMBO AUTH, SIGNUP & FORGOT PASSWORD SCREEN -->
       <!-- ============================================================ -->
-      <div id="screen-login" class="hidden min-h-[720px] flex flex-col justify-center items-center py-6 px-3 text-center max-w-[350px] mx-auto">
+      <div id="screen-login" class="hidden min-h-[720px] flex flex-col justify-center items-center py-6 px-3 text-center max-w-[360px] mx-auto">
         <!-- Bold Gold & Emerald Super Inventory Logo (No Subtitles) -->
         <div class="flex justify-center items-center mb-4">
           <img src="logo.png" alt="Super Inventory Logo" class="h-16 max-w-[320px] object-contain drop-shadow-md" />
@@ -1067,46 +1067,68 @@
 
         <div class="flex items-center gap-2 w-full mb-3">
           <div class="flex-1 h-[1px] bg-white/10"></div>
-          <span class="text-[9px] font-bold text-brand-muted uppercase tracking-wider">OR EMAIL</span>
+          <span class="text-[9px] font-bold text-brand-muted uppercase tracking-wider">OR EMAIL / PHONE</span>
           <div class="flex-1 h-[1px] bg-white/10"></div>
         </div>
 
-        <!-- Sleek Auth Box -->
+        <!-- Main Auth Box -->
         <div class="w-full p-4 bg-[#11131D] border border-white/10 rounded-2xl space-y-3 text-left shadow-2xl">
-          <div class="p-1 bg-[#1A1D2C] rounded-xl flex">
-            <button onclick="setAuthTab('login')" id="tab-login" class="flex-1 py-1.5 bg-white text-black font-bold text-xs rounded-lg shadow">Login</button>
-            <button onclick="setAuthTab('signup')" id="tab-signup" class="flex-1 py-1.5 text-brand-muted font-bold text-xs rounded-lg">Sign Up</button>
+          <!-- Auth Mode Tabs (Sign In / Sign Up) -->
+          <div class="p-1 bg-[#1A1D2C] rounded-xl flex" id="authTabHeader">
+            <button onclick="setAuthView('login')" id="tab-login" class="flex-1 py-1.5 bg-white text-black font-bold text-xs rounded-lg shadow">Sign In</button>
+            <button onclick="setAuthView('signup')" id="tab-signup" class="flex-1 py-1.5 text-brand-muted font-bold text-xs rounded-lg">Sign Up</button>
           </div>
 
+          <!-- Forgot Password Title Banner (Hidden by default) -->
+          <div id="forgotPwBanner" class="hidden flex justify-between items-center pb-1">
+            <span class="text-xs font-bold text-white">Reset Password</span>
+            <button onclick="setAuthView('login')" class="text-[11px] text-brand-primaryContainer font-bold hover:underline">← Back to Sign In</button>
+          </div>
+
+          <!-- Sign Up Specific Fields -->
           <div id="authSignupFields" class="hidden space-y-2">
             <div>
-              <label class="text-[10px] font-semibold text-brand-muted block mb-1">Full Name</label>
-              <input type="text" id="authFullName" placeholder="Rajesh Kumar" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+              <label class="text-[10px] font-semibold text-brand-muted block mb-1">Store / Business Name</label>
+              <input type="text" id="authStoreName" placeholder="E.g. Super Inventory" value="Super Inventory Store" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+            </div>
+            <div>
+              <label class="text-[10px] font-semibold text-brand-muted block mb-1">Mobile Phone Number</label>
+              <input type="tel" id="authSignupPhone" placeholder="+91 9876543210" value="+91 9876543210" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
             </div>
           </div>
 
+          <!-- Identifier (Email or Phone) -->
           <div class="space-y-2">
             <div>
-              <label class="text-[10px] font-semibold text-brand-muted block mb-1">Gmail / Work Email Address</label>
-              <input type="email" id="authEmailInput" placeholder="merchant@gmail.com" value="merchant@gmail.com" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
-              <p id="emailErrorText" class="hidden text-[10px] text-red-400 font-bold mt-1">Please enter a valid email address</p>
+              <label class="text-[10px] font-semibold text-brand-muted block mb-1" id="authIdentifierLabel">Email Address or Phone Number</label>
+              <input type="text" id="authEmailInput" placeholder="merchant@gmail.com or 9876543210" value="merchant@gmail.com" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+              <p id="emailErrorText" class="hidden text-[10px] text-red-400 font-bold mt-1">Please enter your email or phone</p>
             </div>
-            <div>
+
+            <!-- Password Field (Normal Mode) -->
+            <div id="authPasswordGroup">
               <div class="flex justify-between items-center mb-1">
                 <label class="text-[10px] font-semibold text-brand-muted">Password</label>
-                <span class="text-[10px] text-brand-primaryContainer font-bold cursor-pointer">Login via OTP?</span>
+                <button onclick="setAuthView('forgot')" class="text-[10px] text-brand-primaryContainer font-bold hover:underline">Forgot Password?</button>
               </div>
-              <input type="password" value="••••••••" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+              <input type="password" id="authPasswordInput" value="Merchant@1234" placeholder="Enter password" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+            </div>
+
+            <!-- New Password Field (Forgot Password Mode) -->
+            <div id="authNewPasswordGroup" class="hidden">
+              <label class="text-[10px] font-semibold text-brand-muted block mb-1">Set New Password</label>
+              <input type="password" id="authNewPasswordInput" placeholder="Enter new password (min 6 chars)" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
             </div>
           </div>
 
-          <button onclick="triggerEmailOtpAuth()" class="w-full py-2.5 bg-brand-primary text-white font-bold text-xs rounded-xl shadow hover:bg-brand-primaryGlow transition flex items-center justify-center gap-1.5">
-            <span class="material-symbols-outlined text-sm">mail</span>
-            <span>Send OTP & Verify</span>
+          <!-- Submit Button -->
+          <button onclick="handlePrimaryAuthSubmit()" id="authSubmitBtn" class="w-full py-2.5 bg-brand-primary text-white font-extrabold text-xs rounded-xl shadow-lg hover:bg-brand-primaryGlow active:scale-95 transition flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-sm">login</span>
+            <span id="authSubmitBtnText">Sign In to Super Inventory</span>
           </button>
 
-          <!-- Biometrics Option at the Bottom -->
-          <button onclick="handleBiometricSignIn()" class="w-full py-2 bg-[#161926] border border-white/10 text-white font-bold text-xs rounded-xl shadow hover:border-brand-secondary active:scale-95 transition flex items-center justify-center gap-1.5">
+          <!-- Biometrics Option -->
+          <button onclick="handleBiometricSignIn()" id="authBiometricBtn" class="w-full py-2 bg-[#161926] border border-white/10 text-white font-bold text-xs rounded-xl shadow hover:border-brand-secondary active:scale-95 transition flex items-center justify-center gap-1.5">
             <span class="material-symbols-outlined text-brand-secondary text-base">fingerprint</span>
             <span>Unlock with Biometrics</span>
           </button>
@@ -1200,60 +1222,109 @@
       { id: 'INV-20260901-0012', total: 45.0, items: 1, time: '40 mins ago', status: 'Paid' },
     ];
 
-    function setAuthTab(tab) {
+    let currentAuthMode = 'login'; // 'login', 'signup', 'forgot'
+
+    function setAuthView(mode) {
+      currentAuthMode = mode;
+      const tabHeader = document.getElementById('authTabHeader');
+      const forgotBanner = document.getElementById('forgotPwBanner');
       const loginBtn = document.getElementById('tab-login');
       const signupBtn = document.getElementById('tab-signup');
       const signupFields = document.getElementById('authSignupFields');
+      const pwGroup = document.getElementById('authPasswordGroup');
+      const newPwGroup = document.getElementById('authNewPasswordGroup');
+      const submitText = document.getElementById('authSubmitBtnText');
+      const biometricBtn = document.getElementById('authBiometricBtn');
+      const label = document.getElementById('authIdentifierLabel');
 
-      if (tab === 'login') {
-        loginBtn.className = 'flex-1 py-2 bg-white text-brand-primary font-bold text-xs rounded-xl shadow';
-        signupBtn.className = 'flex-1 py-2 text-brand-muted font-bold text-xs rounded-xl';
+      if (mode === 'login') {
+        tabHeader.classList.remove('hidden');
+        forgotBanner.classList.add('hidden');
+        loginBtn.className = 'flex-1 py-1.5 bg-white text-black font-bold text-xs rounded-lg shadow';
+        signupBtn.className = 'flex-1 py-1.5 text-brand-muted font-bold text-xs rounded-lg';
         signupFields.classList.add('hidden');
-      } else {
-        signupBtn.className = 'flex-1 py-2 bg-white text-brand-primary font-bold text-xs rounded-xl shadow';
-        loginBtn.className = 'flex-1 py-2 text-brand-muted font-bold text-xs rounded-xl';
+        pwGroup.classList.remove('hidden');
+        newPwGroup.classList.add('hidden');
+        biometricBtn.classList.remove('hidden');
+        label.innerText = 'Email Address or Phone Number';
+        submitText.innerText = 'Sign In to Super Inventory';
+      } else if (mode === 'signup') {
+        tabHeader.classList.remove('hidden');
+        forgotBanner.classList.add('hidden');
+        signupBtn.className = 'flex-1 py-1.5 bg-white text-black font-bold text-xs rounded-lg shadow';
+        loginBtn.className = 'flex-1 py-1.5 text-brand-muted font-bold text-xs rounded-lg';
         signupFields.classList.remove('hidden');
+        pwGroup.classList.remove('hidden');
+        newPwGroup.classList.add('hidden');
+        biometricBtn.classList.add('hidden');
+        label.innerText = 'Work Email Address';
+        submitText.innerText = 'Create Account & Launch Store';
+      } else if (mode === 'forgot') {
+        tabHeader.classList.add('hidden');
+        forgotBanner.classList.remove('hidden');
+        signupFields.classList.add('hidden');
+        pwGroup.classList.add('hidden');
+        newPwGroup.classList.remove('hidden');
+        biometricBtn.classList.add('hidden');
+        label.innerText = 'Registered Email or Phone';
+        submitText.innerText = 'Reset Password & Sign In';
+      }
+    }
+
+    function handlePrimaryAuthSubmit() {
+      const identifier = document.getElementById('authEmailInput').value.trim();
+      const pw = document.getElementById('authPasswordInput').value.trim();
+
+      if (!identifier) {
+        document.getElementById('emailErrorText').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('emailErrorText').classList.add('hidden');
+
+      if (currentAuthMode === 'login') {
+        if (!pw) {
+          alert('Please enter your password.');
+          return;
+        }
+        document.getElementById('settingsUserEmail').innerText = identifier;
+        alert(`✓ Authentication successful! Logged in as ${identifier}.`);
+        switchScreen('dashboard');
+      } else if (currentAuthMode === 'signup') {
+        const storeName = document.getElementById('authStoreName').value.trim() || 'Super Inventory';
+        const phone = document.getElementById('authSignupPhone').value.trim() || '+91 9876543210';
+        
+        // Auto-configure store
+        document.getElementById('headerShopName').innerText = storeName;
+        document.getElementById('settingsStoreName').innerText = storeName;
+        document.getElementById('settingsUserEmail').innerText = identifier;
+        document.getElementById('drawerPhone').innerText = phone;
+        document.getElementById('rcptShopName').innerText = storeName;
+
+        alert(`🎉 Account created for "${storeName}"! Instant launch to dashboard.`);
+        switchScreen('dashboard');
+      } else if (currentAuthMode === 'forgot') {
+        const newPw = document.getElementById('authNewPasswordInput').value.trim();
+        if (!newPw || newPw.length < 6) {
+          alert('Please enter a new password (at least 6 characters).');
+          return;
+        }
+        document.getElementById('settingsUserEmail').innerText = identifier;
+        alert(`✓ Password successfully reset for ${identifier}! Signed in with new credentials.`);
+        setAuthView('login');
+        switchScreen('dashboard');
       }
     }
 
     function handleGoogleSignIn() {
       document.getElementById('settingsUserEmail').innerText = 'merchant.google@gmail.com';
+      alert('✓ Signed in with Google Account.');
       switchScreen('dashboard');
     }
 
     function handleBiometricSignIn() {
       document.getElementById('settingsUserEmail').innerText = 'merchant.biometric@gmail.com';
+      alert('✓ Biometric authentication successful!');
       switchScreen('dashboard');
-    }
-
-    function triggerEmailOtpAuth() {
-      const emailInput = document.getElementById('authEmailInput');
-      const email = emailInput.value.trim();
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-      if (!emailRegex.test(email)) {
-        document.getElementById('emailErrorText').classList.remove('hidden');
-        return;
-      }
-      document.getElementById('emailErrorText').classList.add('hidden');
-      document.getElementById('otpTargetEmail').innerText = email;
-      document.getElementById('settingsUserEmail').innerText = email;
-      document.getElementById('otpModal').classList.remove('hidden');
-    }
-
-    function handleOtpInput(index, event) {
-      if (event.target.value && index < 6) {
-        document.getElementById(`otp-${index + 1}`).focus();
-      }
-    }
-
-    function verifyOtpAndLogin() {
-      closeOtpModal();
-      switchScreen('dashboard');
-    }
-
-    function closeOtpModal() {
-      document.getElementById('otpModal').classList.add('hidden');
     }
 
     function toggleStoreDrawer() {
