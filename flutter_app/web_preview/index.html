@@ -1342,13 +1342,22 @@
     }
 
     function switchScreen(screenId) {
-      const screens = ['dashboard', 'billing', 'receipt', 'history', 'products', 'hardware', 'premium', 'settings', 'login'];
-      screens.forEach(s => {
-        const el = document.getElementById(`screen-${s}`);
-        if (el) el.classList.add('hidden');
+      // Hide ALL screens unconditionally
+      document.querySelectorAll('[id^="screen-"]').forEach(el => {
+        el.classList.add('hidden');
       });
+      
+      // Show ONLY the requested screen
       const target = document.getElementById(`screen-${screenId}`);
-      if (target) target.classList.remove('hidden');
+      if (target) {
+        target.classList.remove('hidden');
+      }
+
+      // Reset scroll position to top of mobile container
+      const container = document.getElementById('screenContainer');
+      if (container) {
+        container.scrollTop = 0;
+      }
 
       if (screenId === 'dashboard') renderDashboard();
       if (screenId === 'products') renderProducts();
