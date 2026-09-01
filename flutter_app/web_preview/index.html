@@ -606,77 +606,116 @@
       </div>
 
       <!-- ============================================================ -->
-      <!-- 8. SETTINGS SCREEN (FOCUSED HARDWARE & PROFILE CONFIG) -->
+      <!-- 8. EXACT STITCH SETTINGS SCREEN -->
       <!-- ============================================================ -->
-      <div id="screen-settings" class="hidden space-y-4">
-        <h2 class="text-lg font-black text-white">Settings</h2>
+      <div id="screen-settings" class="hidden space-y-5 text-left">
+        <h2 class="text-base font-black text-white px-1">Settings</h2>
         
-        <!-- 1. CLICKABLE PROFILE CARD (OPENS DEDICATED EDIT PROFILE SCREEN) -->
-        <div onclick="switchScreen('edit-profile')" class="p-4 bg-gradient-to-r from-brand-primary to-brand-tertiary rounded-2xl space-y-2 cursor-pointer hover:opacity-95 shadow-lg transition text-left">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-2xl bg-white/20 border border-white/40 flex items-center justify-center text-white">
-                <span class="material-symbols-outlined text-2xl">storefront</span>
+        <!-- Profile Section -->
+        <div onclick="switchScreen('edit-profile')" class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-primary transition group shadow-sm">
+          <div class="flex items-center gap-3.5">
+            <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-primary to-brand-secondary border-2 border-brand-primary/40 flex items-center justify-center text-white">
+              <span class="material-symbols-outlined text-2xl">storefront</span>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white group-hover:text-brand-primaryContainer transition" id="settingsStoreName">Super Inventory</h3>
+              <p class="text-xs text-brand-muted" id="settingsUserEmail">merchant@superinventory.com</p>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-brand-primary group-hover:translate-x-1 transition-transform">chevron_right</span>
+        </div>
+
+        <!-- Hardware Settings -->
+        <div class="space-y-2">
+          <h3 class="text-[10px] font-extrabold text-brand-primaryContainer uppercase tracking-wider px-2">Hardware</h3>
+          <div class="bg-brand-surface border border-brand-surfaceBorder rounded-2xl divide-y divide-brand-surfaceBorder overflow-hidden shadow-sm">
+            <!-- Thermal Printer Item -->
+            <div class="p-3.5 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-brand-secondary/15 flex items-center justify-center text-brand-secondary">
+                  <span class="material-symbols-outlined text-lg">print</span>
+                </div>
+                <div>
+                  <h4 class="text-xs font-semibold text-white">Thermal Printer</h4>
+                  <p class="text-[10px] text-brand-muted">Epson TM-T88V (58mm ESC/POS)</p>
+                </div>
               </div>
-              <div>
-                <p class="text-sm font-black text-white" id="settingsStoreName">Super Inventory</p>
-                <p class="text-[11px] text-white/80" id="settingsTimingsDisplay">Hours: Mon-Sun 8:00 AM - 10:30 PM</p>
-                <p class="text-[10px] text-white/70">Helpline: +91 9876543210</p>
+              <div class="flex items-center gap-2">
+                <span class="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-[11px] font-bold text-emerald-400">Connected</span>
+                <span class="material-symbols-outlined text-brand-muted text-sm ml-1">chevron_right</span>
               </div>
             </div>
-            <span class="text-xs bg-black/30 text-white font-bold px-2.5 py-1 rounded-lg">Edit Profile & Ads →</span>
+
+            <!-- Barcode Scanner Item -->
+            <div class="p-3.5 flex items-center justify-between opacity-70">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-brand-surfaceElevated flex items-center justify-center text-brand-muted">
+                  <span class="material-symbols-outlined text-lg">barcode_scanner</span>
+                </div>
+                <div>
+                  <h4 class="text-xs font-semibold text-white">Barcode Scanner</h4>
+                  <p class="text-[10px] text-brand-muted">Bluetooth Wireless</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="flex h-2 w-2 rounded-full bg-red-400"></span>
+                <span class="text-[11px] font-bold text-red-400">Not Connected</span>
+                <span class="material-symbols-outlined text-brand-muted text-sm ml-1">chevron_right</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- 2. THERMAL PRINTER WITH REAL-TIME STATUS -->
-        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3 text-left">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
-                <span class="material-symbols-outlined text-xl">print</span>
+        <!-- Preferences Settings -->
+        <div class="space-y-2">
+          <h3 class="text-[10px] font-extrabold text-brand-primaryContainer uppercase tracking-wider px-2">Preferences</h3>
+          <div class="bg-brand-surface border border-brand-surfaceBorder rounded-2xl divide-y divide-brand-surfaceBorder overflow-hidden shadow-sm">
+            <div class="p-3.5 flex items-center justify-between hover:bg-brand-surfaceElevated transition cursor-pointer">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-brand-muted text-lg">notifications_active</span>
+                <span class="text-xs font-medium text-white">Notifications</span>
               </div>
-              <div>
-                <p class="text-xs font-bold text-white">Thermal Printer</p>
-                <p class="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                  <span>Connected (58mm ESC/POS)</span>
-                </p>
+              <span class="material-symbols-outlined text-brand-muted text-sm">chevron_right</span>
+            </div>
+
+            <div class="p-3.5 flex items-center justify-between hover:bg-brand-surfaceElevated transition cursor-pointer">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-brand-muted text-lg">language</span>
+                <span class="text-xs font-medium text-white">Language</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-brand-muted">
+                <span>English (US)</span>
+                <span class="material-symbols-outlined text-sm">chevron_right</span>
               </div>
             </div>
-            <button onclick="simulatePrint()" class="px-2.5 py-1.5 bg-brand-primary text-white text-[11px] font-bold rounded-lg shadow hover:bg-brand-primaryGlow">
-              Test Print
-            </button>
-          </div>
-          <div class="border-t border-brand-surfaceBorder pt-2.5 flex justify-between items-center text-xs">
-            <span class="text-brand-muted text-[11px]">Paper Roll Size</span>
-            <select class="bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg px-2 py-1 text-xs text-white outline-none">
-              <option value="58mm" selected>58mm (2-inch Standard)</option>
-              <option value="80mm">80mm (3-inch Large)</option>
-            </select>
+
+            <div class="p-3.5 flex items-center justify-between hover:bg-brand-surfaceElevated transition cursor-pointer">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-brand-muted text-lg">security</span>
+                <span class="text-xs font-medium text-white">Security & Biometrics</span>
+              </div>
+              <span class="material-symbols-outlined text-brand-muted text-sm">chevron_right</span>
+            </div>
+
+            <div class="p-3.5 flex items-center justify-between hover:bg-brand-surfaceElevated transition cursor-pointer">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-brand-muted text-lg">info</span>
+                <span class="text-xs font-medium text-white">About Super Inventory</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-emerald-400 font-bold">
+                <span>v2.1.0-STABLE</span>
+                <span class="material-symbols-outlined text-brand-muted text-sm">chevron_right</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- 3. MERCHANT UPI VPA CONFIGURATION -->
-        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-2 text-left">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-brand-primary/15 text-brand-primaryContainer flex items-center justify-center">
-                <span class="material-symbols-outlined text-xl">qr_code_2</span>
-              </div>
-              <div>
-                <p class="text-xs font-bold text-white">Merchant UPI VPA</p>
-                <p class="text-[11px] text-brand-muted font-mono">superinventory@upi</p>
-              </div>
-            </div>
-            <span class="material-symbols-outlined text-emerald-400 text-base">verified</span>
-          </div>
-        </div>
-
-        <!-- 4. LOG OUT BUTTON -->
-        <div class="pt-2">
-          <button onclick="handleLogOut()" class="w-full py-3 bg-red-500/10 border border-red-500/40 text-red-400 font-extrabold text-xs rounded-2xl hover:bg-red-500/20 active:scale-95 transition flex items-center justify-center gap-2">
+        <!-- Centered Sign Out Action -->
+        <div class="flex justify-center pt-3 pb-6">
+          <button onclick="handleLogOut()" class="px-7 py-2.5 rounded-full border border-red-500/40 text-red-400 text-xs font-bold hover:bg-red-500/10 transition flex items-center gap-2 active:scale-95">
             <span class="material-symbols-outlined text-base">logout</span>
-            LOG OUT OF SUPER INVENTORY
+            Sign Out
           </button>
         </div>
       </div>

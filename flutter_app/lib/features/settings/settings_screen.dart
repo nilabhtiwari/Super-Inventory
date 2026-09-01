@@ -14,21 +14,14 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  late String _printerSize;
-
-  @override
-  void initState() {
-    super.initState();
-    _printerSize = ref.read(settingsProvider).printerPaperSize;
-  }
-
-  void _confirmLogOut() {
+  void _confirmSignOut() {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surface,
-        title: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        content: const Text('Are you sure you want to log out of Super Inventory?', style: TextStyle(color: AppTheme.textSecondary)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        content: const Text('Are you sure you want to sign out of Super Inventory?', style: TextStyle(color: AppTheme.textSecondary)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: AppTheme.textMuted))),
           ElevatedButton(
@@ -37,8 +30,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               await ref.read(authProvider.notifier).logout();
               if (mounted) context.go('/login');
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            child: const Text('Log Out'),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            child: const Text('Sign Out'),
           ),
         ],
       ),
@@ -49,6 +42,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final hardware = ref.watch(hardwareProvider);
+    final authState = ref.watch(authProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -64,35 +58,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ============================================================
-            // 1. STORE PROFILE BANNER (NAVIGATES TO FULL EDIT PROFILE)
+            // 1. PROFILE SECTION (CLICKABLE)
             // ============================================================
             InkWell(
               onTap: () => context.push('/edit-profile'),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(20),
               child: Container(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: AppTheme.primaryGradient,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.primary.withOpacity(0.35),
-                      blurRadius: 18,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                  color: AppTheme.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.surfaceBorder),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      width: 52,
-                      height: 52,
+                      width: 56,
+                      height: 56,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white38),
+                        gradient: AppTheme.primaryGradient,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppTheme.primary.withOpacity(0.4), width: 2),
                       ),
-                      child: const Icon(Icons.storefront_rounded, size: 30, color: Colors.white),
+                      child: const Center(
+                        child: Icon(Icons.storefront_rounded, size: 28, color: Colors.white),
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -101,55 +91,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         children: [
                           Text(
                             settings.shopName,
-                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            "Timings: ${settings.storeTimings}",
-                            style: const TextStyle(fontSize: 11, color: Colors.white70),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            "Helpline: ${settings.grievanceHelpline}",
-                            style: const TextStyle(fontSize: 10, color: Colors.white60),
+                            authState.user?.email ?? 'merchant@superinventory.com',
+                            style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
                           ),
                         ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('Edit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                          SizedBox(width: 4),
-                          Icon(Icons.chevron_right_rounded, size: 16, color: Colors.white),
-                        ],
-                      ),
-                    ),
+                    const Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 22),
+            const SizedBox(height: 24),
 
             // ============================================================
-            // 2. THERMAL PRINTER HARDWARE SETTING
+            // 2. HARDWARE SECTION
             // ============================================================
-            const Text('HARDWARE DEVICES', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.textMuted, letterSpacing: 1)),
-            const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.only(left: 6, bottom: 8),
+              child: Text(
+                'HARDWARE',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.primaryContainer, letterSpacing: 1),
+              ),
+            ),
 
             Container(
-              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(20),
@@ -157,147 +128,191 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+                  // Thermal Printer Item
+                  InkWell(
+                    onTap: () => context.push('/hardware'),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
                         children: [
                           Container(
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
                               color: hardware.isConnected ? AppTheme.secondary.withOpacity(0.15) : AppTheme.surfaceElevated,
-                              borderRadius: BorderRadius.circular(12),
+                              shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.print_rounded, color: hardware.isConnected ? AppTheme.secondary : AppTheme.textMuted, size: 22),
+                            child: Icon(Icons.print_rounded, color: hardware.isConnected ? AppTheme.secondary : AppTheme.textMuted, size: 20),
                           ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Thermal Printer', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                                Text('Epson TM-T88V (${settings.printerPaperSize})', style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                              ],
+                            ),
+                          ),
+                          Row(
                             children: [
-                              const Text('Thermal Printer', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
-                              const SizedBox(height: 2),
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: BoxDecoration(
-                                      color: hardware.isConnected ? AppTheme.secondary : AppTheme.warning,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    hardware.isConnected ? 'Connected (${settings.printerPaperSize} ESC/POS)' : 'Not Connected (Bluetooth)',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: hardware.isConnected ? AppTheme.secondary : AppTheme.warning,
-                                    ),
-                                  ),
-                                ],
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: hardware.isConnected ? AppTheme.secondary : AppTheme.warning,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
+                              const SizedBox(width: 6),
+                              Text(
+                                hardware.isConnected ? 'Connected' : 'Not Connected',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: hardware.isConnected ? AppTheme.secondary : AppTheme.warning,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Icon(Icons.chevron_right_rounded, size: 18, color: AppTheme.textMuted),
                             ],
                           ),
                         ],
                       ),
-                      OutlinedButton(
-                        onPressed: () => context.push('/hardware'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          side: const BorderSide(color: AppTheme.primaryContainer),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        child: const Text('Manage', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryContainer)),
-                      ),
-                    ],
+                    ),
                   ),
-                  const Divider(color: AppTheme.surfaceBorder, height: 22),
-                  // Paper Roll Width Toggle
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Paper Width Size', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                      DropdownButton<String>(
-                        value: _printerSize,
-                        underline: const SizedBox(),
-                        dropdownColor: AppTheme.surfaceElevated,
-                        items: const [
-                          DropdownMenuItem(value: '58mm', child: Text('58mm (2-inch Roll)', style: TextStyle(fontSize: 12))),
-                          DropdownMenuItem(value: '80mm', child: Text('80mm (3-inch Roll)', style: TextStyle(fontSize: 12))),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) {
-                            setState(() => _printerSize = val);
-                            ref.read(settingsProvider.notifier).updateSettings(settings.copyWith(printerPaperSize: val));
-                          }
-                        },
+
+                  const Divider(color: AppTheme.surfaceBorder, height: 1),
+
+                  // Barcode Scanner Item
+                  Opacity(
+                    opacity: 0.7,
+                    child: InkWell(
+                      onTap: () => context.push('/hardware'),
+                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                      child: const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Icon(Icons.qr_code_scanner_rounded, color: AppTheme.textMuted, size: 22),
+                            SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Barcode Scanner', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                                  Text('Bluetooth Wireless Scanner', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Icon(Icons.circle, color: AppTheme.error, size: 8),
+                                SizedBox(width: 6),
+                                Text('Not Connected', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.error)),
+                                SizedBox(width: 6),
+                                Icon(Icons.chevron_right_rounded, size: 18, color: AppTheme.textMuted),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             // ============================================================
-            // 3. MERCHANT UPI VPA & DIGITAL PAYMENTS
+            // 3. PREFERENCES SECTION
             // ============================================================
-            const Text('PAYMENT CONFIGURATION', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.textMuted, letterSpacing: 1)),
-            const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.only(left: 6, bottom: 8),
+              child: Text(
+                'PREFERENCES',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.primaryContainer, letterSpacing: 1),
+              ),
+            ),
 
             Container(
-              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AppTheme.surfaceBorder),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryContainer.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.qr_code_2_rounded, color: AppTheme.primaryContainer, size: 22),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Merchant UPI VPA', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
-                          Text(settings.upiId, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-                        ],
-                      ),
-                    ],
+                  // Notifications
+                  ListTile(
+                    leading: const Icon(Icons.notifications_active_outlined, color: AppTheme.textSecondary, size: 22),
+                    title: const Text('Notifications', style: TextStyle(fontSize: 14, color: Colors.white)),
+                    trailing: const Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted),
+                    onTap: () {},
                   ),
-                  const Icon(Icons.verified_rounded, color: AppTheme.secondary, size: 18),
+                  const Divider(color: AppTheme.surfaceBorder, height: 1),
+
+                  // Language
+                  ListTile(
+                    leading: const Icon(Icons.language_rounded, color: AppTheme.textSecondary, size: 22),
+                    title: const Text('Language', style: TextStyle(fontSize: 14, color: Colors.white)),
+                    trailing: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('English (US)', style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+                        SizedBox(width: 4),
+                        Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted),
+                      ],
+                    ),
+                    onTap: () {},
+                  ),
+                  const Divider(color: AppTheme.surfaceBorder, height: 1),
+
+                  // Security
+                  ListTile(
+                    leading: const Icon(Icons.security_rounded, color: AppTheme.textSecondary, size: 22),
+                    title: const Text('Security & Biometrics', style: TextStyle(fontSize: 14, color: Colors.white)),
+                    trailing: const Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted),
+                    onTap: () {},
+                  ),
+                  const Divider(color: AppTheme.surfaceBorder, height: 1),
+
+                  // About
+                  ListTile(
+                    leading: const Icon(Icons.info_outline_rounded, color: AppTheme.textSecondary, size: 22),
+                    title: const Text('About Super Inventory', style: TextStyle(fontSize: 14, color: Colors.white)),
+                    trailing: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('v2.1.0-STABLE', style: TextStyle(fontSize: 12, color: AppTheme.secondary)),
+                        SizedBox(width: 4),
+                        Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted),
+                      ],
+                    ),
+                    onTap: () {},
+                  ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 28),
+            const SizedBox(height: 32),
 
             // ============================================================
-            // 4. LOG OUT ACTION BUTTON
+            // 4. SIGN OUT BUTTON (CENTERED PILL BUTTON)
             // ============================================================
-            OutlinedButton.icon(
-              onPressed: _confirmLogOut,
-              icon: const Icon(Icons.logout_rounded, color: AppTheme.error, size: 20),
-              label: const Text('Log Out of Super Inventory', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.error)),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                side: const BorderSide(color: AppTheme.error),
-                backgroundColor: AppTheme.error.withOpacity(0.08),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            Center(
+              child: OutlinedButton.icon(
+                onPressed: _confirmSignOut,
+                icon: const Icon(Icons.logout_rounded, size: 18, color: AppTheme.error),
+                label: const Text('Sign Out', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.error)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                  side: const BorderSide(color: AppTheme.error),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  backgroundColor: AppTheme.error.withOpacity(0.08),
+                ),
               ),
             ),
 
