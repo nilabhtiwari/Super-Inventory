@@ -415,13 +415,21 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                     Text(
                       "UPI VPA: ${settings.upiId}",
                       style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                        color: AppTheme.secondary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppTheme.secondary.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        settings.promotionalOffer,
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondary),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ],
 
-                  const SizedBox(height: 16),
-                  Text(
-                    settings.receiptFooter ?? 'Thank you for shopping with us!',
-                    style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Thank you for shopping with us! Visit again.',
+                    style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
                     textAlign: TextAlign.center,
                   ),
                 ],

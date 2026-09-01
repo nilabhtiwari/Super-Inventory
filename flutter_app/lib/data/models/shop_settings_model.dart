@@ -1,111 +1,106 @@
 class ShopSettingsModel {
-  final int? id;
   final String shopName;
-  final String? address;
-  final String? phone;
-  final String? email;
-  final String? gstin;
-  final String? logoUrl;
-  final String? upiId; // UPI VPA e.g. shop@upi
-  final String? upiName; // Payee Name displayed in UPI Apps
-  final double defaultCgst;
-  final double defaultSgst;
-  final double defaultIgst;
+  final String address;
+  final String phone;
+  final String email;
+  final String gstin;
+  final String upiId;
+  final String printerPaperSize;
+  final bool enableGst;
   final String currencySymbol;
-  final String? receiptFooter;
-  final int paperWidthMm; // 58 or 80
+  // NEW BUSINESS PROFILE & MARKETING FIELDS
+  final String storeTimings;
+  final String promotionalOffer;
+  final String productsSold;
+  final String grievanceHelpline;
+  final String? businessPhotoUrl;
 
   ShopSettingsModel({
-    this.id,
-    this.shopName = 'Super Inventory Store',
-    this.address = '123 Market Road, City Centre',
-    this.phone = '+91 9876543210',
-    this.email = 'store@superinventory.local',
-    this.gstin = '27AAAAA0000A1Z5',
-    this.logoUrl,
-    this.upiId = 'superinventory@upi',
-    this.upiName = 'Super Inventory Retail Store',
-    this.defaultCgst = 9.0,
-    this.defaultSgst = 9.0,
-    this.defaultIgst = 0.0,
+    required this.shopName,
+    required this.address,
+    required this.phone,
+    required this.email,
+    required this.gstin,
+    required this.upiId,
+    this.printerPaperSize = '58mm',
+    this.enableGst = true,
     this.currencySymbol = '₹',
-    this.receiptFooter = 'Thank you for shopping with us! Visit again.',
-    this.paperWidthMm = 58,
+    this.storeTimings = 'Mon - Sun: 8:00 AM - 10:30 PM',
+    this.promotionalOffer = '🎉 Special Festive Discount: Flat 10% OFF on orders above ₹1,000!',
+    this.productsSold = 'Groceries, Dairy, Beverages, Snacks & Daily Essentials',
+    this.grievanceHelpline = '9876543210',
+    this.businessPhotoUrl,
   });
-
-  ShopSettingsModel copyWith({
-    int? id,
-    String? shopName,
-    String? address,
-    String? phone,
-    String? email,
-    String? gstin,
-    String? logoUrl,
-    String? upiId,
-    String? upiName,
-    double? defaultCgst,
-    double? defaultSgst,
-    double? defaultIgst,
-    String? currencySymbol,
-    String? receiptFooter,
-    int? paperWidthMm,
-  }) {
-    return ShopSettingsModel(
-      id: id ?? this.id,
-      shopName: shopName ?? this.shopName,
-      address: address ?? this.address,
-      phone: phone ?? this.phone,
-      email: email ?? this.email,
-      gstin: gstin ?? this.gstin,
-      logoUrl: logoUrl ?? this.logoUrl,
-      upiId: upiId ?? this.upiId,
-      upiName: upiName ?? this.upiName,
-      defaultCgst: defaultCgst ?? this.defaultCgst,
-      defaultSgst: defaultSgst ?? this.defaultSgst,
-      defaultIgst: defaultIgst ?? this.defaultIgst,
-      currencySymbol: currencySymbol ?? this.currencySymbol,
-      receiptFooter: receiptFooter ?? this.receiptFooter,
-      paperWidthMm: paperWidthMm ?? this.paperWidthMm,
-    );
-  }
 
   Map<String, dynamic> toMap() {
     return {
-      if (id != null) 'id': id,
-      'shop_name': shopName,
-      'shop_address': address,
-      'shop_phone': phone,
-      'shop_email': email,
+      'shopName': shopName,
+      'address': address,
+      'phone': phone,
+      'email': email,
       'gstin': gstin,
-      'logo_url': logoUrl,
-      'upi_id': upiId,
-      'upi_name': upiName,
-      'default_cgst': defaultCgst,
-      'default_sgst': defaultSgst,
-      'default_igst': defaultIgst,
-      'currency_symbol': currencySymbol,
-      'receipt_footer': receiptFooter,
-      'paper_width_mm': paperWidthMm,
+      'upiId': upiId,
+      'printerPaperSize': printerPaperSize,
+      'enableGst': enableGst ? 1 : 0,
+      'currencySymbol': currencySymbol,
+      'storeTimings': storeTimings,
+      'promotionalOffer': promotionalOffer,
+      'productsSold': productsSold,
+      'grievanceHelpline': grievanceHelpline,
+      'businessPhotoUrl': businessPhotoUrl,
     };
   }
 
   factory ShopSettingsModel.fromMap(Map<String, dynamic> map) {
     return ShopSettingsModel(
-      id: map['id'] as int?,
-      shopName: map['shop_name']?.toString() ?? 'SmartScan Store',
-      address: map['shop_address']?.toString() ?? map['address']?.toString(),
-      phone: map['shop_phone']?.toString() ?? map['phone']?.toString(),
-      email: map['shop_email']?.toString() ?? map['email']?.toString(),
-      gstin: map['gstin']?.toString(),
-      logoUrl: map['logo_url']?.toString(),
-      upiId: map['upi_id']?.toString() ?? 'smartscan@upi',
-      upiName: map['upi_name']?.toString() ?? 'SmartScan Retail Store',
-      defaultCgst: (map['default_cgst'] as num?)?.toDouble() ?? 9.0,
-      defaultSgst: (map['default_sgst'] as num?)?.toDouble() ?? 9.0,
-      defaultIgst: (map['default_igst'] as num?)?.toDouble() ?? 0.0,
-      currencySymbol: map['currency_symbol']?.toString() ?? '₹',
-      receiptFooter: map['receipt_footer']?.toString() ?? 'Thank you for shopping with us! Visit again.',
-      paperWidthMm: (map['paper_width_mm'] as int?) ?? 58,
+      shopName: map['shopName'] ?? 'Super Inventory Store',
+      address: map['address'] ?? 'Main Branch, City Centre',
+      phone: map['phone'] ?? '9876543210',
+      email: map['email'] ?? 'merchant@superinventory.com',
+      gstin: map['gstin'] ?? '27AAAAA0000A1Z5',
+      upiId: map['upiId'] ?? 'superinventory@upi',
+      printerPaperSize: map['printerPaperSize'] ?? '58mm',
+      enableGst: (map['enableGst'] ?? 1) == 1,
+      currencySymbol: map['currencySymbol'] ?? '₹',
+      storeTimings: map['storeTimings'] ?? 'Mon - Sun: 8:00 AM - 10:30 PM',
+      promotionalOffer: map['promotionalOffer'] ?? '🎉 Special Festive Discount: Flat 10% OFF on orders above ₹1,000!',
+      productsSold: map['productsSold'] ?? 'Groceries, Dairy, Beverages & Daily Essentials',
+      grievanceHelpline: map['grievanceHelpline'] ?? '9876543210',
+      businessPhotoUrl: map['businessPhotoUrl'],
+    );
+  }
+
+  ShopSettingsModel copyWith({
+    String? shopName,
+    String? address,
+    String? phone,
+    String? email,
+    String? gstin,
+    String? upiId,
+    String? printerPaperSize,
+    bool? enableGst,
+    String? currencySymbol,
+    String? storeTimings,
+    String? promotionalOffer,
+    String? productsSold,
+    String? grievanceHelpline,
+    String? businessPhotoUrl,
+  }) {
+    return ShopSettingsModel(
+      shopName: shopName ?? this.shopName,
+      address: address ?? this.address,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      gstin: gstin ?? this.gstin,
+      upiId: upiId ?? this.upiId,
+      printerPaperSize: printerPaperSize ?? this.printerPaperSize,
+      enableGst: enableGst ?? this.enableGst,
+      currencySymbol: currencySymbol ?? this.currencySymbol,
+      storeTimings: storeTimings ?? this.storeTimings,
+      promotionalOffer: promotionalOffer ?? this.promotionalOffer,
+      productsSold: productsSold ?? this.productsSold,
+      grievanceHelpline: grievanceHelpline ?? this.grievanceHelpline,
+      businessPhotoUrl: businessPhotoUrl ?? this.businessPhotoUrl,
     );
   }
 }
