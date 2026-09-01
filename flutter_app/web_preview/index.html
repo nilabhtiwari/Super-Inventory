@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Inventory - Interactive POS & Inventory Preview</title>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- QRCode.js for live dynamic UPI QR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Material Symbols -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              primary: '#7C4A9A',
+              primaryGlow: '#9E65C2',
+              primaryContainer: '#DBA3FB',
+              tertiary: '#FE5ED8',
+              secondary: '#00D4AA',
+              dark: '#000000',
+              surface: '#12131C',
+              surfaceElevated: '#1B1D2C',
+              surfaceBorder: '#2E324D',
+              muted: '#747995',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #000000;
+      color: #FFFFFF;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #2E324D;
+      border-radius: 4px;
+    }
+    .glass-card {
+      background: rgba(18, 19, 28, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(46, 50, 77, 0.8);
+    }
+    .hero-glow {
+      box-shadow: 0 10px 30px -5px rgba(124, 74, 154, 0.5), 0 0 20px rgba(254, 94, 216, 0.2);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start p-2 sm:p-6 bg-black text-white">
+
+  <!-- TOP APP FRAME HEADER -->
+  <header class="w-full max-w-md mb-4 flex items-center justify-between px-4 py-3 glass-card rounded-2xl">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-primary to-brand-tertiary flex items-center justify-center font-bold text-white shadow-md">
+        SI
+      </div>
+      <div>
+        <h1 class="text-sm font-extrabold tracking-tight">Super Inventory</h1>
+        <p class="text-[10px] text-brand-secondary font-semibold flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-brand-secondary animate-pulse"></span>
+          POS & Inventory Engine
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] bg-brand-surfaceElevated border border-brand-surfaceBorder px-2.5 py-1 rounded-full text-brand-muted font-bold">v2.1.0</span>
+      <button onclick="switchScreen('login')" class="text-xs bg-brand-primary/20 text-brand-primaryContainer hover:bg-brand-primary/30 px-3 py-1 rounded-lg font-bold border border-brand-primary/30 transition">
+        Switch User
+      </button>
+    </div>
+  </header>
+
+  <!-- SMARTPHONE MOCKUP WRAPPER -->
+  <div class="w-full max-w-md h-[820px] bg-brand-dark border-4 border-brand-surfaceBorder rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative">
+
+    <!-- TOP STATUS BAR -->
+    <div class="w-full bg-brand-primary px-6 pt-3 pb-2 flex justify-between items-center text-xs font-semibold z-20">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-full bg-white/20 border border-white/40 flex items-center justify-center font-bold text-white text-[11px]">
+          AO
+        </div>
+        <div class="leading-tight">
+          <div class="font-bold text-white text-[13px]" id="storeTitleText">Super Inventory Store</div>
+          <div class="text-[10px] text-white/80" id="cashierBadgeText">Admin Owner • Counter 1</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="switchScreen('premium')" class="text-brand-tertiary bg-white/10 p-1.5 rounded-full hover:bg-white/20 transition">
+          <span class="material-symbols-outlined text-[18px]">workspace_premium</span>
+        </button>
+        <button onclick="switchScreen('inventory')" class="relative text-white/90 hover:text-white transition">
+          <span class="material-symbols-outlined text-[20px]">notifications</span>
+          <span class="absolute top-0 right-0 w-2 h-2 bg-brand-tertiary rounded-full"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN SCREEN VIEWPORT -->
+    <div class="flex-1 overflow-y-auto custom-scroll p-4 pb-24 relative" id="screenContainer">
+
+      <!-- ============================================================ -->
+      <!-- 1. DASHBOARD SCREEN -->
+      <!-- ============================================================ -->
+      <div id="screen-dashboard" class="space-y-4">
+        <!-- Low Stock Banner -->
+        <div onclick="switchScreen('inventory')" class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-amber-500/15 transition">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-amber-400 text-xl">warning</span>
+            <div>
+              <p class="text-xs font-bold text-amber-300">2 Items Running Low on Stock</p>
+              <p class="text-[10px] text-amber-400/80">Dettol Liquid (8 pcs) • Organic Almond Milk (8 pcs)</p>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-amber-400 text-sm">chevron_right</span>
+        </div>
+
+        <!-- DOMINANT HERO "CREATE BILL" BUTTON -->
+        <div onclick="switchScreen('billing')" class="w-full h-44 rounded-3xl bg-gradient-to-br from-brand-primary via-brand-primaryGlow to-brand-tertiary p-5 flex flex-col justify-between cursor-pointer hero-glow hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden group">
+          <div class="absolute -right-6 -bottom-6 opacity-15 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[150px]">qr_code_scanner</span>
+          </div>
+          <div class="flex justify-between items-center z-10">
+            <span class="bg-black/30 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider text-white flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs text-yellow-300">bolt</span> 1-TAP EXPRESS BILLING
+            </span>
+            <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white">
+              <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </div>
+          </div>
+          <div class="z-10">
+            <h2 class="text-3xl font-black tracking-tight text-white">CREATE BILL</h2>
+            <p class="text-xs text-white/90 font-medium mt-1">Instant barcode camera scan • Fast checkout &lt; 30s</p>
+          </div>
+        </div>
+
+        <!-- QUICK STATS -->
+        <div>
+          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Today's Live Overview</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl">
+              <span class="text-xs text-brand-muted font-medium">Total Sales</span>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-xl font-black text-brand-primaryContainer" id="dashTotalSales">₹14,280.00</span>
+                <span class="text-[10px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">+12%</span>
+              </div>
+            </div>
+            <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl">
+              <span class="text-xs text-brand-muted font-medium">Bills Completed</span>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-xl font-black text-white" id="dashTotalBills">14</span>
+                <span class="text-[10px] text-brand-muted">invoices</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUICK ACTIONS GRID -->
+        <div>
+          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Quick Actions</h3>
+          <div class="grid grid-cols-3 gap-2.5">
+            <button onclick="switchScreen('billing')" class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex flex-col items-center gap-1.5 hover:border-brand-primary transition">
+              <div class="w-10 h-10 rounded-full bg-brand-primary/20 flex items-center justify-center text-brand-primaryContainer">
+                <span class="material-symbols-outlined text-xl">barcode_scanner</span>
+              </div>
+              <span class="text-[10px] font-bold text-center">Camera POS</span>
+            </button>
+            <button onclick="switchScreen('hardware')" class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex flex-col items-center gap-1.5 hover:border-brand-secondary transition">
+              <div class="w-10 h-10 rounded-full bg-brand-secondary/20 flex items-center justify-center text-brand-secondary">
+                <span class="material-symbols-outlined text-xl">print</span>
+              </div>
+              <span class="text-[10px] font-bold text-center">BT Printer</span>
+            </button>
+            <button onclick="switchScreen('products')" class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex flex-col items-center gap-1.5 hover:border-brand-tertiary transition">
+              <div class="w-10 h-10 rounded-full bg-brand-tertiary/20 flex items-center justify-center text-brand-tertiary">
+                <span class="material-symbols-outlined text-xl">inventory_2</span>
+              </div>
+              <span class="text-[10px] font-bold text-center">Catalog</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- RECENT INVOICES -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider">Recent Transactions</h3>
+            <button onclick="switchScreen('history')" class="text-xs font-bold text-brand-primaryContainer hover:underline">View All</button>
+          </div>
+          <div class="space-y-2" id="dashRecentList">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 2. EXPRESS BILLING / CAMERA POS SCREEN -->
+      <!-- ============================================================ -->
+      <div id="screen-billing" class="hidden space-y-3">
+        <!-- Live Camera Viewfinder Simulation -->
+        <div class="w-full h-36 bg-black border-2 border-brand-primary rounded-2xl relative overflow-hidden flex flex-col items-center justify-center shadow-lg">
+          <div class="absolute inset-0 bg-gradient-to-b from-transparent via-brand-primary/10 to-transparent animate-pulse pointer-events-none"></div>
+          <!-- Viewfinder Target Reticle -->
+          <div class="w-44 h-16 border-2 border-brand-secondary rounded-xl flex items-center justify-center relative">
+            <span class="material-symbols-outlined text-brand-secondary/40 text-3xl">qr_code_scanner</span>
+            <div class="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-white"></div>
+            <div class="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-white"></div>
+            <div class="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-white"></div>
+            <div class="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-white"></div>
+          </div>
+          <span class="text-[10px] font-bold text-brand-secondary bg-black/60 px-2.5 py-0.5 rounded-full mt-2">
+            Point camera or trigger barcode
+          </span>
+        </div>
+
+        <!-- Quick Scan Barcode Picker (Simulating Real Scans) -->
+        <div class="bg-brand-surface border border-brand-surfaceBorder p-3 rounded-2xl">
+          <div class="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider mb-2 flex justify-between items-center">
+            <span>Simulate Real Barcode Scan</span>
+            <span class="text-brand-secondary">Tap to Scan:</span>
+          </div>
+          <div class="flex gap-1.5 overflow-x-auto custom-scroll pb-1">
+            <button onclick="scanProduct('8901030762512')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
+              + Parle-G (₹80)
+            </button>
+            <button onclick="scanProduct('8901058000491')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
+              + Amul Butter (₹275)
+            </button>
+            <button onclick="scanProduct('8901058852236')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
+              + Maggi (₹60)
+            </button>
+            <button onclick="scanProduct('8901719106361')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
+              + Tata Tea (₹155)
+            </button>
+            <button onclick="promptCustomScan()" class="px-2.5 py-1.5 bg-brand-tertiary/20 hover:bg-brand-tertiary/30 border border-brand-tertiary/40 rounded-xl text-[11px] font-bold text-brand-tertiary whitespace-nowrap">
+              + Custom / New Item
+            </button>
+          </div>
+        </div>
+
+        <!-- Cart Items List -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <h3 class="text-xs font-bold text-white">Cart Line Items (<span id="cartCountBadge">0</span>)</h3>
+            <button onclick="clearCart()" class="text-[10px] text-red-400 hover:underline">Clear Cart</button>
+          </div>
+          <div id="cartItemsContainer" class="space-y-2 max-h-56 overflow-y-auto custom-scroll pr-1">
+            <!-- Empty state or Cart rows -->
+          </div>
+        </div>
+
+        <!-- Sticky Totals & Pay -->
+        <div class="bg-brand-surface border border-brand-surfaceBorder p-4 rounded-3xl space-y-3">
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between text-brand-muted">
+              <span>Subtotal:</span>
+              <span id="cartSubtotalText" class="text-white font-semibold">₹0.00</span>
+            </div>
+            <div class="flex justify-between text-brand-muted">
+              <span>GST Total (CGST + SGST):</span>
+              <span id="cartGstText" class="text-white font-semibold">₹0.00</span>
+            </div>
+            <div class="flex justify-between text-brand-muted">
+              <span>Discount:</span>
+              <span id="cartDiscountText" class="text-green-400 font-semibold">-₹0.00</span>
+            </div>
+            <div class="border-t border-brand-surfaceBorder pt-2 flex justify-between items-baseline">
+              <span class="text-xs font-bold text-brand-muted uppercase">Grand Total:</span>
+              <span id="cartGrandTotalText" class="text-2xl font-black text-brand-secondary">₹0.00</span>
+            </div>
+          </div>
+
+          <!-- Payment Method Selector -->
+          <div class="grid grid-cols-4 gap-1.5 pt-1">
+            <button onclick="setPaymentMethod('CASH')" id="pay-cash" class="py-1.5 bg-brand-primary text-white text-[10px] font-bold rounded-xl border border-brand-primary">CASH</button>
+            <button onclick="setPaymentMethod('UPI')" id="pay-upi" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">UPI QR</button>
+            <button onclick="setPaymentMethod('CARD')" id="pay-card" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">CARD</button>
+            <button onclick="setPaymentMethod('MIXED')" id="pay-mixed" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">SPLIT</button>
+          </div>
+
+          <!-- Action Button -->
+          <button onclick="completeCheckout()" id="checkoutBtn" class="w-full py-3.5 bg-brand-secondary text-black font-extrabold text-sm rounded-2xl hover:bg-emerald-400 active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-lg shadow-brand-secondary/20">
+            <span class="material-symbols-outlined text-lg">check_circle</span>
+            PAY & GENERATE INVOICE
+          </button>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 3. THERMAL RECEIPT & UPI QR SCREEN -->
+      <!-- ============================================================ -->
+      <div id="screen-receipt" class="hidden space-y-4">
+        <!-- Thermal Receipt Box -->
+        <div class="p-5 bg-brand-surface border border-brand-surfaceBorder rounded-3xl space-y-3 text-center">
+          <h2 class="text-xl font-black tracking-tight text-white" id="rcptShopName">Super Inventory Store</h2>
+          <p class="text-[11px] text-brand-muted" id="rcptShopAddress">123 Market Road, City Centre</p>
+          <p class="text-[11px] text-brand-primaryContainer font-bold" id="rcptGstin">GSTIN: 27AAAAA0000A1Z5</p>
+          
+          <div class="border-t border-dashed border-brand-surfaceBorder my-2"></div>
+          
+          <div class="flex justify-between text-xs font-bold text-brand-muted">
+            <span id="rcptInvoiceNo">INV-20260901-0015</span>
+            <span id="rcptDate">01 Sep 2026</span>
+          </div>
+
+          <div class="border-t border-dashed border-brand-surfaceBorder my-2"></div>
+
+          <!-- Items Table -->
+          <div class="space-y-1 text-left text-xs" id="rcptItemsList">
+            <!-- Line items inserted here -->
+          </div>
+
+          <div class="border-t border-dashed border-brand-surfaceBorder my-2"></div>
+
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between text-brand-muted">
+              <span>Subtotal:</span>
+              <span id="rcptSubtotal" class="font-bold text-white">₹0.00</span>
+            </div>
+            <div class="flex justify-between text-brand-muted">
+              <span>Tax (GST):</span>
+              <span id="rcptTax" class="font-bold text-white">₹0.00</span>
+            </div>
+            <div class="flex justify-between items-baseline text-base font-black text-brand-secondary pt-1">
+              <span>GRAND TOTAL:</span>
+              <span id="rcptGrandTotal">₹0.00</span>
+            </div>
+            <p class="text-[10px] text-brand-secondary font-bold pt-1" id="rcptPayMode">PAID VIA UPI QR</p>
+          </div>
+
+          <!-- Dynamic UPI QR Code Section -->
+          <div class="border-t border-dashed border-brand-surfaceBorder pt-3 space-y-2">
+            <p class="text-[11px] font-extrabold tracking-wider text-brand-primaryContainer uppercase">SCAN & PAY VIA ANY UPI APP</p>
+            <div class="flex justify-center p-3 bg-white rounded-2xl w-fit mx-auto shadow-md" id="qrcodeCanvas"></div>
+            <p class="text-[10px] text-brand-muted font-mono" id="rcptUpiId">superinventory@upi</p>
+          </div>
+
+          <p class="text-[10px] text-brand-muted pt-1">Thank you for shopping with us! Visit again.</p>
+        </div>
+
+        <!-- Action Buttons (Print, WhatsApp, New Bill) -->
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="simulatePrint()" class="py-3 bg-brand-primary text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-1.5 hover:bg-brand-primaryGlow transition">
+            <span class="material-symbols-outlined text-base">print</span>
+            Print Thermal
+          </button>
+          <button onclick="simulateWhatsApp()" class="py-3 bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/40 text-xs font-bold rounded-2xl flex items-center justify-center gap-1.5 hover:bg-[#25D366]/30 transition">
+            <span class="material-symbols-outlined text-base">share</span>
+            WhatsApp Bill
+          </button>
+        </div>
+        <button onclick="switchScreen('billing')" class="w-full py-3 bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-xs font-bold rounded-2xl hover:bg-brand-surface transition">
+          + Start Next Bill
+        </button>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 4. BILL HISTORY & PROFIT ANALYSIS SCREEN -->
+      <!-- ============================================================ -->
+      <div id="screen-history" class="hidden space-y-4">
+        <h2 class="text-lg font-black text-white">Monthly Trends & Sales</h2>
+        
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-4 bg-brand-surface border border-brand-primary/40 rounded-2xl">
+            <p class="text-[10px] font-bold text-brand-muted uppercase">Total Revenue</p>
+            <p class="text-lg font-black text-white mt-1">₹4,28,500</p>
+            <p class="text-[10px] font-bold text-green-400 mt-1 flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-xs">trending_up</span> +12.5%
+            </p>
+          </div>
+          <div class="p-4 bg-brand-surface border border-brand-tertiary/40 rounded-2xl">
+            <p class="text-[10px] font-bold text-brand-muted uppercase">Net Profit</p>
+            <p class="text-lg font-black text-brand-tertiary mt-1">₹1,12,040</p>
+            <p class="text-[10px] font-bold text-brand-tertiary mt-1 flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-xs">trending_up</span> +8.2%
+            </p>
+          </div>
+        </div>
+
+        <!-- Invoices List -->
+        <h3 class="text-xs font-extrabold text-brand-muted uppercase tracking-wider pt-2">All Invoices</h3>
+        <div class="space-y-2" id="fullHistoryList">
+          <!-- Invoices list -->
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 5. PRODUCT CATALOG & INVENTORY -->
+      <!-- ============================================================ -->
+      <div id="screen-products" class="hidden space-y-3">
+        <div class="p-4 rounded-3xl bg-gradient-to-r from-brand-primary to-brand-tertiary flex justify-between items-center shadow-lg">
+          <div>
+            <p class="text-[10px] font-bold text-white/80 uppercase">Total Stock Value</p>
+            <p class="text-xl font-black text-white">₹2,48,500.00</p>
+          </div>
+          <button onclick="promptCustomScan()" class="px-3 py-1.5 bg-white text-black font-extrabold text-xs rounded-xl shadow">
+            + Add Product
+          </button>
+        </div>
+
+        <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider pt-1">Store Catalog</h3>
+        <div class="space-y-2" id="productsCatalogList">
+          <!-- Product list -->
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 6. BLUETOOTH PRINTER HARDWARE SCREEN -->
+      <!-- ============================================================ -->
+      <div id="screen-hardware" class="hidden space-y-4">
+        <h2 class="text-lg font-black text-white">Bluetooth Devices</h2>
+        <div class="p-5 bg-brand-surface border border-brand-secondary/40 rounded-3xl flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-brand-secondary/20 flex items-center justify-center text-brand-secondary">
+            <span class="material-symbols-outlined text-2xl">print</span>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-bold text-white">Thermal Receipt Printer</p>
+            <p class="text-xs text-brand-secondary font-semibold">Ready (58mm ESC/POS)</p>
+          </div>
+          <button onclick="simulatePrint()" class="px-3 py-1.5 bg-brand-primary text-white text-xs font-bold rounded-xl">
+            Test Slip
+          </button>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 7. PREMIUM TOOLKIT & GST -->
+      <!-- ============================================================ -->
+      <div id="screen-premium" class="hidden space-y-4">
+        <h2 class="text-lg font-black text-white">Premium Toolkit</h2>
+        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-2">
+          <div class="flex justify-between">
+            <span class="text-xs font-bold text-white">Q3 Taxable Turnover</span>
+            <span class="text-xs font-extrabold text-brand-primaryContainer">₹14,52,000</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-xs font-bold text-white">Total GST Collected</span>
+            <span class="text-xs font-extrabold text-brand-tertiary">₹2,61,360</span>
+          </div>
+        </div>
+        <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl space-y-1">
+          <span class="text-xs font-bold text-red-400">12 Items Near Expiry</span>
+          <p class="text-[11px] text-white/80">Paracetamol 500mg (Expires in 4 days)</p>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 8. LOGIN / SWITCH SCREEN -->
+      <!-- ============================================================ -->
+      <div id="screen-login" class="hidden space-y-4 py-8 text-center">
+        <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-brand-primary to-brand-tertiary mx-auto flex items-center justify-center text-white text-3xl font-black">
+          SI
+        </div>
+        <h2 class="text-2xl font-black">Super Inventory</h2>
+        <p class="text-xs text-brand-muted">For All Inventory Ecosystem</p>
+
+        <div class="p-6 bg-brand-surface border border-brand-surfaceBorder rounded-3xl space-y-3 mt-4 text-left">
+          <button onclick="switchUserRole('Admin Owner')" class="w-full py-3 bg-brand-primary text-white font-bold rounded-xl text-xs">
+            Continue as Admin Owner
+          </button>
+          <button onclick="switchUserRole('Store Manager')" class="w-full py-3 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-secondary font-bold rounded-xl text-xs">
+            Continue as Store Manager
+          </button>
+          <button onclick="switchUserRole('Cashier Seller')" class="w-full py-3 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-tertiary font-bold rounded-xl text-xs">
+            Continue as Cashier Seller
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM APP NAVIGATION BAR -->
+    <nav class="w-full bg-brand-surface/95 backdrop-blur-md border-t border-brand-surfaceBorder px-4 py-2 flex justify-between items-center absolute bottom-0 left-0 z-30">
+      <button onclick="switchScreen('dashboard')" id="nav-home" class="flex flex-col items-center gap-0.5 text-brand-primaryContainer">
+        <span class="material-symbols-outlined text-2xl">dashboard</span>
+        <span class="text-[9px] font-bold">Home</span>
+      </button>
+      <button onclick="switchScreen('products')" id="nav-products" class="flex flex-col items-center gap-0.5 text-brand-muted hover:text-white">
+        <span class="material-symbols-outlined text-2xl">inventory_2</span>
+        <span class="text-[9px] font-bold">Products</span>
+      </button>
+
+      <!-- Center Floating Button -->
+      <div class="relative -top-5">
+        <button onclick="switchScreen('billing')" class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-primary to-brand-tertiary border-4 border-black flex items-center justify-center text-white shadow-xl hover:scale-105 active:scale-95 transition">
+          <span class="material-symbols-outlined text-2xl">barcode_scanner</span>
+        </button>
+      </div>
+
+      <button onclick="switchScreen('history')" id="nav-history" class="flex flex-col items-center gap-0.5 text-brand-muted hover:text-white">
+        <span class="material-symbols-outlined text-2xl">receipt_long</span>
+        <span class="text-[9px] font-bold">History</span>
+      </button>
+      <button onclick="switchScreen('hardware')" id="nav-hardware" class="flex flex-col items-center gap-0.5 text-brand-muted hover:text-white">
+        <span class="material-symbols-outlined text-2xl">settings</span>
+        <span class="text-[9px] font-bold">Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    // In-memory Database & Catalog
+    const sampleProducts = [
+      { id: 1, barcode: '8901030762512', name: 'Parle-G Gold Biscuits 800g', price: 80.0, gst: 5.0, qty: 120, unit: 'pack' },
+      { id: 2, barcode: '8901058000491', name: 'Amul Butter 500g', price: 275.0, gst: 12.0, qty: 45, unit: 'pack' },
+      { id: 3, barcode: '8901058852236', name: 'Maggi 2-Min Masala Noodles 280g', price: 60.0, gst: 18.0, qty: 80, unit: 'pack' },
+      { id: 4, barcode: '8901719106361', name: 'Tata Tea Gold 250g', price: 155.0, gst: 5.0, qty: 60, unit: 'pack' },
+      { id: 5, barcode: '8901030383847', name: 'Dettol Liquid Handwash 200ml', price: 99.0, gst: 18.0, qty: 8, unit: 'pcs' },
+    ];
+
+    let cart = [];
+    let paymentMode = 'CASH';
+    let completedInvoices = [
+      { id: 'INV-20260901-0014', total: 842.0, items: 3, time: '10 mins ago', status: 'Paid' },
+      { id: 'INV-20260901-0013', total: 2150.0, items: 6, time: '25 mins ago', status: 'Paid' },
+      { id: 'INV-20260901-0012', total: 45.0, items: 1, time: '40 mins ago', status: 'Paid' },
+    ];
+
+    function switchScreen(screenId) {
+      const screens = ['dashboard', 'billing', 'receipt', 'history', 'products', 'hardware', 'premium', 'login', 'inventory'];
+      screens.forEach(s => {
+        const el = document.getElementById(`screen-${s}`);
+        if (el) el.classList.add('hidden');
+      });
+      const target = document.getElementById(`screen-${screenId}`);
+      if (target) target.classList.remove('hidden');
+
+      // Refresh data
+      if (screenId === 'dashboard') renderDashboard();
+      if (screenId === 'products') renderProducts();
+      if (screenId === 'history') renderHistory();
+    }
+
+    function switchUserRole(role) {
+      document.getElementById('cashierBadgeText').innerText = `${role} • Counter 1`;
+      switchScreen('dashboard');
+    }
+
+    function scanProduct(barcode) {
+      const product = sampleProducts.find(p => p.barcode === barcode);
+      if (!product) return;
+
+      const existing = cart.find(i => i.barcode === barcode);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ ...product, quantity: 1 });
+      }
+      renderCart();
+    }
+
+    function promptCustomScan() {
+      const name = prompt('Enter New Product Name:', 'Cadbury Silk Chocolate 60g');
+      if (!name) return;
+      const price = parseFloat(prompt('Enter Selling Price (₹):', '175.00') || '0');
+      const newProd = {
+        id: Date.now(),
+        barcode: String(Date.now()).slice(-8),
+        name: name,
+        price: price,
+        gst: 18.0,
+        qty: 25,
+        unit: 'pcs'
+      };
+      sampleProducts.push(newProd);
+      scanProduct(newProd.barcode);
+    }
+
+    function updateCartQty(index, delta) {
+      cart[index].quantity += delta;
+      if (cart[index].quantity <= 0) {
+        cart.splice(index, 1);
+      }
+      renderCart();
+    }
+
+    function clearCart() {
+      cart = [];
+      renderCart();
+    }
+
+    function setPaymentMethod(mode) {
+      paymentMode = mode;
+      ['cash', 'upi', 'card', 'mixed'].forEach(m => {
+        const btn = document.getElementById(`pay-${m}`);
+        if (btn) {
+          if (m.toUpperCase() === mode) {
+            btn.className = 'py-1.5 bg-brand-primary text-white text-[10px] font-bold rounded-xl border border-brand-primary';
+          } else {
+            btn.className = 'py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder';
+          }
+        }
+      });
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cartItemsContainer');
+      document.getElementById('cartCountBadge').innerText = cart.reduce((s, i) => s + i.quantity, 0);
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="py-8 text-center text-brand-muted text-xs">
+            <span class="material-symbols-outlined text-3xl opacity-40">shopping_cart</span>
+            <p class="mt-1">Cart is empty. Tap above buttons to scan.</p>
+          </div>
+        `;
+      } else {
+        container.innerHTML = cart.map((item, idx) => {
+          const itemTax = (item.price * (item.gst / 100)) * item.quantity;
+          const itemTotal = (item.price * item.quantity) + itemTax;
+          return `
+            <div class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between">
+              <div class="leading-tight flex-1">
+                <p class="text-xs font-bold text-white">${item.name}</p>
+                <p class="text-[10px] text-brand-muted">₹${item.price.toFixed(2)} • GST ${item.gst}% (₹${itemTax.toFixed(1)})</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="updateCartQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-xs font-bold">-</button>
+                <span class="text-xs font-extrabold w-4 text-center">${item.quantity}</span>
+                <button onclick="updateCartQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-brand-primary text-white text-xs font-bold">+</button>
+                <span class="text-xs font-black text-brand-secondary ml-2">₹${itemTotal.toFixed(2)}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      let subtotal = 0;
+      let totalGst = 0;
+      cart.forEach(item => {
+        const lineSub = item.price * item.quantity;
+        const lineTax = lineSub * (item.gst / 100);
+        subtotal += lineSub;
+        totalGst += lineTax;
+      });
+      const grandTotal = subtotal + totalGst;
+
+      document.getElementById('cartSubtotalText').innerText = `₹${subtotal.toFixed(2)}`;
+      document.getElementById('cartGstText').innerText = `₹${totalGst.toFixed(2)}`;
+      document.getElementById('cartGrandTotalText').innerText = `₹${grandTotal.toFixed(2)}`;
+    }
+
+    function completeCheckout() {
+      if (cart.length === 0) {
+        alert('Please scan products first!');
+        return;
+      }
+      let subtotal = 0;
+      let totalGst = 0;
+      cart.forEach(item => {
+        const lineSub = item.price * item.quantity;
+        subtotal += lineSub;
+        totalGst += lineSub * (item.gst / 100);
+      });
+      const grandTotal = subtotal + totalGst;
+      const invNo = `INV-20260901-${String(Math.floor(1000 + Math.random() * 9000))}`;
+
+      // Populate Receipt Screen
+      document.getElementById('rcptInvoiceNo').innerText = invNo;
+      document.getElementById('rcptSubtotal').innerText = `₹${subtotal.toFixed(2)}`;
+      document.getElementById('rcptTax').innerText = `₹${totalGst.toFixed(2)}`;
+      document.getElementById('rcptGrandTotal').innerText = `₹${grandTotal.toFixed(2)}`;
+      document.getElementById('rcptPayMode').innerText = `PAID VIA ${paymentMode}`;
+
+      document.getElementById('rcptItemsList').innerHTML = cart.map(i => `
+        <div class="flex justify-between py-0.5">
+          <span>${i.name} (x${i.quantity})</span>
+          <span class="font-bold">₹${((i.price * i.quantity) * (1 + i.gst/100)).toFixed(2)}</span>
+        </div>
+      `).join('');
+
+      // Generate Live UPI QR Code
+      const qrEl = document.getElementById('qrcodeCanvas');
+      qrEl.innerHTML = '';
+      const upiUrl = `upi://pay?pa=superinventory@upi&pn=Super+Inventory&am=${grandTotal.toFixed(2)}&tn=${invNo}&cu=INR`;
+      new QRCode(qrEl, {
+        text: upiUrl,
+        width: 140,
+        height: 140,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      // Add to completed invoices
+      completedInvoices.unshift({
+        id: invNo,
+        total: grandTotal,
+        items: cart.reduce((s, i) => s + i.quantity, 0),
+        time: 'Just now',
+        status: 'Paid'
+      });
+
+      cart = [];
+      renderCart();
+      switchScreen('receipt');
+    }
+
+    function renderDashboard() {
+      const container = document.getElementById('dashRecentList');
+      container.innerHTML = completedInvoices.slice(0, 3).map(inv => `
+        <div onclick="switchScreen('history')" class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-primary transition">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-brand-surfaceElevated flex items-center justify-center text-brand-primaryContainer">
+              <span class="material-symbols-outlined text-lg">receipt_long</span>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-white">${inv.id}</p>
+              <p class="text-[10px] text-brand-muted">${inv.time} • ${inv.items} Items</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-xs font-black text-brand-primaryContainer">₹${inv.total.toFixed(2)}</p>
+            <span class="text-[9px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">Paid</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('fullHistoryList');
+      container.innerHTML = completedInvoices.map(inv => `
+        <div class="p-3.5 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-brand-surfaceElevated flex items-center justify-center text-brand-primaryContainer">
+              <span class="material-symbols-outlined text-xl">person</span>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-white">${inv.id}</p>
+              <p class="text-[10px] text-brand-muted">${inv.time} • ${inv.items} Items</p>
+              <p class="text-[10px] font-bold text-brand-tertiary">Profit: +₹${(inv.total * 0.25).toFixed(2)}</p>
+            </div>
+          </div>
+          <div class="text-right flex items-center gap-3">
+            <div>
+              <p class="text-sm font-black text-white">₹${inv.total.toFixed(2)}</p>
+              <span class="text-[9px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">Paid</span>
+            </div>
+            <button onclick="simulateWhatsApp()" class="w-8 h-8 rounded-full bg-[#25D366]/20 text-[#25D366] flex items-center justify-center hover:bg-[#25D366] hover:text-white transition">
+              <span class="material-symbols-outlined text-sm">share</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderProducts() {
+      const container = document.getElementById('productsCatalogList');
+      container.innerHTML = sampleProducts.map(p => `
+        <div class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-brand-surfaceElevated flex items-center justify-center text-brand-primaryContainer">
+              <span class="material-symbols-outlined text-xl">inventory_2</span>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-white">${p.name}</p>
+              <p class="text-[10px] text-brand-muted">Barcode: ${p.barcode} • Stock: ${p.qty} ${p.unit}</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-xs font-black text-brand-primaryContainer">₹${p.price.toFixed(2)}</p>
+            <span class="text-[9px] font-bold ${p.qty <= 10 ? 'text-amber-400 bg-amber-500/10' : 'text-green-400 bg-green-500/10'} px-1.5 py-0.5 rounded">
+              ${p.qty <= 10 ? 'Low Stock' : 'In Stock'}
+            </span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function simulatePrint() {
+      alert('🖨️ ESC/POS Print Command sent to 58mm Bluetooth Thermal Printer!');
+    }
+
+    function simulateWhatsApp() {
+      alert('📱 WhatsApp Invoice Dispatch initiated: Generated PDF and pre-filled invoice message link!');
+    }
+
+    // Initialize default view
+    renderDashboard();
+    renderCart();
+  </script>
+</body>
+</html>
