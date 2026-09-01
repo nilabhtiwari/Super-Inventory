@@ -120,10 +120,10 @@
     </header>
 
     <!-- ============================================================ -->
-    <!-- SLIDING STORE PROFILE & MULTI-STORE SIDE DRAWER -->
+    <!-- SLIDING STORE PROFILE & MULTI-STORE SIDE DRAWER (INSIDE PHONE) -->
     <!-- ============================================================ -->
-    <div id="storeDrawerOverlay" onclick="toggleStoreDrawer()" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-40 transition-opacity"></div>
-    <div id="storeSideDrawer" class="hidden fixed top-0 left-0 bottom-0 w-[290px] bg-brand-surface border-r border-brand-surfaceBorder z-50 p-5 flex flex-col justify-between shadow-2xl overflow-y-auto">
+    <div id="storeDrawerOverlay" onclick="toggleStoreDrawer()" class="hidden absolute inset-0 bg-black/75 backdrop-blur-sm z-40 transition-opacity rounded-[36px]"></div>
+    <div id="storeSideDrawer" class="hidden absolute top-0 left-0 bottom-0 w-[270px] bg-brand-surface border-r border-brand-surfaceBorder z-50 p-5 flex flex-col justify-between shadow-2xl overflow-y-auto rounded-l-[36px]">
       <div class="space-y-4 text-left">
         <div class="flex items-center justify-between pb-3 border-b border-brand-surfaceBorder">
           <div class="flex items-center gap-2.5">
@@ -602,36 +602,87 @@
       </div>
 
       <!-- ============================================================ -->
-      <!-- 8. SETTINGS SCREEN WITH LOG OUT -->
+      <!-- 8. SETTINGS SCREEN WITH BUSINESS PROFILE & THERMAL PRINTER -->
       <!-- ============================================================ -->
       <div id="screen-settings" class="hidden space-y-4">
-        <h2 class="text-lg font-black text-white">Super Inventory Settings</h2>
+        <h2 class="text-lg font-black text-white">Settings & Store Profile</h2>
         
-        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-primary to-brand-tertiary flex items-center justify-center text-white font-bold">
-              SI
+        <!-- 1. CLICKABLE PROFILE CARD -->
+        <div onclick="openProfileEditModal()" class="p-4 bg-gradient-to-r from-brand-primary to-brand-tertiary rounded-2xl space-y-2 cursor-pointer hover:opacity-95 shadow-lg transition text-left">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-white/20 border border-white/40 flex items-center justify-center text-white">
+                <span class="material-symbols-outlined text-2xl">storefront</span>
+              </div>
+              <div>
+                <p class="text-sm font-black text-white" id="settingsStoreName">Super Inventory</p>
+                <p class="text-[11px] text-white/80" id="settingsTimingsDisplay">Hours: Mon-Sun 8:00 AM - 10:30 PM</p>
+                <p class="text-[10px] text-white/70">Helpline: 9876543210</p>
+              </div>
             </div>
+            <span class="text-xs bg-black/30 text-white font-bold px-2.5 py-1 rounded-lg">Edit Profile & Ads →</span>
+          </div>
+        </div>
+
+        <!-- 2. THERMAL PRINTER WITH REAL-TIME CONNECTION STATUS -->
+        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3 text-left">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+                <span class="material-symbols-outlined text-xl">print</span>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-white">Thermal Printer</p>
+                <p class="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                  <span>Connected (58mm ESC/POS)</span>
+                </p>
+              </div>
+            </div>
+            <button onclick="simulatePrint()" class="px-2.5 py-1.5 bg-brand-primary text-white text-[11px] font-bold rounded-lg shadow hover:bg-brand-primaryGlow">
+              Test Print
+            </button>
+          </div>
+          <div class="border-t border-brand-surfaceBorder pt-2.5 flex justify-between items-center text-xs">
+            <span class="text-brand-muted text-[11px]">Paper Roll Size</span>
+            <select class="bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg px-2 py-1 text-xs text-white outline-none">
+              <option value="58mm" selected>58mm (2-inch Roll)</option>
+              <option value="80mm">80mm (3-inch Roll)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 3. FINANCIAL INSIGHTS & PROFIT/LOSS GRAPHS -->
+        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3 text-left">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-extrabold text-white">Financial Insights</span>
+            <div class="flex gap-1 bg-brand-surfaceElevated p-1 rounded-lg text-[10px] font-bold">
+              <button onclick="setFinancialTab('monthly')" id="fin-btn-monthly" class="px-2 py-0.5 bg-brand-primary text-white rounded">Monthly</button>
+              <button onclick="setFinancialTab('yearly')" id="fin-btn-yearly" class="px-2 py-0.5 text-brand-muted rounded">Yearly</button>
+            </div>
+          </div>
+          <div class="flex justify-between items-baseline">
             <div>
-              <p class="text-sm font-black text-white">Super Inventory</p>
-              <p class="text-xs text-brand-muted" id="settingsUserEmail">merchant@superinventory.com</p>
+              <p class="text-[10px] text-brand-muted" id="finPeriodLabel">This Month's Gross Revenue</p>
+              <p class="text-base font-black text-white" id="finGrossText">₹4,28,500.00</p>
+            </div>
+            <div class="text-right">
+              <p class="text-[10px] text-brand-muted">Net Profit</p>
+              <p class="text-sm font-black text-emerald-400" id="finProfitText">+₹1,12,040 (26%)</p>
             </div>
           </div>
-        </div>
-
-        <div class="space-y-2">
-          <div class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex justify-between items-center">
-            <span class="text-xs font-bold text-white">Thermal Roll Width</span>
-            <span class="text-xs font-bold text-brand-primaryContainer">58mm (2-inch)</span>
-          </div>
-          <div class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex justify-between items-center">
-            <span class="text-xs font-bold text-white">Merchant UPI VPA</span>
-            <span class="text-xs font-bold text-brand-secondary">superinventory@upi</span>
+          <!-- Bar Graph Visualization -->
+          <div class="h-16 flex justify-around items-end pt-2" id="finBarChart">
+            <div class="flex flex-col items-center gap-1"><div class="w-6 h-8 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[8px] text-brand-muted">W1</span></div>
+            <div class="flex flex-col items-center gap-1"><div class="w-6 h-12 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[8px] text-brand-muted">W2</span></div>
+            <div class="flex flex-col items-center gap-1"><div class="w-6 h-14 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[8px] text-brand-muted">W3</span></div>
+            <div class="flex flex-col items-center gap-1"><div class="w-6 h-10 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[8px] text-brand-muted">W4</span></div>
           </div>
         </div>
 
-        <div class="pt-4">
-          <button onclick="handleLogOut()" class="w-full py-3.5 bg-red-500/10 border border-red-500/40 text-red-400 font-extrabold text-xs rounded-2xl hover:bg-red-500/20 active:scale-95 transition flex items-center justify-center gap-2">
+        <!-- 4. LOG OUT BUTTON -->
+        <div class="pt-2">
+          <button onclick="handleLogOut()" class="w-full py-3 bg-red-500/10 border border-red-500/40 text-red-400 font-extrabold text-xs rounded-2xl hover:bg-red-500/20 active:scale-95 transition flex items-center justify-center gap-2">
             <span class="material-symbols-outlined text-base">logout</span>
             LOG OUT OF SUPER INVENTORY
           </button>
