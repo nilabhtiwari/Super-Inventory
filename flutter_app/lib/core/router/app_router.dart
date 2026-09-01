@@ -48,6 +48,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ReportsScreen(),
           ),
           GoRoute(
+            path: '/premium',
+            builder: (context, state) => const PremiumToolkitScreen(),
+          ),
+          GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen(),
           ),
