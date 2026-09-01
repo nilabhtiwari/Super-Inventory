@@ -276,41 +276,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo
+                  // Official Super Inventory Logo
                   Center(
                     child: Container(
-                      width: 74,
-                      height: 74,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        gradient: AppTheme.primaryGradient,
-                        borderRadius: BorderRadius.circular(26),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primary.withOpacity(0.5),
-                            blurRadius: 28,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
+                        color: Colors.white.withOpacity(0.04),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withOpacity(0.08)),
                       ),
-                      child: const Icon(
-                        Icons.qr_code_scanner_rounded,
-                        size: 38,
-                        color: Colors.white,
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        height: 64,
+                        fit: BoxFit.contain,
+                        errorBuilder: (ctx, err, stack) => const Icon(
+                          Icons.qr_code_scanner_rounded,
+                          size: 44,
+                          color: AppTheme.primaryContainer,
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Super Inventory',
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 12),
                   const Text(
                     'For All Inventory Ecosystem',
                     style: TextStyle(
