@@ -337,13 +337,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             const SizedBox(height: 12),
                           ],
 
-                          // Identifier Field (Email or Phone)
+                          // Identifier Field (Email / Phone Number)
                           TextFormField(
                             controller: _identifierController,
                             style: const TextStyle(color: Colors.white, fontSize: 13),
-                            decoration: InputDecoration(
-                              labelText: _viewMode == AuthViewMode.forgotPassword ? 'Email or Registered Phone' : 'Email Address or Phone',
-                              prefixIcon: const Icon(Icons.alternate_email_rounded, size: 20),
+                            decoration: const InputDecoration(
+                              labelText: 'Email / Phone Number',
+                              hintText: 'Enter Email / Phone Number',
+                              prefixIcon: Icon(Icons.alternate_email_rounded, size: 20),
                             ),
                             validator: (v) => v == null || v.trim().isEmpty ? 'Enter email or phone number' : null,
                           ),

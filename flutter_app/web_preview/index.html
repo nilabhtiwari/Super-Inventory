@@ -1112,12 +1112,12 @@
             </div>
           </div>
 
-          <!-- Identifier (Email or Phone) -->
+          <!-- Identifier (Email / Phone Number) -->
           <div class="space-y-2">
             <div>
-              <label class="text-[10px] font-semibold text-brand-muted block mb-1" id="authIdentifierLabel">Email Address or Phone Number</label>
-              <input type="text" id="authEmailInput" placeholder="merchant@gmail.com or 9876543210" value="merchant@gmail.com" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
-              <p id="emailErrorText" class="hidden text-[10px] text-red-400 font-bold mt-1">Please enter your email or phone</p>
+              <label class="text-[10px] font-semibold text-brand-muted block mb-1" id="authIdentifierLabel">Email / Phone Number</label>
+              <input type="text" id="authEmailInput" placeholder="Enter Email / Phone Number" value="merchant@gmail.com" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+              <p id="emailErrorText" class="hidden text-[10px] text-red-400 font-bold mt-1">Please enter your email or phone number</p>
             </div>
 
             <!-- Password Field (Normal Mode) -->
@@ -1261,7 +1261,7 @@
         pwGroup.classList.remove('hidden');
         newPwGroup.classList.add('hidden');
         biometricBtn.classList.remove('hidden');
-        label.innerText = 'Email Address or Phone Number';
+        label.innerText = 'Email / Phone Number';
         submitText.innerText = 'Sign In to Super Inventory';
       } else if (mode === 'signup') {
         tabHeader.classList.remove('hidden');
@@ -1272,7 +1272,7 @@
         pwGroup.classList.remove('hidden');
         newPwGroup.classList.add('hidden');
         biometricBtn.classList.add('hidden');
-        label.innerText = 'Work Email Address';
+        label.innerText = 'Email / Phone Number';
         submitText.innerText = 'Create Account & Launch Store';
       } else if (mode === 'forgot') {
         tabHeader.classList.add('hidden');
@@ -1281,7 +1281,7 @@
         pwGroup.classList.add('hidden');
         newPwGroup.classList.remove('hidden');
         biometricBtn.classList.add('hidden');
-        label.innerText = 'Registered Email or Phone';
+        label.innerText = 'Email / Phone Number';
         submitText.innerText = 'Reset Password & Sign In';
       }
     }
