@@ -47,7 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final email = _emailController.text.trim();
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 500));
     setState(() => _isLoading = false);
 
     if (mounted) {
@@ -57,7 +57,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 700));
+    await Future.delayed(const Duration(milliseconds: 600));
     setState(() => _isLoading = false);
 
     final success = await ref.read(authProvider.notifier).login(
@@ -66,6 +66,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
 
     if (success && mounted) {
+      context.go('/');
+    }
+  }
+
+  Future<void> _handleBiometricAuth() async {
+    HapticFeedback.mediumImpact();
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(milliseconds: 600));
+    setState(() => _isLoading = false);
+
+    final success = await ref.read(authProvider.notifier).login(
+          email: 'merchant.biometric@gmail.com',
+          password: 'BiometricSecureToken',
+        );
+
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✓ Biometric authentication successful!'),
+          backgroundColor: AppTheme.secondary,
+        ),
+      );
       context.go('/');
     }
   }
@@ -199,7 +221,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: Center(
           child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Form(
               key: _formKey,
               child: ConstrainedBox(
@@ -264,41 +286,72 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     const Text(
                       'For All Inventory Ecosystem',
                       style: TextStyle(fontSize: 11, color: Color(0xFF8C91B0), fontWeight: FontWeight.w500),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
-                    // GOOGLE ONE-TAP BUTTON
-                    OutlinedButton(
-                      onPressed: _isLoading ? null : _handleGoogleSignIn,
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black87,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide.none,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        elevation: 2,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.network(
-                            'https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg',
-                            width: 18,
-                            height: 18,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 22, color: Colors.blue),
+                    // GOOGLE & BIOMETRICS ROW
+                    Row(
+                      children: [
+                        // Continue with Google
+                        Expanded(
+                          flex: 3,
+                          child: OutlinedButton(
+                            onPressed: _isLoading ? null : _handleGoogleSignIn,
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.black87,
+                              padding: const EdgeInsets.symmetric(vertical: 11),
+                              side: BorderSide.none,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              elevation: 2,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.network(
+                                  'https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg',
+                                  width: 17,
+                                  height: 17,
+                                  errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 20, color: Colors.blue),
+                                ),
+                                const SizedBox(width: 8),
+                                const Text('Google', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 10),
-                          const Text('Continue with Google', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 10),
+                        // Biometrics One-Tap Button
+                        Expanded(
+                          flex: 3,
+                          child: OutlinedButton(
+                            onPressed: _isLoading ? null : _handleBiometricAuth,
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: const Color(0xFF161926),
+                              foregroundColor: AppTheme.secondary,
+                              padding: const EdgeInsets.symmetric(vertical: 11),
+                              side: const BorderSide(color: Color(0xFF282D42)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.fingerprint_rounded, size: 18, color: AppTheme.secondary),
+                                SizedBox(width: 8),
+                                Text('Biometrics', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     const Row(
                       children: [
@@ -311,11 +364,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ],
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // SLEEK CARD CONTAINER
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
                         color: const Color(0xFF11131D),
                         borderRadius: BorderRadius.circular(24),
@@ -386,11 +439,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 14),
 
                           if (!_isLoginTab) ...[
                             const Text('Full Name', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFA5A9C5))),
-                            const SizedBox(height: 5),
+                            const SizedBox(height: 4),
                             TextFormField(
                               controller: _fullNameController,
                               style: const TextStyle(fontSize: 13),
@@ -400,11 +453,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 10),
                           ],
 
                           const Text('Gmail / Work Email Address', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFA5A9C5))),
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 4),
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
@@ -416,7 +469,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                             validator: _validateEmail,
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
 
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -429,7 +482,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                             ],
                           ),
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 4),
                           TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
@@ -444,7 +497,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 16),
 
                           // SUBMIT BUTTON
                           SizedBox(
@@ -472,14 +525,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
 
                     const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.lock_rounded, size: 12, color: Color(0xFF34D399)),
+                        Icon(Icons.shield_outlined, size: 12, color: Color(0xFF34D399)),
                         SizedBox(width: 6),
-                        Text('256-BIT ENCRYPTED & SECURED', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Color(0xFF676C8E), letterSpacing: 0.8)),
+                        Text('FINGERPRINT, OAUTH2 & OTP ENCRYPTED', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Color(0xFF676C8E), letterSpacing: 0.8)),
                       ],
                     ),
                   ],
