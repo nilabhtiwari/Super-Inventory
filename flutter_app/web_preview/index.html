@@ -496,19 +496,58 @@
       <!-- ============================================================ -->
       <!-- 6. BLUETOOTH HARDWARE SCREEN -->
       <!-- ============================================================ -->
-      <div id="screen-hardware" class="hidden space-y-4">
-        <h2 class="text-lg font-black text-white">Hardware Devices</h2>
-        <div class="p-5 bg-brand-surface border border-brand-secondary/40 rounded-3xl flex items-center gap-4">
-          <div class="w-12 h-12 rounded-2xl bg-brand-secondary/20 flex items-center justify-center text-brand-secondary">
-            <span class="material-symbols-outlined text-2xl">print</span>
-          </div>
-          <div class="flex-1">
-            <p class="text-sm font-bold text-white">Thermal Receipt Printer</p>
-            <p class="text-xs text-brand-secondary font-semibold">Connected (58mm ESC/POS)</p>
-          </div>
-          <button onclick="simulatePrint()" class="px-3 py-1.5 bg-brand-primary text-white text-xs font-bold rounded-xl">
-            Test Slip
+      <div id="screen-hardware" class="hidden space-y-4 text-left">
+        <!-- Sub-page Header -->
+        <div class="flex items-center justify-between pb-2 border-b border-brand-surfaceBorder">
+          <button onclick="switchScreen('settings')" class="p-2 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-white hover:bg-brand-surface transition flex items-center">
+            <span class="material-symbols-outlined text-lg">arrow_back</span>
           </button>
+          <h2 class="text-sm font-black text-white">Hardware Devices</h2>
+          <div class="w-8"></div>
+        </div>
+
+        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3 shadow-md">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-brand-secondary/15 text-brand-secondary flex items-center justify-center">
+                <span class="material-symbols-outlined text-xl">print</span>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-white">Thermal Receipt Printer</p>
+                <p class="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                  <span>Connected (Epson TM-T88V)</span>
+                </p>
+              </div>
+            </div>
+            <button onclick="simulatePrint()" class="px-3 py-1.5 bg-brand-primary hover:bg-brand-primaryGlow text-white text-[11px] font-bold rounded-lg shadow">
+              Test Slip
+            </button>
+          </div>
+          <div class="border-t border-brand-surfaceBorder pt-2 flex justify-between items-center text-xs">
+            <span class="text-brand-muted text-[11px]">Paper Width</span>
+            <span class="text-white text-[11px] font-semibold">58mm (ESC/POS Standard)</span>
+          </div>
+        </div>
+
+        <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3 opacity-70 shadow-md">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-brand-surfaceElevated text-brand-muted flex items-center justify-center">
+                <span class="material-symbols-outlined text-xl">barcode_scanner</span>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-white">Barcode Scanner</p>
+                <p class="text-[10px] text-red-400 font-bold flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 bg-red-400 rounded-full"></span>
+                  <span>Not Connected (Bluetooth)</span>
+                </p>
+              </div>
+            </div>
+            <button onclick="alert('Pair barcode scanner in device Bluetooth settings first.')" class="px-3 py-1.5 bg-brand-surfaceElevated text-brand-muted text-[11px] font-bold rounded-lg border border-brand-surfaceBorder">
+              Pair
+            </button>
+          </div>
         </div>
       </div>
 
@@ -630,7 +669,7 @@
           <h3 class="text-[10px] font-extrabold text-brand-primaryContainer uppercase tracking-wider px-2">Hardware</h3>
           <div class="bg-brand-surface border border-brand-surfaceBorder rounded-2xl divide-y divide-brand-surfaceBorder overflow-hidden shadow-sm">
             <!-- Thermal Printer Item -->
-            <div class="p-3.5 flex items-center justify-between">
+            <div onclick="switchScreen('hardware')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-brand-surfaceElevated transition">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-brand-secondary/15 flex items-center justify-center text-brand-secondary">
                   <span class="material-symbols-outlined text-lg">print</span>
@@ -648,7 +687,7 @@
             </div>
 
             <!-- Barcode Scanner Item -->
-            <div class="p-3.5 flex items-center justify-between opacity-70">
+            <div onclick="switchScreen('hardware')" class="p-3.5 flex items-center justify-between opacity-70 cursor-pointer hover:bg-brand-surfaceElevated transition">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-brand-surfaceElevated flex items-center justify-center text-brand-muted">
                   <span class="material-symbols-outlined text-lg">barcode_scanner</span>
