@@ -410,23 +410,11 @@
         <!-- Center Hero Launcher Section -->
         <section class="relative z-10 flex-1 flex flex-col items-center justify-center px-6 -mt-4">
           <!-- App Branding Title -->
-          <div class="text-center space-y-1.5 max-w-xs mb-8">
+          <div class="text-center space-y-2 max-w-xs">
             <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
               Super Inventory
             </h1>
-            <p class="text-xs sm:text-sm font-medium tracking-wide text-pink-100/85">For All Inventory Ecosystem</p>
-          </div>
-
-          <!-- Progress Bar Area -->
-          <div class="w-full max-w-[280px] space-y-2.5">
-            <div class="flex justify-between items-center text-[10.5px] font-bold text-pink-100/90 px-0.5">
-              <span id="splash-loading-status" class="transition-opacity duration-200">Verifying local device storage...</span>
-              <span id="splash-loading-percent" class="font-black text-white">18%</span>
-            </div>
-            <!-- Bar track -->
-            <div class="w-full h-2 rounded-full bg-black/40 border border-white/10 p-0.5 overflow-hidden">
-              <div id="splash-loading-bar" class="h-full rounded-full bg-gradient-to-r from-pink-400 via-purple-300 to-emerald-400 transition-all duration-300" style="width: 18%;"></div>
-            </div>
+            <p class="text-xs sm:text-sm font-medium tracking-wide text-pink-100/90">For All Inventory Ecosystem</p>
           </div>
         </section>
 
@@ -3385,52 +3373,11 @@ ${itemsListText}
         clockEl.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       }
 
-      const barFill = document.getElementById('splash-loading-bar');
-      const statusText = document.getElementById('splash-loading-status');
-      const percentText = document.getElementById('splash-loading-percent');
-      const actionBtn = document.getElementById('splash-enter-btn');
-
-      const stages = [
-        { progress: 18, text: "Verifying local device storage..." },
-        { progress: 42, text: "Syncing offline catalogs & SKUs..." },
-        { progress: 68, text: "Connecting cloud inventory database..." },
-        { progress: 89, text: "Calibrating barcode scan engine..." },
-        { progress: 100, text: "Ready to manage!" }
-      ];
-
-      let currentStageIdx = 0;
-
-      const runNextStep = () => {
-        if (currentStageIdx < stages.length) {
-          const step = stages[currentStageIdx];
-          if (barFill) barFill.style.width = `${step.progress}%`;
-          if (percentText) percentText.textContent = `${step.progress}%`;
-          if (statusText) {
-            statusText.style.opacity = '0.3';
-            setTimeout(() => {
-              statusText.textContent = step.text;
-              statusText.style.opacity = '1';
-            }, 120);
-          }
-
-          currentStageIdx++;
-          const nextDelay = currentStageIdx === stages.length ? 600 : Math.random() * 350 + 400;
-          splashTimeout = setTimeout(runNextStep, nextDelay);
-        } else {
-          // Auto transition or prompt
-          if (actionBtn) {
-            actionBtn.classList.remove('opacity-70');
-            actionBtn.classList.add('scale-105');
-          }
-          // Smooth auto-transition into app terminal after brief pause
-          splashTimeout = setTimeout(() => {
-            finishSplashLaunch();
-          }, 800);
-        }
-      };
-
       if (splashTimeout) clearTimeout(splashTimeout);
-      splashTimeout = setTimeout(runNextStep, 350);
+      // Clean splash screen display before opening Sign In / Sign Up
+      splashTimeout = setTimeout(() => {
+        finishSplashLaunch();
+      }, 1200);
     }
 
     function finishSplashLaunch() {
