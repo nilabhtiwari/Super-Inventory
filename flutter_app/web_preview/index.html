@@ -1480,7 +1480,59 @@
       </div>
     </div>
 
-            <!-- EXECUTIVE POS WEIGHT / PACK SIZE & NUMBER OF PIECES CONSOLE MODAL -->
+            <!-- REAL IN-APP WHATSAPP BILL DISPATCH & PREVIEW DIALOG -->
+    <div id="whatsappModal" onclick="if(event.target === this) closeWhatsAppModal();" class="hidden absolute inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-3.5 rounded-[40px] transition-all">
+      <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[30px] p-5 w-full max-w-[348px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in duration-150">
+        
+        <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-2.5">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-[#25D366]/20 border border-[#25D366]/40 flex items-center justify-center text-[#25D366]">
+              <span class="material-symbols-outlined text-lg">chat</span>
+            </div>
+            <div>
+              <h3 class="text-xs font-black text-white">Send WhatsApp Invoice</h3>
+              <p class="text-[10px] text-emerald-400 font-bold">● Instant Real Direct Dispatch</p>
+            </div>
+          </div>
+          <button onclick="closeWhatsAppModal()" class="w-7 h-7 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted hover:text-white transition flex items-center justify-center active:scale-95">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+        <!-- Phone Number Input -->
+        <div>
+          <label class="text-[9.5px] font-extrabold text-brand-muted uppercase tracking-wider block mb-1">Customer WhatsApp Mobile Number</label>
+          <div class="flex items-center gap-1.5">
+            <span class="px-2.5 py-2 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-xs font-bold text-white">+91</span>
+            <input type="tel" id="waCustomerPhoneInput" maxlength="10" placeholder="Enter 10-digit mobile..." value="9876543210" oninput="updateWhatsAppDirectLink()" class="flex-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs font-black text-white outline-none focus:border-[#25D366] transition" />
+          </div>
+        </div>
+
+        <!-- Live WhatsApp Message Preview Box -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-[9.5px] font-extrabold text-brand-muted uppercase tracking-wider">Message Content Preview</label>
+            <button onclick="copyWhatsAppBillText()" id="copyBillBtn" class="text-[9.5px] text-brand-secondary font-bold hover:underline flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-xs">content_copy</span> Copy Text
+            </button>
+          </div>
+          <div id="waPreviewText" class="p-2.5 bg-black/40 border border-brand-surfaceBorder rounded-xl text-[10px] text-brand-muted font-mono max-h-32 overflow-y-auto custom-scroll whitespace-pre-wrap leading-relaxed"></div>
+        </div>
+
+        <!-- 1-Tap Real WhatsApp Web / App Launch Anchor Button (Zero Popup Blocking) -->
+        <div class="space-y-2 pt-1">
+          <a id="waDirectSendLink" href="#" target="_blank" class="w-full py-3 bg-gradient-to-r from-[#25D366] to-emerald-500 text-black font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/25 hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-base">send</span>
+            <span>OPEN IN WHATSAPP & SEND</span>
+          </a>
+          <button type="button" onclick="closeWhatsAppModal()" class="w-full py-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-[10.5px] font-bold rounded-xl hover:text-white transition">
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXECUTIVE POS WEIGHT / PACK SIZE & NUMBER OF PIECES CONSOLE MODAL -->
     <div id="qtyUnitModal" onclick="if(event.target === this) closeQtyUnitModal();" class="hidden absolute inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-3.5 rounded-[40px] transition-all">
       <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[30px] p-4.5 w-full max-w-[348px] shadow-2xl text-left space-y-3 animate-in fade-in zoom-in duration-150">
         
@@ -2967,18 +3019,10 @@
       alert(`🖨️ ESC/POS Print Slip successfully sent to ${connectedPrinterName} (${connectedPrinterType})!`);
     }
 
-        let lastCompletedInvoiceData = null;
+            let lastCompletedInvoiceData = null;
+    let currentFormattedWhatsAppText = '';
 
-    function sendRealWhatsAppBill() {
-      let phone = prompt("Enter customer's 10-digit WhatsApp Mobile Number:", "9876543210");
-      if (!phone) return;
-      
-      // Clean phone number (keep digits only)
-      phone = phone.replace(/[^0-9]/g, '');
-      if (phone.length === 10) {
-        phone = '91' + phone; // Add default India country code if 10 digits
-      }
-
+    function openWhatsAppModal() {
       const shopName = document.getElementById('rcptShopName')?.innerText || 'Super Inventory Store';
       const shopAddress = document.getElementById('rcptShopAddress')?.innerText || 'Main Branch • City Centre';
       const gstin = document.getElementById('rcptGstin')?.innerText || 'GSTIN: 27AAAAA0000A1Z5';
@@ -2991,7 +3035,7 @@
       const helpline = document.getElementById('rcptHelpline')?.innerText || '9876543210';
       const timings = document.getElementById('rcptTimings')?.innerText || '8:00 AM - 10:30 PM';
 
-      // Extract item lines from receipt
+      // Extract item lines
       let itemsListText = '';
       if (lastCompletedInvoiceData && lastCompletedInvoiceData.items && lastCompletedInvoiceData.items.length > 0) {
         itemsListText = lastCompletedInvoiceData.items.map((it, idx) => {
@@ -3001,8 +3045,7 @@
         itemsListText = '1. General Store Items (Qty: 1) - ' + grandTotal;
       }
 
-      // Build Beautiful WhatsApp Message
-      const message = 
+      currentFormattedWhatsAppText = 
 `🧾 *TAX INVOICE - ${shopName.toUpperCase()}*
 📍 ${shopAddress}
 📋 ${gstin}
@@ -3022,16 +3065,44 @@ ${itemsListText}
 ⏱ *Store Hours:* ${timings}
 🎉 Thank you for shopping with us! Visit again.`;
 
-      const encodedMsg = encodeURIComponent(message);
-      const waUrl = `https://wa.me/${phone}?text=${encodedMsg}`;
-      
-      // Open Real WhatsApp Web or Native WhatsApp App
-      window.open(waUrl, '_blank');
+      document.getElementById('waPreviewText').innerText = currentFormattedWhatsAppText;
+      updateWhatsAppDirectLink();
+
+      document.getElementById('whatsappModal').classList.remove('hidden');
+    }
+
+    function closeWhatsAppModal() {
+      document.getElementById('whatsappModal').classList.add('hidden');
+    }
+
+    function updateWhatsAppDirectLink() {
+      const input = document.getElementById('waCustomerPhoneInput');
+      let phone = (input?.value || '9876543210').replace(/[^0-9]/g, '');
+      if (phone.length === 10) phone = '91' + phone;
+
+      const encodedMsg = encodeURIComponent(currentFormattedWhatsAppText);
+      const link = document.getElementById('waDirectSendLink');
+      if (link) {
+        link.href = `https://api.whatsapp.com/send?phone=${phone}&text=${encodedMsg}`;
+      }
+    }
+
+    function copyWhatsAppBillText() {
+      if (navigator.clipboard && currentFormattedWhatsAppText) {
+        navigator.clipboard.writeText(currentFormattedWhatsAppText).then(() => {
+          const btn = document.getElementById('copyBillBtn');
+          if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-xs">done</span> Copied!';
+          setTimeout(() => {
+            if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-xs">content_copy</span> Copy Text';
+          }, 2000);
+        });
+      }
     }
 
     function simulateWhatsApp() {
-      sendRealWhatsAppBill();
+      openWhatsAppModal();
     }
+
 
 
     // Initialize default view
