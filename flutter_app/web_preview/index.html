@@ -233,6 +233,44 @@
     .animate-shimmer { animation: shimmerSweep 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
     .animate-ping-slow { animation: pingSlow 2.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
 
+
+    /* --- WATER WAVELETS & LIQUID RIPPLE ANIMATIONS --- */
+    @keyframes waterRipple {
+      0% {
+        transform: scale(0.8);
+        opacity: 0.85;
+      }
+      50% {
+        opacity: 0.45;
+      }
+      100% {
+        transform: scale(2.3);
+        opacity: 0;
+      }
+    }
+    @keyframes waterPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 35px rgba(236, 72, 153, 0.35);
+      }
+      50% {
+        transform: scale(1.04);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 55px rgba(236, 72, 153, 0.65), 0 0 80px rgba(168, 85, 247, 0.4);
+      }
+    }
+    .animate-water-ripple-1 {
+      animation: waterRipple 3.2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    }
+    .animate-water-ripple-2 {
+      animation: waterRipple 3.2s cubic-bezier(0, 0.2, 0.8, 1) infinite 1.05s;
+    }
+    .animate-water-ripple-3 {
+      animation: waterRipple 3.2s cubic-bezier(0, 0.2, 0.8, 1) infinite 2.1s;
+    }
+    .animate-water-pulse {
+      animation: waterPulse 2.4s ease-in-out infinite;
+    }
+
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start p-2 sm:p-6 bg-black text-white">
@@ -407,11 +445,27 @@
           </div>
         </header>
 
-        <!-- Center Hero Launcher Section -->
-        <section class="relative z-10 flex-1 flex flex-col items-center justify-center px-6 -mt-4">
+                <!-- Center Hero Launcher Section -->
+        <section class="relative z-10 flex-1 flex flex-col items-center justify-center px-6 -mt-3">
+          
+          <!-- Luminous App Icon Container with Blinking Water Wavelets / Ripples -->
+          <div class="relative mb-7 flex items-center justify-center">
+            <!-- Expanding Water Wavelet 1 -->
+            <div class="absolute w-28 h-28 rounded-[38px] border border-pink-400/50 bg-pink-500/15 pointer-events-none animate-water-ripple-1"></div>
+            <!-- Expanding Water Wavelet 2 -->
+            <div class="absolute w-28 h-28 rounded-[38px] border border-purple-400/40 bg-purple-500/10 pointer-events-none animate-water-ripple-2"></div>
+            <!-- Expanding Water Wavelet 3 -->
+            <div class="absolute w-28 h-28 rounded-[38px] border border-fuchsia-300/35 bg-fuchsia-400/5 pointer-events-none animate-water-ripple-3"></div>
+
+            <!-- Authentic Super Inventory App Icon with Water Pulsing Glow -->
+            <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-[28px] overflow-hidden shadow-2xl animate-water-pulse">
+              <img src="assets/app_icon_256.png" alt="Super Inventory" class="w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)]" />
+            </div>
+          </div>
+
           <!-- App Branding Title -->
-          <div class="text-center space-y-2 max-w-xs">
-            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
+          <div class="text-center space-y-1.5 max-w-xs">
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
               Super Inventory
             </h1>
             <p class="text-xs sm:text-sm font-medium tracking-wide text-pink-100/90">For All Inventory Ecosystem</p>
