@@ -1413,14 +1413,14 @@
             <button onclick="setAuthView('login')" class="text-[11px] text-brand-primaryContainer font-bold hover:underline">← Back to Sign In</button>
           </div>
 
-          <!-- Sign Up Specific Fields -->
+          <!-- Sign Up Specific Fields (For Registration) -->
           <div id="authSignupFields" class="hidden space-y-2">
             <div>
-              <label class="text-[10px] font-semibold text-brand-muted block mb-1">Store / Business Name</label>
-              <input type="text" id="authStoreName" placeholder="E.g. Super Inventory" value="Super Inventory Store" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+              <label class="text-[10px] font-bold text-brand-muted block mb-1">Store / Business Name</label>
+              <input type="text" id="authStoreName" placeholder="E.g. Super Inventory Store" value="Super Inventory Store" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
             </div>
             <div>
-              <label class="text-[10px] font-semibold text-brand-muted block mb-1">Mobile Phone Number</label>
+              <label class="text-[10px] font-bold text-brand-muted block mb-1">Mobile Phone Number (For OTP Verification)</label>
               <input type="tel" id="authSignupPhone" placeholder="+91 9876543210" value="+91 9876543210" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
             </div>
           </div>
@@ -2007,6 +2007,44 @@
       { id: 'INV-20260901-0012', total: 45.0, items: 1, time: '40 mins ago', status: 'Paid' },
     ];
 
+        // ============================================================
+    // PERMANENT USER DATABASE & MATCHING AUTHENTICATION ENGINE
+    // ============================================================
+    const DEFAULT_USERS_KEY = 'super_inventory_registered_users';
+
+    function getStoredUsers() {
+      try {
+        const data = localStorage.getItem(DEFAULT_USERS_KEY);
+        if (data) return JSON.parse(data);
+      } catch (e) {
+        console.error(e);
+      }
+      // Seed default merchant account
+      const defaultUsers = [
+        {
+          storeName: 'Super Inventory Store',
+          phone: '+91 9876543210',
+          email: 'merchant@gmail.com',
+          password: 'Merchant@1234',
+          createdAt: new Date().toISOString()
+        }
+      ];
+      localStorage.setItem(DEFAULT_USERS_KEY, JSON.stringify(defaultUsers));
+      return defaultUsers;
+    }
+
+    function saveNewUser(newUser) {
+      const users = getStoredUsers();
+      // Remove any duplicate
+      const filtered = users.filter(u => u.email.toLowerCase() !== newUser.email.toLowerCase() && cleanPhoneNum(u.phone) !== cleanPhoneNum(newUser.phone));
+      filtered.push(newUser);
+      localStorage.setItem(DEFAULT_USERS_KEY, JSON.stringify(filtered));
+    }
+
+    function cleanPhoneNum(ph) {
+      return (ph || '').replace(/[^0-9]/g, '');
+    }
+
     let currentAuthMode = 'login'; // 'login', 'signup', 'forgot'
 
     function setAuthView(mode) {
@@ -2021,6 +2059,7 @@
       const submitText = document.getElementById('authSubmitBtnText');
       const biometricBtn = document.getElementById('authBiometricBtn');
       const label = document.getElementById('authIdentifierLabel');
+      const emailInput = document.getElementById('authEmailInput');
 
       if (mode === 'login') {
         tabHeader.classList.remove('hidden');
@@ -2031,8 +2070,9 @@
         pwGroup.classList.remove('hidden');
         newPwGroup.classList.add('hidden');
         biometricBtn.classList.remove('hidden');
-        label.innerText = 'Email / Phone Number';
-        submitText.innerText = 'Sign In to Super Inventory';
+        label.innerText = 'Registered Email or Phone Number';
+        emailInput.placeholder = 'Enter Email or Phone Number';
+        submitText.innerText = 'Sign In (Instant Password Verification)';
       } else if (mode === 'signup') {
         tabHeader.classList.remove('hidden');
         forgotBanner.classList.add('hidden');
@@ -2042,8 +2082,9 @@
         pwGroup.classList.remove('hidden');
         newPwGroup.classList.add('hidden');
         biometricBtn.classList.add('hidden');
-        label.innerText = 'Email / Phone Number';
-        submitText.innerText = 'Create Account & Launch Store';
+        label.innerText = 'Email Address (For Verification)';
+        emailInput.placeholder = 'your_name@gmail.com';
+        submitText.innerText = 'Verify Phone & Email (Send OTP)';
       } else if (mode === 'forgot') {
         tabHeader.classList.add('hidden');
         forgotBanner.classList.remove('hidden');
@@ -2051,10 +2092,14 @@
         pwGroup.classList.add('hidden');
         newPwGroup.classList.remove('hidden');
         biometricBtn.classList.add('hidden');
-        label.innerText = 'Email / Phone Number';
-        submitText.innerText = 'Reset Password & Sign In';
+        label.innerText = 'Registered Email or Phone Number';
+        emailInput.placeholder = 'Enter registered Email or Phone';
+        submitText.innerText = 'Send OTP to Reset Password';
       }
     }
+
+    // Pending registration state while OTP is verified
+    let pendingRegistration = null;
 
     function handlePrimaryAuthSubmit() {
       const identifier = document.getElementById('authEmailInput').value.trim();
@@ -2066,29 +2111,132 @@
       }
       document.getElementById('emailErrorText').classList.add('hidden');
 
-      if (currentAuthMode === 'login' && !pw) {
-        alert('Please enter your password.');
+      // -------------------------------------------------------------
+      // 1. SIGN IN MODE: DIRECT PASSWORD & STORED CREDENTIALS MATCHING (NO OTP)
+      // -------------------------------------------------------------
+      if (currentAuthMode === 'login') {
+        if (!pw) {
+          showAppToast('Please enter your password', 'lock', true);
+          return;
+        }
+
+        const users = getStoredUsers();
+        const cleanInputPhone = cleanPhoneNum(identifier);
+        const isEmailInput = identifier.includes('@');
+
+        // Look up registered user by email or phone
+        const matchedUser = users.find(u => {
+          if (isEmailInput) {
+            return u.email.toLowerCase() === identifier.toLowerCase();
+          } else {
+            return cleanPhoneNum(u.phone) === cleanInputPhone || cleanPhoneNum(u.phone).endsWith(cleanInputPhone);
+          }
+        });
+
+        if (!matchedUser) {
+          showAppToast('No store account found. Please click Sign Up to register.', 'error', true);
+          return;
+        }
+
+        // Verify Password Match
+        if (matchedUser.password !== pw) {
+          showAppToast('Incorrect password. Please try again.', 'error', true);
+          return;
+        }
+
+        // LOGIN SUCCESSFUL (MATCH FOUND)
+        isLoggedIn = true;
+        document.getElementById('headerShopName').innerText = matchedUser.storeName;
+        document.getElementById('settingsStoreName').innerText = matchedUser.storeName;
+        document.getElementById('settingsUserEmail').innerText = matchedUser.email;
+        document.getElementById('drawerPhone').innerText = matchedUser.phone;
+        document.getElementById('rcptShopName').innerText = matchedUser.storeName;
+
+        showAppToast(`✓ Welcome back, ${matchedUser.storeName}!`, 'verified');
+        switchScreen('dashboard');
         return;
       }
 
+      // -------------------------------------------------------------
+      // 2. SIGN UP MODE: REQUIRES REAL OTP TO VERIFY PHONE & EMAIL
+      // -------------------------------------------------------------
+      if (currentAuthMode === 'signup') {
+        const storeName = document.getElementById('authStoreName').value.trim() || 'Super Inventory Store';
+        const phone = document.getElementById('authSignupPhone').value.trim();
+        
+        if (!phone || cleanPhoneNum(phone).length < 10) {
+          showAppToast('Please enter a valid 10-digit mobile number', 'warning', true);
+          return;
+        }
+        if (!identifier.includes('@')) {
+          showAppToast('Please enter a valid email address for verification', 'warning', true);
+          return;
+        }
+        if (!pw || pw.length < 6) {
+          showAppToast('Please set a password with at least 6 characters', 'warning', true);
+          return;
+        }
+
+        // Check if phone or email already registered
+        const users = getStoredUsers();
+        const cleanP = cleanPhoneNum(phone);
+        const existing = users.find(u => u.email.toLowerCase() === identifier.toLowerCase() || cleanPhoneNum(u.phone) === cleanP);
+        if (existing) {
+          showAppToast('Account already exists! Please Sign In with your password.', 'info', true);
+          setAuthView('login');
+          return;
+        }
+
+        // Save pending registration details
+        pendingRegistration = {
+          storeName: storeName,
+          phone: phone,
+          email: identifier,
+          password: pw,
+          createdAt: new Date().toISOString()
+        };
+
+        // Open OTP Modal to verify phone & email
+        document.getElementById('otpTargetEmail').innerText = `${phone} & ${identifier}`;
+        document.getElementById('otpModal').classList.remove('hidden');
+        generateAndSendRealOtp();
+        return;
+      }
+
+      // -------------------------------------------------------------
+      // 3. FORGOT PASSWORD MODE: VERIFIES IDENTITY WITH OTP
+      // -------------------------------------------------------------
       if (currentAuthMode === 'forgot') {
         const newPw = document.getElementById('authNewPasswordInput').value.trim();
         if (!newPw || newPw.length < 6) {
-          alert('Please enter a new password (at least 6 characters).');
+          showAppToast('Please enter a new password (min 6 chars)', 'warning', true);
           return;
         }
+
+        const users = getStoredUsers();
+        const cleanInputPhone = cleanPhoneNum(identifier);
+        const isEmailInput = identifier.includes('@');
+        const matchedUser = users.find(u => {
+          if (isEmailInput) return u.email.toLowerCase() === identifier.toLowerCase();
+          return cleanPhoneNum(u.phone) === cleanInputPhone || cleanPhoneNum(u.phone).endsWith(cleanInputPhone);
+        });
+
+        if (!matchedUser) {
+          showAppToast('No account found with this email or phone', 'error', true);
+          return;
+        }
+
+        pendingRegistration = {
+          resetEmail: matchedUser.email,
+          newPassword: newPw
+        };
+
+        document.getElementById('otpTargetEmail').innerText = identifier;
+        document.getElementById('otpModal').classList.remove('hidden');
+        generateAndSendRealOtp();
       }
-
-      // Format OTP Target (Email or Phone)
-      const isPhone = /^[0-9+ ]+$/.test(identifier);
-      const targetLabel = isPhone ? `Mobile SMS (${identifier})` : `Email Inbox (${identifier})`;
-      document.getElementById('otpTargetEmail').innerText = targetLabel;
-      document.getElementById('settingsUserEmail').innerText = identifier;
-
-      // Generate and send REAL 6-digit OTP code
-      document.getElementById('otpModal').classList.remove('hidden');
-      generateAndSendRealOtp();
     }
+
 
     
     // --- REAL 6-DIGIT OTP VERIFICATION ENGINE ---
@@ -2298,26 +2446,43 @@
         }
       }
 
-      // Success!
-      isLoggedIn = true;
+      // Success! OTP matches 100%
       if (otpCountdownTimer) clearInterval(otpCountdownTimer);
       closeOtpModal();
 
-      const identifier = document.getElementById('authEmailInput')?.value.trim() || 'Store Owner';
-      if (currentAuthMode === 'signup') {
-        const storeName = document.getElementById('authStoreName')?.value.trim() || 'Super Inventory Store';
-        document.getElementById('headerShopName').innerText = storeName;
-        document.getElementById('settingsStoreName').innerText = storeName;
-        showAppToast(`✓ Account verified & created for "${storeName}"!`, 'verified');
-      } else if (currentAuthMode === 'forgot') {
-        showAppToast(`✓ Password reset successful for ${identifier}`, 'verified');
+      if (currentAuthMode === 'signup' && pendingRegistration) {
+        // STORE NEW USER PERMANENTLY IN DATABASE
+        saveNewUser(pendingRegistration);
+        
+        // Log in immediately
+        isLoggedIn = true;
+        document.getElementById('headerShopName').innerText = pendingRegistration.storeName;
+        document.getElementById('settingsStoreName').innerText = pendingRegistration.storeName;
+        document.getElementById('settingsUserEmail').innerText = pendingRegistration.email;
+        document.getElementById('drawerPhone').innerText = pendingRegistration.phone;
+        document.getElementById('rcptShopName').innerText = pendingRegistration.storeName;
+
+        showAppToast(`✓ Store Registered & Verified! Welcome to Super Inventory.`, 'verified');
+        pendingRegistration = null;
+        switchScreen('dashboard');
+        return;
+      } else if (currentAuthMode === 'forgot' && pendingRegistration) {
+        // Update stored password
+        const users = getStoredUsers();
+        const user = users.find(u => u.email.toLowerCase() === pendingRegistration.resetEmail.toLowerCase());
+        if (user) {
+          user.password = pendingRegistration.newPassword;
+          localStorage.setItem(DEFAULT_USERS_KEY, JSON.stringify(users));
+        }
+        showAppToast(`✓ Password updated! You can now sign in with your new password.`, 'verified');
+        pendingRegistration = null;
         setAuthView('login');
         return;
       } else {
-        showAppToast(`✓ OTP Verified! Signed in as ${identifier}`, 'verified');
+        isLoggedIn = true;
+        showAppToast(`✓ Identity Verified! Access Granted.`, 'verified');
+        switchScreen('dashboard');
       }
-
-      switchScreen('dashboard');
     }
 
     function closeOtpModal() {
