@@ -442,7 +442,7 @@
 
           <!-- Fast-Forward / Enter Terminal Button -->
           <button type="button" id="splash-enter-btn" onclick="finishSplashLaunch()" class="mt-7 py-3 px-6 bg-white text-slate-950 font-black text-xs rounded-2xl shadow-xl shadow-black/30 hover:scale-105 active:scale-95 transition flex items-center gap-2">
-            <span>ENTER STORE TERMINAL</span>
+            <span>PROCEED TO SIGN IN / SIGN UP</span>
             <span class="material-symbols-outlined text-base">arrow_forward</span>
           </button>
         </section>
@@ -2240,7 +2240,7 @@
       handleLogOut();
     }
 
-    let isLoggedIn = true;
+    let isLoggedIn = false;
 
     function switchScreen(screenId) {
       // STRICT AUTH GUARD: Once signed out, user CANNOT navigate to any internal screen
@@ -3456,12 +3456,12 @@ ${itemsListText}
       if (splashScreen) {
         splashScreen.classList.add('hidden');
       }
-      if (isLoggedIn) {
-        switchScreen('dashboard');
-      } else {
+      // Always open Sign In / Sign Up page first
+      if (!isLoggedIn) {
         switchScreen('login');
+      } else {
+        switchScreen('dashboard');
       }
-      showAppToast('Super Inventory Engine Online', 'verified');
     }
 
     function launchAppWithSplashScreen() {
