@@ -523,38 +523,31 @@
           <div id="cartItemsContainer" class="space-y-2 max-h-[340px] min-h-[140px] overflow-y-auto custom-scroll pr-1"></div>
         </div>
 
-        <!-- STREAMLINED COMPACT SUMMARY & CHECKOUT BAR -->
-        <div class="bg-brand-surface border border-brand-surfaceBorder p-3 rounded-2xl space-y-2.5 shadow-md">
-          <div class="flex items-center justify-between text-[11px] pb-1.5 border-b border-brand-surfaceBorder">
+        <!-- STREAMLINED COMPACT SUMMARY & GENERATE BILL BAR -->
+        <div class="bg-brand-surface border border-brand-surfaceBorder p-3.5 rounded-2xl space-y-3 shadow-lg">
+          <div class="flex items-center justify-between text-xs pb-2 border-b border-brand-surfaceBorder">
             <div class="flex items-center gap-3">
               <div>
                 <span class="text-brand-muted text-[10px] block leading-none">Subtotal</span>
-                <span id="cartSubtotalText" class="text-white font-bold">₹0.00</span>
+                <span id="cartSubtotalText" class="text-white font-bold text-xs mt-0.5">₹0.00</span>
               </div>
               <div class="h-5 w-[1px] bg-brand-surfaceBorder"></div>
               <div>
                 <span class="text-brand-muted text-[10px] block leading-none">GST Tax</span>
-                <span id="cartGstText" class="text-white font-bold">₹0.00</span>
+                <span id="cartGstText" class="text-white font-bold text-xs mt-0.5">₹0.00</span>
               </div>
             </div>
             <div class="text-right">
-              <span class="text-brand-muted text-[10px] block leading-none uppercase font-bold">Grand Total</span>
-              <span id="cartGrandTotalText" class="text-lg font-black text-brand-secondary leading-none">₹0.00</span>
+              <span class="text-brand-muted text-[10px] block leading-none uppercase font-extrabold">Final Amount</span>
+              <span id="cartGrandTotalText" class="text-xl font-black text-brand-secondary leading-none mt-0.5">₹0.00</span>
             </div>
           </div>
 
-          <div class="flex items-center gap-1.5">
-            <div class="grid grid-cols-4 gap-1 flex-1">
-              <button onclick="setPaymentMethod('CASH')" id="pay-cash" class="py-1 bg-brand-primary text-white text-[9.5px] font-bold rounded-lg border border-brand-primary">CASH</button>
-              <button onclick="setPaymentMethod('UPI')" id="pay-upi" class="py-1 bg-brand-surfaceElevated text-brand-muted text-[9.5px] font-bold rounded-lg border border-brand-surfaceBorder hover:text-white">UPI QR</button>
-              <button onclick="setPaymentMethod('CARD')" id="pay-card" class="py-1 bg-brand-surfaceElevated text-brand-muted text-[9.5px] font-bold rounded-lg border border-brand-surfaceBorder hover:text-white">CARD</button>
-              <button onclick="setPaymentMethod('SPLIT')" id="pay-split" class="py-1 bg-brand-surfaceElevated text-brand-muted text-[9.5px] font-bold rounded-lg border border-brand-surfaceBorder hover:text-white">SPLIT</button>
-            </div>
-            <button onclick="completeCheckout()" id="checkoutBtn" class="py-2.5 px-3.5 bg-brand-secondary text-black font-black text-xs rounded-xl hover:bg-emerald-400 active:scale-[0.98] transition flex items-center justify-center gap-1 shadow-md shadow-brand-secondary/20 whitespace-nowrap">
-              <span class="material-symbols-outlined text-sm">receipt_long</span>
-              <span>PAY & BILL</span>
-            </button>
-          </div>
+          <!-- 1-Tap Proceed to Payment Window -->
+          <button onclick="openPaymentModal()" id="checkoutBtn" class="w-full py-3 bg-gradient-to-r from-teal-400 to-emerald-500 text-black font-black text-xs rounded-xl hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+            <span class="material-symbols-outlined text-base">receipt_long</span>
+            <span>GENERATE BILL & PROCEED TO PAYMENT</span>
+          </button>
         </div>
       </div>
 
@@ -1394,7 +1387,107 @@
 
     </div>
 
-            <!-- PROFESSIONAL IN-APP MEASUREMENT & QUANTITY ENGINE MODAL -->
+            <!-- DEDICATED PAYMENT METHOD & SPLIT BILL WINDOW (POPS UP AFTER GENERATING BILL) -->
+    <div id="paymentModal" class="hidden absolute inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-3.5 rounded-[40px] transition-all">
+      <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[345px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in duration-150">
+        <!-- Header -->
+        <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-3">
+          <div>
+            <span class="text-[9.5px] font-black text-brand-secondary uppercase tracking-widest flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-brand-secondary animate-pulse"></span>
+              Payment Checkout
+            </span>
+            <h3 class="text-xs font-bold text-white mt-0.5">Select Payment Mode</h3>
+          </div>
+          <button onclick="closePaymentModal()" class="w-8 h-8 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted hover:text-white transition flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+        <!-- Total Payable Amount Hero -->
+        <div class="p-3 bg-brand-secondary/10 border border-brand-secondary/30 rounded-2xl flex items-center justify-between shadow-xs">
+          <div>
+            <span class="text-[10px] text-brand-muted font-bold block">Total Amount Payable:</span>
+            <span class="text-2xl font-black text-brand-secondary" id="paymentModalTotalText">₹0.00</span>
+          </div>
+          <span class="px-2 py-1 rounded-lg bg-brand-surfaceElevated border border-brand-surfaceBorder text-[10px] font-bold text-brand-muted" id="paymentModalItemsBadge">0 Items</span>
+        </div>
+
+        <!-- Payment Method Grid (Cash, UPI QR, Card, Split) -->
+        <div class="grid grid-cols-4 gap-1.5" id="paymentModeTabs">
+          <button type="button" onclick="selectPaymentTab('CASH')" id="tab-pay-cash" class="pay-tab-btn py-2 px-1 rounded-xl bg-brand-secondary text-black font-black text-[10px] flex flex-col items-center gap-1 shadow-md shadow-brand-secondary/30 transition">
+            <span class="material-symbols-outlined text-base">payments</span>
+            <span>CASH</span>
+          </button>
+          <button type="button" onclick="selectPaymentTab('UPI')" id="tab-pay-upi" class="pay-tab-btn py-2 px-1 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted font-bold text-[10px] flex flex-col items-center gap-1 hover:text-white transition">
+            <span class="material-symbols-outlined text-base">qr_code_2</span>
+            <span>UPI QR</span>
+          </button>
+          <button type="button" onclick="selectPaymentTab('CARD')" id="tab-pay-card" class="pay-tab-btn py-2 px-1 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted font-bold text-[10px] flex flex-col items-center gap-1 hover:text-white transition">
+            <span class="material-symbols-outlined text-base">credit_card</span>
+            <span>CARD</span>
+          </button>
+          <button type="button" onclick="selectPaymentTab('SPLIT')" id="tab-pay-split" class="pay-tab-btn py-2 px-1 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted font-bold text-[10px] flex flex-col items-center gap-1 hover:text-white transition">
+            <span class="material-symbols-outlined text-base">call_split</span>
+            <span>SPLIT</span>
+          </button>
+        </div>
+
+        <!-- Contextual Payment Details Panel -->
+        <!-- 1. Cash Calculator -->
+        <div id="panel-pay-cash" class="space-y-2 p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl">
+          <div class="flex justify-between items-center text-[10px] font-bold text-brand-muted">
+            <span>Cash Tendered / Received (₹):</span>
+            <span class="text-emerald-400 font-extrabold" id="cashChangeText">Change: ₹0.00</span>
+          </div>
+          <input type="number" id="cashReceivedInput" oninput="calculateCashChange()" placeholder="Enter received amount..." class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-3 py-2 text-sm font-bold text-white outline-none focus:border-brand-secondary" />
+          <div class="flex gap-1.5 flex-wrap">
+            <button type="button" onclick="quickCashAmount('exact')" class="px-2 py-0.5 rounded-lg bg-brand-surface border border-brand-surfaceBorder text-[10px] font-bold text-brand-muted hover:text-white">Exact</button>
+            <button type="button" onclick="quickCashAmount(100)" class="px-2 py-0.5 rounded-lg bg-brand-surface border border-brand-surfaceBorder text-[10px] font-bold text-brand-muted hover:text-white">₹100</button>
+            <button type="button" onclick="quickCashAmount(200)" class="px-2 py-0.5 rounded-lg bg-brand-surface border border-brand-surfaceBorder text-[10px] font-bold text-brand-muted hover:text-white">₹200</button>
+            <button type="button" onclick="quickCashAmount(500)" class="px-2 py-0.5 rounded-lg bg-brand-surface border border-brand-surfaceBorder text-[10px] font-bold text-brand-muted hover:text-white">₹500</button>
+            <button type="button" onclick="quickCashAmount(2000)" class="px-2 py-0.5 rounded-lg bg-brand-surface border border-brand-surfaceBorder text-[10px] font-bold text-brand-muted hover:text-white">₹2000</button>
+          </div>
+        </div>
+
+        <!-- 2. UPI QR Code Preview -->
+        <div id="panel-pay-upi" class="hidden p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl flex flex-col items-center text-center space-y-1.5">
+          <div class="p-2 bg-white rounded-xl shadow-md" id="paymentModalQrCanvas"></div>
+          <p class="text-[10px] font-mono text-brand-muted" id="paymentModalUpiText">superinventory@upi</p>
+          <span class="text-[9.5px] font-bold text-emerald-400">● Dynamic Auto-Reconciled UPI QR</span>
+        </div>
+
+        <!-- 3. Card POS Swipe -->
+        <div id="panel-pay-card" class="hidden p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl space-y-2 text-center">
+          <span class="material-symbols-outlined text-2xl text-brand-primaryContainer">contactless</span>
+          <p class="text-[11px] font-bold text-white">Tap / Insert Customer Card</p>
+          <input type="text" id="cardAuthRef" placeholder="Optional Transaction / Approval Code" value="TXN-APP-8842" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2.5 py-1.5 text-xs text-white outline-none" />
+        </div>
+
+        <!-- 4. Split Payment Calculator -->
+        <div id="panel-pay-split" class="hidden p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl space-y-2">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[9.5px] font-bold text-brand-muted block mb-0.5">Cash Part (₹):</label>
+              <input type="number" id="splitCashInput" oninput="calculateSplitBalance()" value="0" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2 py-1.5 text-xs font-bold text-white outline-none focus:border-brand-secondary" />
+            </div>
+            <div>
+              <label class="text-[9.5px] font-bold text-brand-muted block mb-0.5">UPI / Card Part (₹):</label>
+              <input type="number" id="splitDigitalInput" oninput="calculateSplitBalance()" value="0" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2 py-1.5 text-xs font-bold text-white outline-none focus:border-brand-secondary" />
+            </div>
+          </div>
+          <p class="text-[10px] text-brand-muted text-center" id="splitStatusText">Total Split must equal payable amount.</p>
+        </div>
+
+        <!-- Confirm Action -->
+        <button type="button" onclick="finalizeBillPayment()" class="w-full py-3 bg-gradient-to-r from-teal-400 to-emerald-500 text-black font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/20 hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-1.5">
+          <span class="material-symbols-outlined text-base">check_circle</span>
+          <span>CONFIRM PAYMENT & ISSUE INVOICE</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PROFESSIONAL IN-APP MEASUREMENT & QUANTITY ENGINE MODAL -->
     <div id="qtyUnitModal" class="hidden absolute inset-0 bg-black/65 backdrop-blur-md z-50 flex items-center justify-center p-4 rounded-[40px] transition-all">
       <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[335px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in duration-150">
         <!-- Header & Product Summary -->
@@ -2248,6 +2341,121 @@
       document.getElementById('cartSubtotalText').innerText = `₹${subtotal.toFixed(2)}`;
       document.getElementById('cartGstText').innerText = `₹${totalGst.toFixed(2)}`;
       document.getElementById('cartGrandTotalText').innerText = `₹${grandTotal.toFixed(2)}`;
+    }
+
+        let activePayMode = 'CASH';
+    let currentPayableGrandTotal = 0;
+
+    function openPaymentModal() {
+      if (cart.length === 0) {
+        alert('Please add products to the bill first!');
+        return;
+      }
+
+      let subtotal = 0;
+      let totalGst = 0;
+      cart.forEach(i => {
+        let normalizedQty = i.quantity;
+        if (i.unit === 'g' || i.unit === 'ml') normalizedQty = i.quantity / 1000;
+        else if (i.unit === 'dozen') normalizedQty = i.quantity * 12;
+        const lineNet = i.price * (i.unit === 'g' || i.unit === 'ml' ? normalizedQty : i.quantity);
+        subtotal += lineNet;
+        totalGst += lineNet * (i.gst / 100);
+      });
+      currentPayableGrandTotal = subtotal + totalGst;
+
+      document.getElementById('paymentModalTotalText').innerText = `₹${currentPayableGrandTotal.toFixed(2)}`;
+      document.getElementById('paymentModalItemsBadge').innerText = `${cart.reduce((s, i) => s + i.quantity, 0)} Items`;
+      document.getElementById('cashReceivedInput').value = currentPayableGrandTotal.toFixed(0);
+      
+      calculateCashChange();
+      selectPaymentTab('CASH');
+
+      // Generate Dynamic QR inside payment modal
+      const qrEl = document.getElementById('paymentModalQrCanvas');
+      if (qrEl) {
+        qrEl.innerHTML = '';
+        const invNo = `INV-${Date.now().toString().slice(-6)}`;
+        const upiUrl = `upi://pay?pa=superinventory@upi&pn=Super+Inventory&am=${currentPayableGrandTotal.toFixed(2)}&tn=${invNo}&cu=INR`;
+        new QRCode(qrEl, {
+          text: upiUrl,
+          width: 120,
+          height: 120,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+
+      document.getElementById('paymentModal').classList.remove('hidden');
+    }
+
+    function closePaymentModal() {
+      document.getElementById('paymentModal').classList.add('hidden');
+    }
+
+    function selectPaymentTab(mode) {
+      activePayMode = mode;
+      paymentMode = mode;
+
+      ['CASH', 'UPI', 'CARD', 'SPLIT'].forEach(m => {
+        const btn = document.getElementById(`tab-pay-${m.toLowerCase()}`);
+        const panel = document.getElementById(`panel-pay-${m.toLowerCase()}`);
+        if (btn) {
+          if (m === mode) {
+            btn.className = 'pay-tab-btn py-2 px-1 rounded-xl bg-brand-secondary text-black font-black text-[10px] flex flex-col items-center gap-1 shadow-md shadow-brand-secondary/30 scale-[1.02] transition';
+          } else {
+            btn.className = 'pay-tab-btn py-2 px-1 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted font-bold text-[10px] flex flex-col items-center gap-1 hover:text-white transition';
+          }
+        }
+        if (panel) {
+          if (m === mode) panel.classList.remove('hidden');
+          else panel.classList.add('hidden');
+        }
+      });
+
+      if (mode === 'SPLIT') {
+        const half = +(currentPayableGrandTotal / 2).toFixed(2);
+        document.getElementById('splitCashInput').value = half;
+        document.getElementById('splitDigitalInput').value = +(currentPayableGrandTotal - half).toFixed(2);
+        calculateSplitBalance();
+      }
+    }
+
+    function calculateCashChange() {
+      const rec = parseFloat(document.getElementById('cashReceivedInput').value || '0');
+      const change = Math.max(0, rec - currentPayableGrandTotal);
+      document.getElementById('cashChangeText').innerText = `Change: ₹${change.toFixed(2)}`;
+    }
+
+    function quickCashAmount(val) {
+      if (val === 'exact') {
+        document.getElementById('cashReceivedInput').value = currentPayableGrandTotal.toFixed(2);
+      } else {
+        document.getElementById('cashReceivedInput').value = val;
+      }
+      calculateCashChange();
+    }
+
+    function calculateSplitBalance() {
+      const cash = parseFloat(document.getElementById('splitCashInput').value || '0');
+      const dig = parseFloat(document.getElementById('splitDigitalInput').value || '0');
+      const sum = cash + dig;
+      const diff = +(currentPayableGrandTotal - sum).toFixed(2);
+      const statusEl = document.getElementById('splitStatusText');
+
+      if (Math.abs(diff) < 0.01) {
+        statusEl.innerHTML = `<span class="text-emerald-400 font-bold">✓ Split Matches Exactly: ₹${cash.toFixed(2)} Cash + ₹${dig.toFixed(2)} Digital</span>`;
+      } else if (diff > 0) {
+        statusEl.innerHTML = `<span class="text-amber-400 font-bold">⚠️ ₹${diff.toFixed(2)} remaining to balance.</span>`;
+      } else {
+        statusEl.innerHTML = `<span class="text-red-400 font-bold">⚠️ Over by ₹${Math.abs(diff).toFixed(2)}.</span>`;
+      }
+    }
+
+    function finalizeBillPayment() {
+      closePaymentModal();
+      completeCheckout();
     }
 
     function completeCheckout() {
