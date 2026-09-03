@@ -107,7 +107,10 @@
       background-color: rgba(255, 255, 255, 0.96) !important;
       border-color: #E2E8F0 !important;
     }
-    #smartphoneWrapper.theme-light .text-white {
+    #smartphoneWrapper.theme-light .text-white,
+    #smartphoneWrapper.theme-light .text-white\/80,
+    #smartphoneWrapper.theme-light .text-white\/90,
+    #smartphoneWrapper.theme-light .text-white\/70 {
       color: #0F172A !important;
     }
     #smartphoneWrapper.theme-light .text-brand-muted {
@@ -119,7 +122,7 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
     }
     #smartphoneWrapper.theme-light .bg-brand-surfaceElevated {
-      background-color: #F1F5F9 !important;
+      background-color: #F8FAFC !important;
       border-color: #E2E8F0 !important;
     }
     #smartphoneWrapper.theme-light .border-brand-surfaceBorder {
@@ -131,7 +134,8 @@
     #smartphoneWrapper.theme-light .bg-\[\#11131D\],
     #smartphoneWrapper.theme-light .bg-\[\#181B29\],
     #smartphoneWrapper.theme-light .bg-\[\#1A1D2C\],
-    #smartphoneWrapper.theme-light .bg-\[\#161926\] {
+    #smartphoneWrapper.theme-light .bg-\[\#161926\],
+    #smartphoneWrapper.theme-light .bg-\[\#1C1428\] {
       background-color: #FFFFFF !important;
       border-color: #E2E8F0 !important;
       color: #0F172A !important;
@@ -162,6 +166,43 @@
     }
     #smartphoneWrapper.theme-light #screen-receipt .bg-white {
       background-color: #FFFFFF !important;
+    }
+
+    /* Warning & Critical Alerts in Light Mode */
+    #smartphoneWrapper.theme-light .bg-red-500\/10 {
+      background-color: #FEF2F2 !important;
+      border-color: #FECACA !important;
+    }
+    #smartphoneWrapper.theme-light .text-red-400 {
+      color: #DC2626 !important;
+    }
+
+    /* Locked Overlays & Lock Badges in Light Mode */
+    #smartphoneWrapper.theme-light .bg-black\/60,
+    #smartphoneWrapper.theme-light .bg-black\/70,
+    #smartphoneWrapper.theme-light .bg-black\/75,
+    #smartphoneWrapper.theme-light .bg-black\/80 {
+      background-color: rgba(255, 255, 255, 0.88) !important;
+      color: #0F172A !important;
+    }
+    #smartphoneWrapper.theme-light .bg-brand-primary\/30,
+    #smartphoneWrapper.theme-light .bg-brand-primary\/20 {
+      background-color: #F3E8FF !important;
+      border-color: #C084FC !important;
+    }
+    #smartphoneWrapper.theme-light .text-brand-primaryContainer {
+      color: #7C3AED !important;
+    }
+
+    /* Keep Solid Action Button Text High-Contrast White */
+    #smartphoneWrapper.theme-light .bg-brand-primary,
+    #smartphoneWrapper.theme-light .bg-brand-primary span,
+    #smartphoneWrapper.theme-light .bg-gradient-to-r,
+    #smartphoneWrapper.theme-light .bg-gradient-to-r span,
+    #smartphoneWrapper.theme-light .bg-gradient-to-tr,
+    #smartphoneWrapper.theme-light .bg-gradient-to-tr span,
+    #smartphoneWrapper.theme-light .bg-red-500 {
+      color: #FFFFFF !important;
     }
   </style>
 </head>
@@ -700,32 +741,32 @@
           <p class="text-xs text-brand-muted">Smart GST tax savings & AI inventory protection</p>
         </div>
 
-        <!-- 1. GENERIC WARNING HINT (NO SECTORS / CATEGORIES DISCLOSED) -->
-        <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl space-y-1">
+        <!-- 1. CRITICAL EXPIRY WARNING HINT -->
+        <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl space-y-1.5 shadow-sm">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-red-400 flex items-center gap-1.5">
+            <span class="text-xs font-bold text-red-500 flex items-center gap-1.5">
               <span class="material-symbols-outlined text-base">warning</span> 12 Stock Batches Near Expiry
             </span>
-            <span class="bg-red-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded">CRITICAL</span>
+            <span class="bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded shadow">CRITICAL</span>
           </div>
-          <p class="text-[11px] text-white/80 leading-relaxed">Risk of stock loss & profit leakage detected. Subscribe to Premium to identify affected products, batch numbers, and trigger automated clearance discounts.</p>
+          <p class="text-[11px] text-brand-muted leading-relaxed">Risk of stock loss & profit leakage detected. Subscribe to Premium to identify affected products, batch numbers, and trigger automated clearance discounts.</p>
         </div>
 
         <!-- 2. BLURRED BATCH TABLE -->
-        <div class="relative rounded-2xl overflow-hidden border border-brand-surfaceBorder bg-brand-surface">
+        <div class="relative rounded-2xl overflow-hidden border border-brand-surfaceBorder bg-brand-surface shadow-sm">
           <div class="p-4 space-y-2 filter blur-[4px] pointer-events-none opacity-50">
-            <div class="flex justify-between text-xs">
-              <span>Batch #A902 (Stock Unit A)</span>
-              <span class="text-red-400 font-bold">Expires in 4 days</span>
+            <div class="flex justify-between text-xs text-white">
+              <span>Batch #A902 (Cadbury Chocolate 60g)</span>
+              <span class="text-red-500 font-bold">Expires in 4 days</span>
             </div>
-            <div class="flex justify-between text-xs">
-              <span>Batch #E441 (Stock Unit B)</span>
-              <span class="text-amber-400 font-bold">Expires in 12 days</span>
+            <div class="flex justify-between text-xs text-white">
+              <span>Batch #E441 (Amul Fresh Milk 1L)</span>
+              <span class="text-amber-500 font-bold">Expires in 12 days</span>
             </div>
           </div>
           <div class="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center">
-            <div class="w-10 h-10 rounded-full bg-brand-primary/30 border border-brand-primaryContainer flex items-center justify-center text-brand-primaryContainer mb-2">
-              <span class="material-symbols-outlined text-lg">lock</span>
+            <div class="w-10 h-10 rounded-2xl bg-brand-primary text-white shadow-lg flex items-center justify-center mb-2">
+              <span class="material-symbols-outlined text-xl">lock</span>
             </div>
             <p class="text-xs font-extrabold text-white">Batch Expiry Breakdown & Auto-Clearance</p>
             <p class="text-[10px] text-brand-muted mt-0.5">Subscribe to view exact product names, batch IDs & clearance plans</p>
@@ -733,24 +774,26 @@
         </div>
 
         <!-- 3. NEW PREMIUM FEATURE: SMART GST TAX OPTIMIZER & PROFIT MAXIMIZER -->
-        <div class="p-4 rounded-2xl bg-gradient-to-br from-brand-primary/20 via-brand-surface to-brand-surface border border-brand-primaryContainer/40 space-y-2.5">
+        <div class="p-4 rounded-2xl bg-brand-surface border border-brand-primaryContainer/40 space-y-2.5 shadow-sm">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-brand-secondary text-xl">savings</span>
+            <div class="w-8 h-8 rounded-xl bg-brand-secondary/15 text-brand-secondary flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">savings</span>
+            </div>
             <div>
               <p class="text-xs font-black text-white">Smart GST Tax Optimizer</p>
               <p class="text-[10px] text-brand-secondary font-bold">Save GST & maximize net merchant profit</p>
             </div>
           </div>
           <div class="space-y-1.5 text-[11px]">
-            <div class="p-2 bg-brand-surfaceElevated rounded-xl border border-brand-surfaceBorder">
+            <div class="p-2.5 bg-brand-surfaceElevated rounded-xl border border-brand-surfaceBorder">
               <span class="font-bold text-white block">Input Tax Credit (ITC) Recovery</span>
               <span class="text-brand-muted text-[10px]">Identifies uncollected purchase credits to reduce payable GST by up to 18%.</span>
             </div>
-            <div class="p-2 bg-brand-surfaceElevated rounded-xl border border-brand-surfaceBorder">
+            <div class="p-2.5 bg-brand-surfaceElevated rounded-xl border border-brand-surfaceBorder">
               <span class="font-bold text-white block">Tax Slabs Margin Optimizer</span>
               <span class="text-brand-muted text-[10px]">AI adjusts margins across 0%, 5%, 12%, 18%, 28% slabs for maximum profit.</span>
             </div>
-            <div class="p-2 bg-brand-surfaceElevated rounded-xl border border-brand-surfaceBorder">
+            <div class="p-2.5 bg-brand-surfaceElevated rounded-xl border border-brand-surfaceBorder">
               <span class="font-bold text-white block">1-Click CA-Ready Tax Filing Assistant</span>
               <span class="text-brand-muted text-[10px]">Automates GSTR-1 & 3B, eliminating penalties & saving accountant fees.</span>
             </div>
@@ -758,29 +801,29 @@
         </div>
 
         <!-- 4. BLURRED GST TABLE -->
-        <div class="relative rounded-2xl overflow-hidden border border-brand-surfaceBorder bg-brand-surface">
+        <div class="relative rounded-2xl overflow-hidden border border-brand-surfaceBorder bg-brand-surface shadow-sm">
           <div class="p-4 space-y-2 filter blur-[4px] pointer-events-none opacity-50">
-            <div class="flex justify-between text-xs">
+            <div class="flex justify-between text-xs text-white">
               <span>Taxable Turnover (Q3)</span>
-              <span class="font-bold">â‚¹14,52,000</span>
+              <span class="font-bold">₹14,52,000</span>
             </div>
-            <div class="flex justify-between text-xs">
+            <div class="flex justify-between text-xs text-white">
               <span>Direct ITC Tax Saved by App</span>
-              <span class="font-bold text-brand-secondary">â‚¹48,200</span>
+              <span class="font-bold text-brand-secondary">₹48,200</span>
             </div>
           </div>
           <div class="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center">
-            <div class="w-10 h-10 rounded-full bg-brand-primary/30 border border-brand-primaryContainer flex items-center justify-center text-brand-primaryContainer mb-2">
-              <span class="material-symbols-outlined text-lg">lock</span>
+            <div class="w-10 h-10 rounded-2xl bg-brand-primary text-white shadow-lg flex items-center justify-center mb-2">
+              <span class="material-symbols-outlined text-xl">lock</span>
             </div>
             <p class="text-xs font-extrabold text-white">Live GST Savings & Input Tax Credit (ITC)</p>
             <p class="text-[10px] text-brand-muted mt-0.5">Subscribe to export 1-click CA filing summaries & tax offsets</p>
           </div>
         </div>
 
-        <button onclick="alert('ðŸŽ‰ Thank you for upgrading to Super Inventory Pro! All AI tax optimizers & batch reports unlocked.')" class="w-full py-3.5 bg-gradient-to-r from-brand-primary to-brand-tertiary text-white font-extrabold text-xs rounded-2xl shadow-lg hover:opacity-95 transition flex items-center justify-center gap-2">
+        <button onclick="alert('🎉 Thank you for upgrading to Super Inventory Pro! All AI tax optimizers & batch reports unlocked.')" class="w-full py-3.5 bg-brand-primary text-white font-extrabold text-xs rounded-2xl shadow-lg hover:bg-brand-primaryGlow transition flex items-center justify-center gap-2">
           <span class="material-symbols-outlined text-base">workspace_premium</span>
-          SUBSCRIBE TO PREMIUM (â‚¹499/MO)
+          <span>SUBSCRIBE TO PREMIUM (₹499/MO)</span>
         </button>
       </div>
 
