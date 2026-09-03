@@ -608,7 +608,7 @@
           </button>
           <button onclick="simulateWhatsApp()" class="py-3 bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/40 text-xs font-bold rounded-2xl flex items-center justify-center gap-1.5 hover:bg-[#25D366]/30 transition">
             <span class="material-symbols-outlined text-base">share</span>
-            WhatsApp Bill
+            Send to WhatsApp
           </button>
         </div>
         <button onclick="switchScreen('billing')" class="w-full py-3 bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-xs font-bold rounded-2xl hover:bg-brand-surface transition">
@@ -2676,6 +2676,7 @@
         status: 'Paid'
       });
 
+      lastCompletedInvoiceData = { items: JSON.parse(JSON.stringify(cart)), total: grandTotal, id: invNo };
       cart = [];
       renderCart();
       switchScreen('receipt');
@@ -2966,9 +2967,72 @@
       alert(`🖨️ ESC/POS Print Slip successfully sent to ${connectedPrinterName} (${connectedPrinterType})!`);
     }
 
-    function simulateWhatsApp() {
-      alert('📱 WhatsApp Invoice Dispatch initiated: Generated PDF and pre-filled invoice message link!');
+        let lastCompletedInvoiceData = null;
+
+    function sendRealWhatsAppBill() {
+      let phone = prompt("Enter customer's 10-digit WhatsApp Mobile Number:", "9876543210");
+      if (!phone) return;
+      
+      // Clean phone number (keep digits only)
+      phone = phone.replace(/[^0-9]/g, '');
+      if (phone.length === 10) {
+        phone = '91' + phone; // Add default India country code if 10 digits
+      }
+
+      const shopName = document.getElementById('rcptShopName')?.innerText || 'Super Inventory Store';
+      const shopAddress = document.getElementById('rcptShopAddress')?.innerText || 'Main Branch • City Centre';
+      const gstin = document.getElementById('rcptGstin')?.innerText || 'GSTIN: 27AAAAA0000A1Z5';
+      const invNo = document.getElementById('rcptInvoiceNo')?.innerText || 'INV-20260904-0015';
+      const dateStr = document.getElementById('rcptDate')?.innerText || new Date().toLocaleDateString('en-GB');
+      const subtotal = document.getElementById('rcptSubtotal')?.innerText || '₹0.00';
+      const tax = document.getElementById('rcptTax')?.innerText || '₹0.00';
+      const grandTotal = document.getElementById('rcptGrandTotal')?.innerText || '₹0.00';
+      const payMode = document.getElementById('rcptPayMode')?.innerText || 'PAID VIA UPI';
+      const helpline = document.getElementById('rcptHelpline')?.innerText || '9876543210';
+      const timings = document.getElementById('rcptTimings')?.innerText || '8:00 AM - 10:30 PM';
+
+      // Extract item lines from receipt
+      let itemsListText = '';
+      if (lastCompletedInvoiceData && lastCompletedInvoiceData.items && lastCompletedInvoiceData.items.length > 0) {
+        itemsListText = lastCompletedInvoiceData.items.map((it, idx) => {
+          return `${idx + 1}. *${it.name}*\n   Qty: ${it.quantity} ${it.unit || 'pcs'} @ ₹${it.price.toFixed(2)} | GST ${it.gst}%\n   Amount: ₹${((it.price * it.quantity) * (1 + it.gst/100)).toFixed(2)}`;
+        }).join('\n\n');
+      } else {
+        itemsListText = '1. General Store Items (Qty: 1) - ' + grandTotal;
+      }
+
+      // Build Beautiful WhatsApp Message
+      const message = 
+`🧾 *TAX INVOICE - ${shopName.toUpperCase()}*
+📍 ${shopAddress}
+📋 ${gstin}
+----------------------------------------
+*Invoice No:* ${invNo}
+*Date:* ${dateStr}
+*Payment:* ${payMode}
+----------------------------------------
+*ITEMS PURCHASED:*
+${itemsListText}
+----------------------------------------
+*Subtotal (Taxable):* ${subtotal}
+*Total GST Tax:* ${tax}
+💰 *FINAL TOTAL:* *${grandTotal}*
+----------------------------------------
+📞 *Customer Support / Contact:* ${helpline}
+⏱ *Store Hours:* ${timings}
+🎉 Thank you for shopping with us! Visit again.`;
+
+      const encodedMsg = encodeURIComponent(message);
+      const waUrl = `https://wa.me/${phone}?text=${encodedMsg}`;
+      
+      // Open Real WhatsApp Web or Native WhatsApp App
+      window.open(waUrl, '_blank');
     }
+
+    function simulateWhatsApp() {
+      sendRealWhatsAppBill();
+    }
+
 
     // Initialize default view
     setAppThemeMode('light', true);
