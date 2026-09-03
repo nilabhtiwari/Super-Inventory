@@ -490,20 +490,20 @@
             <span class="text-brand-secondary">3-Tier Lookup Active</span>
           </div>
           <div class="flex gap-1.5 overflow-x-auto custom-scroll pb-1">
+            <button onclick="scanProduct('8901030762100')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
+              + Parle-G 100g (₹10)
+            </button>
             <button onclick="scanProduct('8901030762512')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
-              + Parle-G (₹80)
+              + Parle-G 800g (₹80)
             </button>
-            <button onclick="scanProduct('8901058000491')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
-              + Amul Butter (₹275)
+            <button onclick="scanProduct('8901058000100')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
+              + Amul 100g (₹58)
             </button>
-            <button onclick="scanProduct('8901058852236')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
-              + Maggi (₹60)
-            </button>
-            <button onclick="scanProduct('8901719106361')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
-              + Tata Tea (₹155)
+            <button onclick="scanProduct('8901234567890')" class="px-2.5 py-1.5 bg-brand-secondary/15 hover:bg-brand-secondary/30 border border-brand-secondary/40 rounded-xl text-[11px] font-bold text-brand-secondary whitespace-nowrap flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs">scale</span> Rice Weighed (₹95/kg)
             </button>
             <button onclick="promptCustomScan()" class="px-2.5 py-1.5 bg-brand-tertiary/20 hover:bg-brand-tertiary/30 border border-brand-tertiary/40 rounded-xl text-[11px] font-bold text-brand-tertiary whitespace-nowrap">
-              + Quick Add
+              + Manual Item
             </button>
           </div>
         </div>
@@ -1597,17 +1597,19 @@
   </div>
 
   <script>
-    const sampleProducts = [
-      { id: 1, barcode: '8901030762512', name: 'Parle-G Gold Biscuits 800g', price: 80.0, gst: 5.0, qty: 120, unit: 'pack' },
-      { id: 2, barcode: '8901058000491', name: 'Amul Butter 500g', price: 275.0, gst: 12.0, qty: 45, unit: 'pack' },
-      { id: 3, barcode: '8901058852236', name: 'Maggi 2-Min Masala Noodles 280g', price: 60.0, gst: 18.0, qty: 80, unit: 'pack' },
-      { id: 4, barcode: '8901719106361', name: 'Tata Tea Gold 250g', price: 155.0, gst: 5.0, qty: 60, unit: 'pack' },
-      { id: 5, barcode: '8901030383847', name: 'Dettol Liquid Handwash 200ml', price: 99.0, gst: 18.0, qty: 8, unit: 'pcs' },
-      { id: 6, barcode: '8901234567890', name: 'Fresh Premium Basmati Rice', price: 95.0, gst: 0.0, qty: 250, unit: 'kg' },
-      { id: 7, barcode: '8901234567891', name: 'Amul Taaza Toned Milk', price: 56.0, gst: 0.0, qty: 90, unit: 'L' },
-      { id: 8, barcode: '8901234567892', name: 'Farm Fresh Organic Potatoes', price: 30.0, gst: 0.0, qty: 180, unit: 'kg' },
-      { id: 9, barcode: '8901234567893', name: 'Fortune Sunlite Sunflower Oil', price: 165.0, gst: 5.0, qty: 40, unit: 'L' },
-      { id: 10, barcode: '8901234567894', name: 'Aashirvaad Superior MP Atta', price: 48.0, gst: 0.0, qty: 300, unit: 'kg' }
+        const sampleProducts = [
+      { id: 1, barcode: '8901030762050', name: 'Parle-G Glucose Biscuits 50g', price: 5.0, gst: 5.0, weight: '50g', unit: 'pcs', isLooseWeight: false },
+      { id: 2, barcode: '8901030762100', name: 'Parle-G Glucose Biscuits 100g', price: 10.0, gst: 5.0, weight: '100g', unit: 'pcs', isLooseWeight: false },
+      { id: 3, barcode: '8901030762250', name: 'Parle-G Gold Biscuits 250g', price: 30.0, gst: 5.0, weight: '250g', unit: 'pcs', isLooseWeight: false },
+      { id: 4, barcode: '8901030762512', name: 'Parle-G Gold Biscuits 800g (Family Pack)', price: 80.0, gst: 5.0, weight: '800g', unit: 'pcs', isLooseWeight: false },
+      { id: 5, barcode: '8901058000100', name: 'Amul Butter 100g', price: 58.0, gst: 12.0, weight: '100g', unit: 'pcs', isLooseWeight: false },
+      { id: 6, barcode: '8901058000491', name: 'Amul Butter 500g', price: 275.0, gst: 12.0, weight: '500g', unit: 'pcs', isLooseWeight: false },
+      { id: 7, barcode: '8901058852070', name: 'Maggi 2-Min Noodles 70g (Single)', price: 14.0, gst: 18.0, weight: '70g', unit: 'pcs', isLooseWeight: false },
+      { id: 8, barcode: '8901058852236', name: 'Maggi 2-Min Noodles 280g (4-Pack)', price: 60.0, gst: 18.0, weight: '280g', unit: 'pcs', isLooseWeight: false },
+      { id: 9, barcode: '8901234567890', name: 'Fresh Premium Basmati Rice (Loose Weighed)', price: 95.0, gst: 0.0, weight: 'per kg', unit: 'kg', isLooseWeight: true },
+      { id: 10, barcode: '8901234567891', name: 'Amul Taaza Milk 500ml Pouch', price: 28.0, gst: 0.0, weight: '500ml', unit: 'pcs', isLooseWeight: false },
+      { id: 11, barcode: '8901234567892', name: 'Amul Taaza Milk 1 Liter Pouch', price: 56.0, gst: 0.0, weight: '1L', unit: 'pcs', isLooseWeight: false },
+      { id: 12, barcode: '8901234567893', name: 'Farm Fresh Potatoes (Loose Weighed)', price: 30.0, gst: 0.0, weight: 'per kg', unit: 'kg', isLooseWeight: true }
     ];
 
     let cart = [];
@@ -2023,11 +2025,12 @@
     let selectedModalUnit = 'pcs';
 
     // Professional Standard Units Configuration
+        // Standard Retail POS Measurement Units
     const UNIT_TYPES = {
       WEIGHT: {
         category: 'WEIGHT / LOOSE COMMODITY',
         units: [
-          { code: 'kg', label: 'kg (Kilogram)', factorToKg: 1, step: 0.5, chips: [0.25, 0.5, 1, 2, 5, 10] },
+          { code: 'kg', label: 'kg (Kilogram)', factorToKg: 1, step: 0.5, chips: [0.25, 0.5, 1, 2, 5] },
           { code: 'g', label: 'g (Gram)', factorToKg: 0.001, step: 50, chips: [100, 200, 250, 500, 750, 1000] },
         ]
       },
@@ -2035,16 +2038,13 @@
         category: 'LIQUID / BEVERAGE / DAIRY',
         units: [
           { code: 'L', label: 'L (Liter)', factorToL: 1, step: 0.5, chips: [0.5, 1, 2, 5] },
-          { code: 'ml', label: 'ml (Milliliter)', factorToL: 0.001, step: 100, chips: [100, 200, 250, 500, 750, 1000] },
+          { code: 'ml', label: 'ml (Milliliter)', factorToL: 0.001, step: 100, chips: [100, 200, 250, 500, 750] },
         ]
       },
       DISCRETE: {
-        category: 'PACKAGED / COUNTABLE GOODS',
+        category: 'PACKAGED / SPECIFIC VARIANT',
         units: [
-          { code: 'pcs', label: 'PCS (Units)', factorToUnit: 1, step: 1, chips: [1, 2, 3, 5, 10, 20] },
-          { code: 'pack', label: 'PACK (Packets)', factorToUnit: 1, step: 1, chips: [1, 2, 4, 6, 12] },
-          { code: 'box', label: 'BOX (Case)', factorToUnit: 1, step: 1, chips: [1, 2, 5, 10] },
-          { code: 'dozen', label: 'DOZ (12 Units)', factorToUnit: 12, step: 1, chips: [1, 2, 3, 5] },
+          { code: 'pcs', label: 'PCS (Units)', factorToUnit: 1, step: 1, chips: [1, 2, 3, 5, 10] }
         ]
       }
     };
@@ -2241,27 +2241,79 @@
       renderCart();
     }
 
-    function scanProduct(barcode) {
+        function showScanToast(msg) {
+      let toast = document.getElementById('scanSuccessToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'scanSuccessToast';
+        toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-black px-4 py-2 rounded-2xl font-black text-xs shadow-2xl flex items-center gap-1.5 animate-in fade-in slide-in-from-top-4 duration-150';
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `<span class="material-symbols-outlined text-sm font-black">check_circle</span> ${msg}`;
+      toast.classList.remove('hidden');
+      clearTimeout(window._scanToastTimeout);
+      window._scanToastTimeout = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 1800);
+    }
+
+    function scanProduct(barcode, forceModal = false) {
       const product = sampleProducts.find(p => p.barcode === barcode);
-      if (!product) return;
-      openQtyUnitModal(product);
+      
+      // If product not found in database (Discrepancy / New barcode) -> Open manual entry modal
+      if (!product) {
+        promptCustomScan(barcode);
+        return;
+      }
+
+      // If product is a loose weighed commodity (e.g. Rice, Potatoes where weight varies) OR user forced modal
+      if (product.isLooseWeight || forceModal) {
+        openQtyUnitModal(product);
+        return;
+      }
+
+      // Standard Packaged Barcode Item with Complete Data -> DIRECT AUTO-ADD WITHOUT POPUP INTERRUPTION!
+      const existing = cart.find(i => i.barcode === barcode && i.unit === (product.unit || 'pcs'));
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({
+          ...product,
+          quantity: 1,
+          unit: product.unit || 'pcs'
+        });
+      }
+
+      showScanToast(`Added: ${product.name} (₹${product.price.toFixed(2)})`);
+      renderCart();
     }
 
 
 
-    function promptCustomScan() {
-      const name = prompt('Enter New Product Name:', 'Cadbury Silk Chocolate 60g');
+        function promptCustomScan(missingBarcode = '') {
+      const name = prompt('Enter Item Name & Variant (e.g. Parle-G 50g or Loose Sugar):', missingBarcode ? `Product (${missingBarcode})` : 'Parle-G 50g');
       if (!name) return;
-      const price = parseFloat(prompt('Enter Selling Price (₹):', '175.00') || '0');
+      const price = parseFloat(prompt('Enter Selling Price (₹):', '5.00') || '0');
+      const isWeight = confirm('Is this a loose weighed item (calculated per kg/g)? Click OK for Weight, Cancel for Packaged Unit.');
+      
       const newProd = {
         id: Date.now(),
-        barcode: String(Date.now()).slice(-8),
+        barcode: missingBarcode || String(Date.now()).slice(-8),
         name: name,
         price: price,
-        gst: 18.0,
-        qty: 25,
-        unit: 'pcs'
+        gst: 5.0,
+        weight: isWeight ? 'per kg' : 'single',
+        unit: isWeight ? 'kg' : 'pcs',
+        isLooseWeight: isWeight
       };
+
+      sampleProducts.unshift(newProd);
+      if (isWeight) {
+        openQtyUnitModal(newProd);
+      } else {
+        scanProduct(newProd.barcode);
+      }
+    };
       sampleProducts.push(newProd);
       scanProduct(newProd.barcode);
     }
@@ -2313,7 +2365,10 @@
               <div class="leading-tight flex-1 pr-2">
                 <div class="flex items-center gap-1.5">
                   <p class="text-xs font-bold text-white">${item.name}</p>
-                  <span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-brand-primaryContainer/20 text-brand-primaryContainer">${item.unit || 'pcs'}</span>
+                  <button onclick="openQtyUnitModal(sampleProducts.find(p => p.barcode === '${item.barcode}') || cart[${idx}])" class="text-[9px] font-black px-1.5 py-0.2 rounded bg-brand-secondary/20 text-brand-secondary hover:bg-brand-secondary/30 transition flex items-center gap-0.5" title="Click to adjust weight / quantity">
+                    <span>${item.quantity} ${item.unit || 'pcs'}</span>
+                    <span class="material-symbols-outlined text-[10px]">edit</span>
+                  </button>
                 </div>
                 <p class="text-[10px] text-brand-muted mt-0.5">₹${item.price.toFixed(2)} / ${item.unit || 'unit'} • GST ${item.gst}% (₹${itemTax.toFixed(1)})</p>
               </div>
