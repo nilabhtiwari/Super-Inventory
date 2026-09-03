@@ -245,6 +245,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               child: Column(
                 children: [
+                  // Theme Mode (Dark / Light)
+                  ListTile(
+                    leading: const Icon(Icons.palette_outlined, color: AppTheme.primaryContainer, size: 22),
+                    title: const Text('Appearance Theme', style: TextStyle(fontSize: 14, color: Colors.white)),
+                    subtitle: const Text('Dark Mode (Luxury Theme)', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primary.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppTheme.primaryContainer.withOpacity(0.5)),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.dark_mode_rounded, size: 14, color: AppTheme.primaryContainer),
+                              SizedBox(width: 4),
+                              Text('Dark', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryContainer)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted),
+                      ],
+                    ),
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('🌓 Switched appearance mode preference'),
+                          backgroundColor: AppTheme.primary,
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(color: AppTheme.surfaceBorder, height: 1),
+
                   // Notifications
                   ListTile(
                     leading: const Icon(Icons.notifications_active_outlined, color: AppTheme.textSecondary, size: 22),
