@@ -204,6 +204,35 @@
     #smartphoneWrapper.theme-light .bg-red-500 {
       color: #FFFFFF !important;
     }
+
+    /* --- STITCH APPLAUNCH & SPLASH ANIMATIONS --- */
+    @keyframes auraGlow {
+      0%, 100% {
+        transform: scale(1) translate(0, 0);
+        opacity: 0.55;
+      }
+      50% {
+        transform: scale(1.18) translate(-4%, 3%);
+        opacity: 0.85;
+      }
+    }
+    @keyframes gentleFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes shimmerSweep {
+      0% { transform: translateX(-150%) rotate(25deg); }
+      100% { transform: translateX(200%) rotate(25deg); }
+    }
+    @keyframes pingSlow {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      100% { transform: scale(1.45); opacity: 0; }
+    }
+    .animate-aura-glow { animation: auraGlow 8s ease-in-out infinite alternate; }
+    .animate-gentle-float { animation: gentleFloat 4s ease-in-out infinite; }
+    .animate-shimmer { animation: shimmerSweep 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+    .animate-ping-slow { animation: pingSlow 2.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start p-2 sm:p-6 bg-black text-white">
@@ -247,7 +276,7 @@
     <!-- TOP APP BAR -->
     <header id="phoneTopAppBar" class="p-4 border-b border-brand-surfaceBorder flex items-center justify-between bg-brand-surface sticky top-0 z-30 shadow-md">
       <!-- Top Left Store Icon (Clickable Side Dropdown/Drawer) -->
-      <div onclick="toggleStoreDrawer()" class="flex items-center gap-2.5 cursor-pointer p-1.5 rounded-xl hover:bg-brand-surfaceElevated transition active:scale-95 group">
+      <div onclick="launchAppWithSplashScreen()" title="Click to reload Launch Screen" class="flex items-center gap-2.5 cursor-pointer p-1.5 rounded-xl hover:bg-brand-surfaceElevated transition active:scale-95 group">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-primary to-brand-secondary flex items-center justify-center text-white shadow-md shadow-brand-primary/20 group-hover:scale-105 transition">
           <span class="material-symbols-outlined text-xl">storefront</span>
         </div>
@@ -354,6 +383,84 @@
 
     <!-- MAIN SCROLLABLE VIEWPORT -->
     <div class="flex-1 overflow-y-auto custom-scroll p-4 pb-24 relative" id="screenContainer">
+
+      <!-- ============================================================ -->
+      <!-- 0. STITCH APP LAUNCH & SPLASH SCREEN - SUPER INVENTORY -->
+      <!-- ============================================================ -->
+      <div id="screen-splash" class="absolute inset-0 z-50 flex flex-col justify-between overflow-hidden select-none bg-gradient-to-tr from-[#3b0764] via-[#6b21a8] to-[#db2777]">
+        <!-- Deep electric mesh aura glowing elements -->
+        <div class="absolute -top-32 -left-32 w-96 h-96 bg-fuchsia-600/40 rounded-full blur-3xl animate-aura-glow pointer-events-none"></div>
+        <div class="absolute top-1/3 -right-24 w-80 h-80 bg-pink-500/30 rounded-full blur-3xl animate-aura-glow pointer-events-none" style="animation-delay: -3s;"></div>
+        <div class="absolute -bottom-24 left-10 w-96 h-96 bg-purple-900/60 rounded-full blur-3xl animate-aura-glow pointer-events-none" style="animation-delay: -5s;"></div>
+        <!-- Fine geometric grid pattern overlay -->
+        <div class="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/40 pointer-events-none"></div>
+
+        <!-- iOS Status Bar -->
+        <header class="relative z-20 w-full pt-3.5 px-7 flex items-center justify-between text-xs font-semibold tracking-tight text-white/90">
+          <div class="text-xs font-medium tracking-normal pl-1" id="splash-status-clock">03:34</div>
+          <div class="w-24 h-4 bg-black/80 rounded-full border border-white/10 backdrop-blur-md"></div>
+          <div class="flex items-center gap-1.5 pr-1">
+            <svg class="w-3.5 h-3.5 fill-current opacity-90" viewBox="0 0 24 24"><rect height="6" rx="1" width="3" x="2" y="15"></rect><rect height="10" rx="1" width="3" x="7" y="11"></rect><rect height="14" rx="1" width="3" x="12" y="7"></rect><rect height="18" rx="1" width="3" x="17" y="3"></rect></svg>
+            <svg class="w-3.5 h-3.5 fill-current opacity-90" viewBox="0 0 24 24"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4zm0 3.5c3.67 0 7 1.48 9.47 3.89L12 18.9 2.53 11.39C5 8.98 8.33 7.5 12 7.5z"></path></svg>
+            <div class="w-5 h-2.5 border border-white/90 rounded-xs p-[1px] flex items-center"><div class="h-full w-full bg-white rounded-2xs"></div></div>
+          </div>
+        </header>
+
+        <!-- Center Hero Launcher Section -->
+        <section class="relative z-10 flex-1 flex flex-col items-center justify-center px-6 -mt-2">
+          <!-- Floating App Logo with Radar Ring Expansion -->
+          <div class="relative mb-6 flex items-center justify-center">
+            <div class="absolute -inset-4 rounded-3xl bg-pink-500/20 border border-pink-400/30 animate-ping-slow"></div>
+            <div class="relative w-24 h-24 rounded-3xl bg-gradient-to-tr from-purple-700 via-fuchsia-600 to-pink-500 p-0.5 shadow-[0_15px_35px_rgba(219,39,119,0.4)] animate-gentle-float overflow-hidden">
+              <div class="w-full h-full rounded-[22px] bg-slate-950/40 backdrop-blur-md flex items-center justify-center relative overflow-hidden">
+                <span class="material-symbols-outlined text-4xl text-white drop-shadow-[0_2px_8px_rgba(255,255,255,0.4)]">barcode_scanner</span>
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent w-full h-full animate-shimmer pointer-events-none"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- App Branding Title -->
+          <div class="text-center space-y-1 max-w-xs mb-7">
+            <h1 class="text-2xl font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
+              Super Inventory
+            </h1>
+            <p class="text-xs font-semibold tracking-wide text-pink-100/90">For All Inventory Ecosystem</p>
+          </div>
+
+          <!-- Progress Bar Area -->
+          <div class="w-full max-w-[280px] space-y-2.5">
+            <div class="flex justify-between items-center text-[10.5px] font-bold text-pink-100/90 px-0.5">
+              <span id="splash-loading-status" class="transition-opacity duration-200">Verifying local device storage...</span>
+              <span id="splash-loading-percent" class="font-black text-white">18%</span>
+            </div>
+            <!-- Bar track -->
+            <div class="w-full h-2 rounded-full bg-black/40 border border-white/10 p-0.5 overflow-hidden">
+              <div id="splash-loading-bar" class="h-full rounded-full bg-gradient-to-r from-pink-400 via-purple-300 to-emerald-400 transition-all duration-300" style="width: 18%;"></div>
+            </div>
+          </div>
+
+          <!-- Fast-Forward / Enter Terminal Button -->
+          <button type="button" id="splash-enter-btn" onclick="finishSplashLaunch()" class="mt-7 py-3 px-6 bg-white text-slate-950 font-black text-xs rounded-2xl shadow-xl shadow-black/30 hover:scale-105 active:scale-95 transition flex items-center gap-2">
+            <span>ENTER STORE TERMINAL</span>
+            <span class="material-symbols-outlined text-base">arrow_forward</span>
+          </button>
+        </section>
+
+        <!-- Bottom Engine Footer -->
+        <footer class="relative z-20 pb-5 pt-2 px-6 flex flex-col items-center text-center space-y-2">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-[10px] font-bold text-pink-100/90 shadow-sm">
+            <span class="material-symbols-outlined text-xs text-pink-300">verified_user</span>
+            <span>End-to-End Encrypted Sync</span>
+          </div>
+          <div class="text-[10px] text-pink-200/70 font-medium tracking-wide space-x-1">
+            <span>Powered by Super Inventory Engine</span>
+            <span>•</span>
+            <span class="font-bold text-white/90">v2.4.0</span>
+          </div>
+          <div class="w-28 h-1 bg-white/40 rounded-full mt-1"></div>
+        </footer>
+      </div>
 
       <!-- ============================================================ -->
       <!-- 1. DASHBOARD SCREEN -->
@@ -3285,10 +3392,96 @@ ${itemsListText}
 
 
 
-    // Initialize default view
+    // --- STITCH APP LAUNCH & SPLASH SIMULATOR ---
+    let splashTimeout = null;
+
+    function runSplashLaunchSequence() {
+      const clockEl = document.getElementById('splash-status-clock');
+      if (clockEl) {
+        const now = new Date();
+        clockEl.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      }
+
+      const barFill = document.getElementById('splash-loading-bar');
+      const statusText = document.getElementById('splash-loading-status');
+      const percentText = document.getElementById('splash-loading-percent');
+      const actionBtn = document.getElementById('splash-enter-btn');
+
+      const stages = [
+        { progress: 18, text: "Verifying local device storage..." },
+        { progress: 42, text: "Syncing offline catalogs & SKUs..." },
+        { progress: 68, text: "Connecting cloud inventory database..." },
+        { progress: 89, text: "Calibrating barcode scan engine..." },
+        { progress: 100, text: "Ready to manage!" }
+      ];
+
+      let currentStageIdx = 0;
+
+      const runNextStep = () => {
+        if (currentStageIdx < stages.length) {
+          const step = stages[currentStageIdx];
+          if (barFill) barFill.style.width = `${step.progress}%`;
+          if (percentText) percentText.textContent = `${step.progress}%`;
+          if (statusText) {
+            statusText.style.opacity = '0.3';
+            setTimeout(() => {
+              statusText.textContent = step.text;
+              statusText.style.opacity = '1';
+            }, 120);
+          }
+
+          currentStageIdx++;
+          const nextDelay = currentStageIdx === stages.length ? 600 : Math.random() * 350 + 400;
+          splashTimeout = setTimeout(runNextStep, nextDelay);
+        } else {
+          // Auto transition or prompt
+          if (actionBtn) {
+            actionBtn.classList.remove('opacity-70');
+            actionBtn.classList.add('scale-105');
+          }
+          // Smooth auto-transition into app terminal after brief pause
+          splashTimeout = setTimeout(() => {
+            finishSplashLaunch();
+          }, 800);
+        }
+      };
+
+      if (splashTimeout) clearTimeout(splashTimeout);
+      splashTimeout = setTimeout(runNextStep, 350);
+    }
+
+    function finishSplashLaunch() {
+      if (splashTimeout) clearTimeout(splashTimeout);
+      const splashScreen = document.getElementById('screen-splash');
+      if (splashScreen) {
+        splashScreen.classList.add('hidden');
+      }
+      if (isLoggedIn) {
+        switchScreen('dashboard');
+      } else {
+        switchScreen('login');
+      }
+      showAppToast('Super Inventory Engine Online', 'verified');
+    }
+
+    function launchAppWithSplashScreen() {
+      const splashScreen = document.getElementById('screen-splash');
+      if (splashScreen) {
+        splashScreen.classList.remove('hidden');
+        // Hide other app bars during splash
+        const bottomNav = document.getElementById('bottomNav');
+        const phoneTopAppBar = document.getElementById('phoneTopAppBar');
+        if (bottomNav) bottomNav.classList.add('hidden');
+        if (phoneTopAppBar) phoneTopAppBar.classList.add('hidden');
+        runSplashLaunchSequence();
+      }
+    }
+
+    // Initialize default view with Stitch Launching Splash Screen
     setAppThemeMode('light', true);
     renderDashboard();
     renderCart();
+    launchAppWithSplashScreen();
   </script>
   </body>
 </html>
