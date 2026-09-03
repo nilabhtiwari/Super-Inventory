@@ -222,7 +222,7 @@
         </p>
       </div>
     </div>
-    <div class="flex items-center gap-1.5 flex-wrap justify-end">
+    <div id="outerNavShortcuts" class="flex items-center gap-1.5 flex-wrap justify-end">
       <button onclick="switchScreen('login')" class="text-[11px] bg-brand-surfaceElevated border border-brand-primary/40 hover:bg-brand-primary/20 px-2 py-1 rounded-lg font-bold text-brand-primaryContainer flex items-center gap-1">
         <span class="material-symbols-outlined text-xs">login</span> Sign In
       </button>
@@ -2109,7 +2109,7 @@
       }
     }
 
-    function handleLogOut() {
+        function handleLogOut() {
       const drawer = document.getElementById('storeDrawerOverlay');
       if (drawer && !drawer.classList.contains('hidden')) {
         drawer.classList.add('hidden');
@@ -2117,12 +2117,17 @@
 
       showAppConfirm({
         title: 'Sign Out of Terminal?',
-        message: 'Are you sure you want to sign out of Super Inventory?',
+        message: 'Are you sure you want to sign out of Super Inventory? You will need to login again.',
         confirmText: 'Sign Out',
         isDestructive: true,
         onConfirm: () => {
+          isLoggedIn = false;
           switchScreen('login');
-          showAppToast('Signed out successfully', 'logout');
+          // Replace browser history so browser 'Back' button cannot return to dashboard
+          if (window.history && window.history.pushState) {
+            window.history.pushState(null, '', window.location.href);
+          }
+          showAppToast('Signed out. Please sign in again.', 'lock');
         }
       });
     }
@@ -2131,7 +2136,14 @@
       handleLogOut();
     }
 
+    let isLoggedIn = true;
+
     function switchScreen(screenId) {
+      // STRICT AUTH GUARD: Once signed out, user CANNOT navigate to any internal screen
+      if (!isLoggedIn && screenId !== 'login') {
+        screenId = 'login';
+      }
+
       // Hide ALL screens unconditionally
       document.querySelectorAll('[id^="screen-"]').forEach(el => {
         el.classList.add('hidden');
@@ -2146,12 +2158,15 @@
       // Hide Bottom Navigation Panel & In-App Header during Sign In / Sign Up
       const bottomNav = document.getElementById('bottomNav');
       const phoneTopAppBar = document.getElementById('phoneTopAppBar');
+      const outerNav = document.getElementById('outerNavShortcuts');
       if (screenId === 'login') {
         if (bottomNav) bottomNav.classList.add('hidden');
         if (phoneTopAppBar) phoneTopAppBar.classList.add('hidden');
+        if (outerNav) outerNav.classList.add('hidden');
       } else {
         if (bottomNav) bottomNav.classList.remove('hidden');
         if (phoneTopAppBar) phoneTopAppBar.classList.remove('hidden');
+        if (outerNav) outerNav.classList.remove('hidden');
       }
 
       // Reset scroll position to top of mobile container
