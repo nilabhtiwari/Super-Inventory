@@ -258,7 +258,7 @@
           </div>
           <span class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
             <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-            <span id="headerStoreStatus">OPEN â€¢ 8:00 AM - 10:30 PM</span>
+            <span id="headerStoreStatus">OPEN • 8:00 AM - 10:30 PM</span>
           </span>
         </div>
       </div>
@@ -287,7 +287,7 @@
             </div>
             <div>
               <h3 class="text-xs font-black text-white" id="drawerShopName">Super Inventory</h3>
-              <p class="text-[10px] text-emerald-400 font-bold">â— Active Store</p>
+              <p class="text-[10px] text-emerald-400 font-bold">● Active Store</p>
             </div>
           </div>
           <button onclick="toggleStoreDrawer()" class="p-1 rounded-lg hover:bg-brand-surfaceElevated text-brand-muted hover:text-white">
@@ -323,7 +323,7 @@
         <!-- Current Festive Ad / Offer Card -->
         <div class="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl space-y-1 text-left">
           <p class="text-[9px] font-extrabold text-emerald-400 uppercase tracking-wider">Active Receipt Ad</p>
-          <p class="text-[10px] text-white font-medium" id="drawerOffer">ðŸŽ‰ Festive 10% OFF on bills above â‚¹1,000!</p>
+          <p class="text-[10px] text-white font-medium" id="drawerOffer">🎉 Festive 10% OFF on bills above ₹1,000!</p>
         </div>
 
         <!-- Drawer Navigation Links -->
@@ -368,7 +368,7 @@
             <span class="material-symbols-outlined text-amber-400 text-xl">warning</span>
             <div>
               <p class="text-xs font-bold text-amber-300">2 Items Running Low on Stock</p>
-              <p class="text-[10px] text-amber-400/80">Dettol Liquid (8 pcs) â€¢ Almond Milk (8 pcs)</p>
+              <p class="text-[10px] text-amber-400/80">Dettol Liquid (8 pcs) • Almond Milk (8 pcs)</p>
             </div>
           </div>
           <span class="material-symbols-outlined text-amber-400 text-sm">chevron_right</span>
@@ -389,7 +389,7 @@
           </div>
           <div class="z-10">
             <h2 class="text-3xl font-black tracking-tight text-white">CREATE BILL</h2>
-            <p class="text-xs text-white/90 font-medium mt-1">Instant barcode scan â€¢ Fast checkout &lt; 30s</p>
+            <p class="text-xs text-white/90 font-medium mt-1">Instant barcode scan • Fast checkout &lt; 30s</p>
           </div>
         </div>
 
@@ -400,7 +400,7 @@
             <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl">
               <span class="text-xs text-brand-muted font-medium">Total Sales</span>
               <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-xl font-black text-brand-primaryContainer" id="dashTotalSales">â‚¹14,280.00</span>
+                <span class="text-xl font-black text-brand-primaryContainer" id="dashTotalSales">₹14,280.00</span>
                 <span class="text-[10px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">+12%</span>
               </div>
             </div>
@@ -476,16 +476,16 @@
           </div>
           <div class="flex gap-1.5 overflow-x-auto custom-scroll pb-1">
             <button onclick="scanProduct('8901030762512')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
-              + Parle-G (â‚¹80)
+              + Parle-G (₹80)
             </button>
             <button onclick="scanProduct('8901058000491')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
-              + Amul Butter (â‚¹275)
+              + Amul Butter (₹275)
             </button>
             <button onclick="scanProduct('8901058852236')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
-              + Maggi (â‚¹60)
+              + Maggi (₹60)
             </button>
             <button onclick="scanProduct('8901719106361')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
-              + Tata Tea (â‚¹155)
+              + Tata Tea (₹155)
             </button>
             <button onclick="promptCustomScan()" class="px-2.5 py-1.5 bg-brand-tertiary/20 hover:bg-brand-tertiary/30 border border-brand-tertiary/40 rounded-xl text-[11px] font-bold text-brand-tertiary whitespace-nowrap">
               + Quick Add
@@ -505,15 +505,15 @@
           <div class="space-y-1 text-xs">
             <div class="flex justify-between text-brand-muted">
               <span>Subtotal:</span>
-              <span id="cartSubtotalText" class="text-white font-semibold">â‚¹0.00</span>
+              <span id="cartSubtotalText" class="text-white font-semibold">₹0.00</span>
             </div>
             <div class="flex justify-between text-brand-muted">
               <span>GST (CGST + SGST):</span>
-              <span id="cartGstText" class="text-white font-semibold">â‚¹0.00</span>
+              <span id="cartGstText" class="text-white font-semibold">₹0.00</span>
             </div>
             <div class="border-t border-brand-surfaceBorder pt-2 flex justify-between items-baseline">
               <span class="text-xs font-bold text-brand-muted uppercase">Grand Total:</span>
-              <span id="cartGrandTotalText" class="text-2xl font-black text-brand-secondary">â‚¹0.00</span>
+              <span id="cartGrandTotalText" class="text-2xl font-black text-brand-secondary">₹0.00</span>
             </div>
           </div>
 
@@ -537,7 +537,7 @@
       <div id="screen-receipt" class="hidden space-y-4">
         <div class="p-5 bg-brand-surface border border-brand-surfaceBorder rounded-3xl space-y-3 text-center">
           <h2 class="text-xl font-black tracking-tight text-white" id="rcptShopName">Super Inventory</h2>
-          <p class="text-[11px] text-brand-muted" id="rcptShopAddress">Main Branch â€¢ City Centre Road</p>
+          <p class="text-[11px] text-brand-muted" id="rcptShopAddress">Main Branch • City Centre Road</p>
           <p class="text-[11px] text-brand-primaryContainer font-bold" id="rcptGstin">GSTIN: 27AAAAA0000A1Z5</p>
           
           <div class="border-t border-dashed border-brand-surfaceBorder my-2"></div>
@@ -554,15 +554,15 @@
           <div class="space-y-1 text-xs">
             <div class="flex justify-between text-brand-muted">
               <span>Subtotal:</span>
-              <span id="rcptSubtotal" class="font-bold text-white">â‚¹0.00</span>
+              <span id="rcptSubtotal" class="font-bold text-white">₹0.00</span>
             </div>
             <div class="flex justify-between text-brand-muted">
               <span>Tax (GST):</span>
-              <span id="rcptTax" class="font-bold text-white">â‚¹0.00</span>
+              <span id="rcptTax" class="font-bold text-white">₹0.00</span>
             </div>
             <div class="flex justify-between items-baseline text-base font-black text-brand-secondary pt-1">
               <span>GRAND TOTAL:</span>
-              <span id="rcptGrandTotal">â‚¹0.00</span>
+              <span id="rcptGrandTotal">₹0.00</span>
             </div>
             <p class="text-[10px] text-brand-secondary font-bold pt-1" id="rcptPayMode">PAID VIA UPI QR</p>
           </div>
@@ -576,13 +576,13 @@
 
           <!-- Store Hours & Grievance Helpline (Printed on Bill) -->
           <div class="border-t border-dashed border-brand-surfaceBorder pt-2 text-[10px] space-y-0.5">
-            <p class="text-brand-muted">â° Hours: <span id="rcptTimings" class="text-white font-semibold">Mon-Sun: 8:00 AM - 10:30 PM</span></p>
-            <p class="text-brand-muted">ðŸ“ž Grievance Helpline: <span id="rcptHelpline" class="text-brand-primaryContainer font-bold">9876543210</span></p>
+            <p class="text-brand-muted">⏱ Hours: <span id="rcptTimings" class="text-white font-semibold">Mon-Sun: 8:00 AM - 10:30 PM</span></p>
+            <p class="text-brand-muted">📞 Grievance Helpline: <span id="rcptHelpline" class="text-brand-primaryContainer font-bold">9876543210</span></p>
           </div>
 
           <!-- Promotional Festive Offer Ad Banner (Acts as an Ad) -->
           <div class="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-center">
-            <p class="text-[10px] text-emerald-400 font-bold" id="rcptOfferBanner">ðŸŽ‰ Festive Special: Flat 10% OFF on purchases above â‚¹1,000! Call for free delivery.</p>
+            <p class="text-[10px] text-emerald-400 font-bold" id="rcptOfferBanner">🎉 Festive Special: Flat 10% OFF on purchases above ₹1,000! Call for free delivery.</p>
           </div>
 
           <p class="text-[10px] text-brand-muted pt-1">Thank you for shopping with us! Visit again.</p>
@@ -612,14 +612,14 @@
         <div class="grid grid-cols-2 gap-3">
           <div class="p-4 bg-brand-surface border border-brand-primary/40 rounded-2xl">
             <p class="text-[10px] font-bold text-brand-muted uppercase">Total Revenue</p>
-            <p class="text-lg font-black text-white mt-1">â‚¹4,28,500</p>
+            <p class="text-lg font-black text-white mt-1">₹4,28,500</p>
             <p class="text-[10px] font-bold text-green-400 mt-1 flex items-center gap-0.5">
               <span class="material-symbols-outlined text-xs">trending_up</span> +12.5%
             </p>
           </div>
           <div class="p-4 bg-brand-surface border border-brand-tertiary/40 rounded-2xl">
             <p class="text-[10px] font-bold text-brand-muted uppercase">Net Profit</p>
-            <p class="text-lg font-black text-brand-tertiary mt-1">â‚¹1,12,040</p>
+            <p class="text-lg font-black text-brand-tertiary mt-1">₹1,12,040</p>
             <p class="text-[10px] font-bold text-brand-tertiary mt-1 flex items-center gap-0.5">
               <span class="material-symbols-outlined text-xs">trending_up</span> +8.2%
             </p>
@@ -637,7 +637,7 @@
         <div class="p-4 rounded-3xl bg-gradient-to-r from-brand-primary to-brand-tertiary flex justify-between items-center shadow-lg">
           <div>
             <p class="text-[10px] font-bold text-white/80 uppercase">Total Stock Value</p>
-            <p class="text-xl font-black text-white">â‚¹2,48,500.00</p>
+            <p class="text-xl font-black text-white">₹2,48,500.00</p>
           </div>
           <button onclick="promptCustomScan()" class="px-3 py-1.5 bg-white text-black font-extrabold text-xs rounded-xl shadow">
             + Add Product
@@ -996,7 +996,7 @@
             </div>
             <span class="material-symbols-outlined text-2xl text-brand-primaryContainer opacity-40">payments</span>
           </div>
-          <h3 class="text-2xl font-black text-white mt-2" id="finGrossText">â‚¹1,24,500.00</h3>
+          <h3 class="text-2xl font-black text-white mt-2" id="finGrossText">₹1,24,500.00</h3>
           <p class="text-[11px] text-emerald-400 font-bold mt-1 flex items-center gap-1">
             <span class="material-symbols-outlined text-xs">arrow_upward</span>
             <span id="finGrowthText">+14.5% from last month</span>
@@ -1014,7 +1014,7 @@
               </span>
               <span class="material-symbols-outlined text-lg text-brand-secondary opacity-40">account_balance_wallet</span>
             </div>
-            <h4 class="text-base font-black text-white mt-1.5" id="finProfitText">â‚¹32,840.00</h4>
+            <h4 class="text-base font-black text-white mt-1.5" id="finProfitText">₹32,840.00</h4>
             <p class="text-[10px] text-emerald-400 font-bold mt-0.5 flex items-center gap-0.5">
               <span class="material-symbols-outlined text-[10px]">arrow_upward</span>
               <span>+8.2% margin</span>
@@ -1109,7 +1109,7 @@
             </div>
           </div>
 
-          <button onclick="alert('âœ“ Detailed P&L report exported to PDF!')" class="w-full py-2.5 bg-brand-primary hover:bg-brand-primaryGlow text-white text-xs font-bold rounded-xl shadow transition">
+          <button onclick="alert('✓ Detailed P&L report exported to PDF!')" class="w-full py-2.5 bg-brand-primary hover:bg-brand-primaryGlow text-white text-xs font-bold rounded-xl shadow transition">
             Generate Detailed Report
           </button>
         </div>
@@ -1191,7 +1191,7 @@
           </h3>
           <div class="space-y-1 relative z-10">
             <label class="text-[10px] font-bold text-brand-muted block">Current Promotion (Shows on receipts & bills)</label>
-            <textarea id="stitchOffer" rows="2" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-tertiary resize-none" placeholder="E.g., 10% off on festive season!">ðŸŽ‰ Festive Special: Flat 10% OFF on purchases above â‚¹1,000! Call for free home delivery.</textarea>
+            <textarea id="stitchOffer" rows="2" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-tertiary resize-none" placeholder="E.g., 10% off on festive season!">🎉 Festive Special: Flat 10% OFF on purchases above ₹1,000! Call for free home delivery.</textarea>
           </div>
         </div>
 
@@ -1259,7 +1259,7 @@
           <!-- Forgot Password Title Banner (Hidden by default) -->
           <div id="forgotPwBanner" class="hidden flex justify-between items-center pb-1">
             <span class="text-xs font-bold text-white">Reset Password</span>
-            <button onclick="setAuthView('login')" class="text-[11px] text-brand-primaryContainer font-bold hover:underline">â† Back to Sign In</button>
+            <button onclick="setAuthView('login')" class="text-[11px] text-brand-primaryContainer font-bold hover:underline">← Back to Sign In</button>
           </div>
 
           <!-- Sign Up Specific Fields -->
@@ -1502,12 +1502,12 @@
         document.getElementById('settingsStoreName').innerText = storeName;
         document.getElementById('drawerPhone').innerText = phone;
         document.getElementById('rcptShopName').innerText = storeName;
-        alert(`âœ“ OTP Verified! Account created for "${storeName}". Welcome to Super Inventory!`);
+        alert(`✓ OTP Verified! Account created for "${storeName}". Welcome to Super Inventory!`);
       } else if (currentAuthMode === 'forgot') {
-        alert(`âœ“ OTP Verified! Password successfully updated for ${identifier}.`);
+        alert(`✓ OTP Verified! Password successfully updated for ${identifier}.`);
         setAuthView('login');
       } else {
-        alert(`âœ“ OTP Verified! Signed in successfully as ${identifier}.`);
+        alert(`✓ OTP Verified! Signed in successfully as ${identifier}.`);
       }
 
       switchScreen('dashboard');
@@ -1526,7 +1526,7 @@
 
     function handleGoogleSignIn() {
       document.getElementById('settingsUserEmail').innerText = 'merchant.google@gmail.com';
-      alert('âœ“ Signed in with Google Account.');
+      alert('✓ Signed in with Google Account.');
       switchScreen('dashboard');
     }
 
@@ -1614,7 +1614,7 @@
 
       // Update Header & Side Drawer
       document.getElementById('headerShopName').innerText = name || 'Super Inventory';
-      document.getElementById('headerStoreStatus').innerText = `OPEN â€¢ ${timings}`;
+      document.getElementById('headerStoreStatus').innerText = `OPEN • ${timings}`;
       document.getElementById('drawerShopName').innerText = name || 'Super Inventory';
       document.getElementById('drawerTimings').innerText = timings;
       document.getElementById('drawerPhone').innerText = phone;
@@ -1632,7 +1632,7 @@
       document.getElementById('rcptHelpline').innerText = phone;
       document.getElementById('rcptOfferBanner').innerText = offer;
 
-      alert('âœ“ Profile updates saved! Details are now synchronized across Dashboard, Drawer, Settings, and Thermal Receipts.');
+      alert('✓ Profile updates saved! Details are now synchronized across Dashboard, Drawer, Settings, and Thermal Receipts.');
       switchScreen('settings');
     }
 
@@ -1655,11 +1655,11 @@
       if (tab === 'monthly') {
         btnMonthly.className = 'flex-1 py-1.5 bg-brand-primary text-white font-bold text-xs rounded-lg shadow';
         label.innerText = "This Month Gross Revenue";
-        gross.innerText = 'â‚¹4,28,500.00';
-        profit.innerText = 'â‚¹1,12,040.00';
+        gross.innerText = '₹4,28,500.00';
+        profit.innerText = '₹1,12,040.00';
         if (margin) margin.innerText = '26.1%';
-        if (cogs) cogs.innerText = 'â‚¹2,78,500.00';
-        if (tax) tax.innerText = 'â‚¹37,960.00';
+        if (cogs) cogs.innerText = '₹2,78,500.00';
+        if (tax) tax.innerText = '₹37,960.00';
         chart.innerHTML = `
           <div class="flex flex-col items-center gap-1.5"><div class="w-7 h-12 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[9px] text-brand-muted font-semibold">Week 1</span></div>
           <div class="flex flex-col items-center gap-1.5"><div class="w-7 h-16 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[9px] text-brand-muted font-semibold">Week 2</span></div>
@@ -1669,11 +1669,11 @@
       } else if (tab === 'quarterly') {
         if (btnQuarterly) btnQuarterly.className = 'flex-1 py-1.5 bg-brand-primary text-white font-bold text-xs rounded-lg shadow';
         label.innerText = "This Quarter Gross Revenue";
-        gross.innerText = 'â‚¹12,85,500.00';
-        profit.innerText = 'â‚¹3,47,080.00';
+        gross.innerText = '₹12,85,500.00';
+        profit.innerText = '₹3,47,080.00';
         if (margin) margin.innerText = '27.0%';
-        if (cogs) cogs.innerText = 'â‚¹8,35,500.00';
-        if (tax) tax.innerText = 'â‚¹1,02,920.00';
+        if (cogs) cogs.innerText = '₹8,35,500.00';
+        if (tax) tax.innerText = '₹1,02,920.00';
         chart.innerHTML = `
           <div class="flex flex-col items-center gap-1.5"><div class="w-8 h-14 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[9px] text-brand-muted font-semibold">Month 1</span></div>
           <div class="flex flex-col items-center gap-1.5"><div class="w-8 h-18 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[9px] text-brand-muted font-semibold">Month 2</span></div>
@@ -1682,11 +1682,11 @@
       } else {
         btnYearly.className = 'flex-1 py-1.5 bg-brand-primary text-white font-bold text-xs rounded-lg shadow';
         label.innerText = "Annual Gross Revenue (YTD)";
-        gross.innerText = 'â‚¹51,42,000.00';
-        profit.innerText = 'â‚¹14,39,760.00';
+        gross.innerText = '₹51,42,000.00';
+        profit.innerText = '₹14,39,760.00';
         if (margin) margin.innerText = '28.0%';
-        if (cogs) cogs.innerText = 'â‚¹33,42,000.00';
-        if (tax) tax.innerText = 'â‚¹3,60,240.00';
+        if (cogs) cogs.innerText = '₹33,42,000.00';
+        if (tax) tax.innerText = '₹3,60,240.00';
         chart.innerHTML = `
           <div class="flex flex-col items-center gap-1.5"><div class="w-7 h-10 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[9px] text-brand-muted font-semibold">2023</span></div>
           <div class="flex flex-col items-center gap-1.5"><div class="w-7 h-14 bg-gradient-to-t from-brand-primary to-brand-secondary rounded-t"></div><span class="text-[9px] text-brand-muted font-semibold">2024</span></div>
@@ -1741,7 +1741,7 @@
     function promptCustomScan() {
       const name = prompt('Enter New Product Name:', 'Cadbury Silk Chocolate 60g');
       if (!name) return;
-      const price = parseFloat(prompt('Enter Selling Price (â‚¹):', '175.00') || '0');
+      const price = parseFloat(prompt('Enter Selling Price (₹):', '175.00') || '0');
       const newProd = {
         id: Date.now(),
         barcode: String(Date.now()).slice(-8),
@@ -1801,13 +1801,13 @@
             <div class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between">
               <div class="leading-tight flex-1">
                 <p class="text-xs font-bold text-white">${item.name}</p>
-                <p class="text-[10px] text-brand-muted">â‚¹${item.price.toFixed(2)} â€¢ GST ${item.gst}% (â‚¹${itemTax.toFixed(1)})</p>
+                <p class="text-[10px] text-brand-muted">₹${item.price.toFixed(2)} • GST ${item.gst}% (₹${itemTax.toFixed(1)})</p>
               </div>
               <div class="flex items-center gap-2">
                 <button onclick="updateCartQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-xs font-bold">-</button>
                 <span class="text-xs font-extrabold w-4 text-center">${item.quantity}</span>
                 <button onclick="updateCartQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-brand-primary text-white text-xs font-bold">+</button>
-                <span class="text-xs font-black text-brand-secondary ml-2">â‚¹${itemTotal.toFixed(2)}</span>
+                <span class="text-xs font-black text-brand-secondary ml-2">₹${itemTotal.toFixed(2)}</span>
               </div>
             </div>
           `;
@@ -1824,9 +1824,9 @@
       });
       const grandTotal = subtotal + totalGst;
 
-      document.getElementById('cartSubtotalText').innerText = `â‚¹${subtotal.toFixed(2)}`;
-      document.getElementById('cartGstText').innerText = `â‚¹${totalGst.toFixed(2)}`;
-      document.getElementById('cartGrandTotalText').innerText = `â‚¹${grandTotal.toFixed(2)}`;
+      document.getElementById('cartSubtotalText').innerText = `₹${subtotal.toFixed(2)}`;
+      document.getElementById('cartGstText').innerText = `₹${totalGst.toFixed(2)}`;
+      document.getElementById('cartGrandTotalText').innerText = `₹${grandTotal.toFixed(2)}`;
     }
 
     function completeCheckout() {
@@ -1845,15 +1845,15 @@
       const invNo = `INV-20260901-${String(Math.floor(1000 + Math.random() * 9000))}`;
 
       document.getElementById('rcptInvoiceNo').innerText = invNo;
-      document.getElementById('rcptSubtotal').innerText = `â‚¹${subtotal.toFixed(2)}`;
-      document.getElementById('rcptTax').innerText = `â‚¹${totalGst.toFixed(2)}`;
-      document.getElementById('rcptGrandTotal').innerText = `â‚¹${grandTotal.toFixed(2)}`;
+      document.getElementById('rcptSubtotal').innerText = `₹${subtotal.toFixed(2)}`;
+      document.getElementById('rcptTax').innerText = `₹${totalGst.toFixed(2)}`;
+      document.getElementById('rcptGrandTotal').innerText = `₹${grandTotal.toFixed(2)}`;
       document.getElementById('rcptPayMode').innerText = `PAID VIA ${paymentMode}`;
 
       document.getElementById('rcptItemsList').innerHTML = cart.map(i => `
         <div class="flex justify-between py-0.5">
           <span>${i.name} (x${i.quantity})</span>
-          <span class="font-bold">â‚¹${((i.price * i.quantity) * (1 + i.gst/100)).toFixed(2)}</span>
+          <span class="font-bold">₹${((i.price * i.quantity) * (1 + i.gst/100)).toFixed(2)}</span>
         </div>
       `).join('');
 
@@ -1892,11 +1892,11 @@
             </div>
             <div>
               <p class="text-xs font-bold text-white">${inv.id}</p>
-              <p class="text-[10px] text-brand-muted">${inv.time} â€¢ ${inv.items} Items</p>
+              <p class="text-[10px] text-brand-muted">${inv.time} • ${inv.items} Items</p>
             </div>
           </div>
           <div class="text-right">
-            <p class="text-xs font-black text-brand-primaryContainer">â‚¹${inv.total.toFixed(2)}</p>
+            <p class="text-xs font-black text-brand-primaryContainer">₹${inv.total.toFixed(2)}</p>
             <span class="text-[9px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">Paid</span>
           </div>
         </div>
@@ -1913,13 +1913,13 @@
             </div>
             <div>
               <p class="text-xs font-bold text-white">${inv.id}</p>
-              <p class="text-[10px] text-brand-muted">${inv.time} â€¢ ${inv.items} Items</p>
-              <p class="text-[10px] font-bold text-brand-tertiary">Profit: +â‚¹${(inv.total * 0.25).toFixed(2)}</p>
+              <p class="text-[10px] text-brand-muted">${inv.time} • ${inv.items} Items</p>
+              <p class="text-[10px] font-bold text-brand-tertiary">Profit: +₹${(inv.total * 0.25).toFixed(2)}</p>
             </div>
           </div>
           <div class="text-right flex items-center gap-3">
             <div>
-              <p class="text-sm font-black text-white">â‚¹${inv.total.toFixed(2)}</p>
+              <p class="text-sm font-black text-white">₹${inv.total.toFixed(2)}</p>
               <span class="text-[9px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">Paid</span>
             </div>
             <button onclick="simulateWhatsApp()" class="w-8 h-8 rounded-full bg-[#25D366]/20 text-[#25D366] flex items-center justify-center hover:bg-[#25D366] hover:text-white transition">
@@ -1940,11 +1940,11 @@
             </div>
             <div>
               <p class="text-xs font-bold text-white">${p.name}</p>
-              <p class="text-[10px] text-brand-muted">Barcode: ${p.barcode} â€¢ Stock: ${p.qty} ${p.unit}</p>
+              <p class="text-[10px] text-brand-muted">Barcode: ${p.barcode} • Stock: ${p.qty} ${p.unit}</p>
             </div>
           </div>
           <div class="text-right">
-            <p class="text-xs font-black text-brand-primaryContainer">â‚¹${p.price.toFixed(2)}</p>
+            <p class="text-xs font-black text-brand-primaryContainer">₹${p.price.toFixed(2)}</p>
             <span class="text-[9px] font-bold ${p.qty <= 10 ? 'text-amber-400 bg-amber-500/10' : 'text-green-400 bg-green-500/10'} px-1.5 py-0.5 rounded">
               ${p.qty <= 10 ? 'Low Stock' : 'In Stock'}
             </span>
@@ -2019,7 +2019,7 @@
                 </div>
                 <div>
                   <h4 class="text-xs font-bold text-white">MPT-II 58mm ESC/POS</h4>
-                  <p class="text-[10px] text-brand-muted">DC:0D:30:4A:8B:11 â€¢ Signal: Strong</p>
+                  <p class="text-[10px] text-brand-muted">DC:0D:30:4A:8B:11 • Signal: Strong</p>
                 </div>
               </div>
               <button onclick="handlePrinterConnect('MPT-II 58mm ESC/POS', 'Bluetooth Wireless')" class="px-3 py-1.5 bg-brand-secondary text-black font-extrabold text-[11px] rounded-lg shadow hover:opacity-90 active:scale-95">
@@ -2033,7 +2033,7 @@
                 </div>
                 <div>
                   <h4 class="text-xs font-bold text-white">BT-Printer-58</h4>
-                  <p class="text-[10px] text-brand-muted">66:22:90:1C:89:FE â€¢ Signal: Good</p>
+                  <p class="text-[10px] text-brand-muted">66:22:90:1C:89:FE • Signal: Good</p>
                 </div>
               </div>
               <button onclick="handlePrinterConnect('BT-Printer-58', 'Bluetooth Wireless')" class="px-3 py-1.5 bg-brand-secondary text-black font-extrabold text-[11px] rounded-lg shadow hover:opacity-90 active:scale-95">
@@ -2047,7 +2047,7 @@
                 </div>
                 <div>
                   <h4 class="text-xs font-bold text-white">Epson TM-T88V Wireless</h4>
-                  <p class="text-[10px] text-brand-muted">00:1A:7D:DA:71:04 â€¢ Signal: Fair</p>
+                  <p class="text-[10px] text-brand-muted">00:1A:7D:DA:71:04 • Signal: Fair</p>
                 </div>
               </div>
               <button onclick="handlePrinterConnect('Epson TM-T88V Wireless', 'Bluetooth Wireless')" class="px-3 py-1.5 bg-brand-secondary text-black font-extrabold text-[11px] rounded-lg shadow hover:opacity-90 active:scale-95">
@@ -2065,7 +2065,7 @@
                 </div>
                 <div>
                   <h4 class="text-xs font-bold text-white">POS-58 USB Thermal Printer</h4>
-                  <p class="text-[10px] text-brand-muted">USB Port 1 â€¢ Direct Cable</p>
+                  <p class="text-[10px] text-brand-muted">USB Port 1 • Direct Cable</p>
                 </div>
               </div>
               <button onclick="handlePrinterConnect('POS-58 USB Thermal Printer', 'USB Cable Wired')" class="px-3 py-1.5 bg-brand-secondary text-black font-extrabold text-[11px] rounded-lg shadow hover:opacity-90 active:scale-95">
@@ -2079,7 +2079,7 @@
                 </div>
                 <div>
                   <h4 class="text-xs font-bold text-white">TVS RP-3160 Gold USB</h4>
-                  <p class="text-[10px] text-brand-muted">USB Port 2 â€¢ Direct Cable</p>
+                  <p class="text-[10px] text-brand-muted">USB Port 2 • Direct Cable</p>
                 </div>
               </div>
               <button onclick="handlePrinterConnect('TVS RP-3160 Gold USB', 'USB Cable Wired')" class="px-3 py-1.5 bg-brand-secondary text-black font-extrabold text-[11px] rounded-lg shadow hover:opacity-90 active:scale-95">
@@ -2122,7 +2122,7 @@
         settingsIconBg.className = 'w-9 h-9 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-400';
       }
 
-      alert(`âœ“ Successfully paired & connected to ${name} (${type})! Ready to print instant thermal receipts.`);
+      alert(`✓ Successfully paired & connected to ${name} (${type})! Ready to print instant thermal receipts.`);
     }
 
     function handlePrinterDisconnect() {
@@ -2160,15 +2160,15 @@
 
     function simulatePrint() {
       if (!printerConnected) {
-        alert('âš ï¸ No thermal printer is currently connected! Please select Bluetooth or USB below and pair a printer first.');
+        alert('⚠️ No thermal printer is currently connected! Please select Bluetooth or USB below and pair a printer first.');
         switchScreen('hardware');
         return;
       }
-      alert(`ðŸ–¨ï¸ ESC/POS Print Slip successfully sent to ${connectedPrinterName} (${connectedPrinterType})!`);
+      alert(`🖨️ ESC/POS Print Slip successfully sent to ${connectedPrinterName} (${connectedPrinterType})!`);
     }
 
     function simulateWhatsApp() {
-      alert('ðŸ“± WhatsApp Invoice Dispatch initiated: Generated PDF and pre-filled invoice message link!');
+      alert('📱 WhatsApp Invoice Dispatch initiated: Generated PDF and pre-filled invoice message link!');
     }
 
     // Initialize default view
