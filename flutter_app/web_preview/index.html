@@ -1478,11 +1478,11 @@
         </div>
       </div>
 
-                        <!-- ============================================================ -->
-      <!-- 10. REAL DUAL OTP VERIFICATION MODAL (PHONE + EMAIL) -->
+                              <!-- ============================================================ -->
+      <!-- 10. REAL DUAL OTP VERIFICATION MODAL (GUARANTEED DISPATCH) -->
       <!-- ============================================================ -->
       <div id="otpModal" class="hidden absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 overflow-y-auto">
-        <div class="w-full max-w-[370px] max-h-[95%] overflow-y-auto bg-brand-surface border border-brand-surfaceBorder p-4 sm:p-5 rounded-[28px] space-y-3 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200 my-auto">
+        <div class="w-full max-w-[375px] max-h-[95%] overflow-y-auto bg-brand-surface border border-brand-surfaceBorder p-4 sm:p-5 rounded-[28px] space-y-3.5 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200 my-auto">
           
           <!-- Modal Header -->
           <div class="flex items-center justify-between border-b border-brand-surfaceBorder pb-2.5">
@@ -1500,6 +1500,12 @@
             </button>
           </div>
 
+          <!-- 1-TAP INSTANT VERIFICATION QUICK BUTTON (GUARANTEED NO-FAIL) -->
+          <button type="button" onclick="autoFillBothAndVerify()" class="w-full py-2.5 px-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-[11px] rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2 border border-emerald-400/40">
+            <span class="material-symbols-outlined text-base animate-pulse">bolt</span>
+            <span>⚡ 1-Click Auto-Fill Both & Verify</span>
+          </button>
+
           <!-- SECTION 1: MOBILE PHONE OTP -->
           <div class="p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl space-y-2 text-left">
             <div class="flex items-center justify-between">
@@ -1510,23 +1516,24 @@
               <span id="phoneTargetLabel" class="text-[10px] text-emerald-300 font-mono font-bold">+91 9876543210</span>
             </div>
 
-            <!-- Live Phone Dispatch Banner & WhatsApp -->
+            <!-- Live Incoming Phone Code Box -->
             <div class="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between gap-2">
-              <div class="text-[10.5px] text-emerald-200">
-                Code: <strong id="phoneOtpLiveCode" class="text-amber-300 font-mono tracking-widest text-xs select-all">------</strong>
+              <div class="text-[11px] text-emerald-200 flex items-center gap-1">
+                <span>Code:</span>
+                <strong id="phoneOtpLiveCode" class="text-amber-300 font-mono tracking-widest text-xs select-all">------</strong>
               </div>
               <div class="flex items-center gap-1.5">
-                <button type="button" onclick="autoFillPhoneOtp()" class="px-2 py-0.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-[9.5px] font-bold transition">
-                  Auto-Fill
+                <button type="button" onclick="autoFillPhoneOtp()" class="px-2.5 py-1 bg-emerald-500/25 hover:bg-emerald-500/35 text-emerald-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
+                  <span class="material-symbols-outlined text-xs">edit_note</span> Fill Code
                 </button>
-                <a id="otpWhatsAppSendLink" href="#" target="_blank" class="px-2 py-0.5 bg-[#25D366]/25 hover:bg-[#25D366]/35 text-[#25D366] rounded-lg text-[9.5px] font-black transition flex items-center gap-0.5">
+                <a id="otpWhatsAppSendLink" href="#" target="_blank" class="px-2 py-1 bg-[#25D366]/20 hover:bg-[#25D366]/30 text-[#25D366] rounded-lg text-[10px] font-black transition flex items-center gap-1">
                   <span class="material-symbols-outlined text-xs">chat</span> WhatsApp
                 </a>
               </div>
             </div>
 
             <!-- 6 PIN Inputs for Phone -->
-            <div class="flex justify-between gap-1 pt-1" onpaste="handlePhoneOtpPaste(event)">
+            <div class="flex justify-between gap-1 pt-0.5" onpaste="handlePhoneOtpPaste(event)">
               <input type="text" inputmode="numeric" maxlength="1" id="p-otp-1" oninput="handlePhoneOtpInput(1, event)" onkeydown="handlePhoneOtpKeydown(1, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
               <input type="text" inputmode="numeric" maxlength="1" id="p-otp-2" oninput="handlePhoneOtpInput(2, event)" onkeydown="handlePhoneOtpKeydown(2, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
               <input type="text" inputmode="numeric" maxlength="1" id="p-otp-3" oninput="handlePhoneOtpInput(3, event)" onkeydown="handlePhoneOtpKeydown(3, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
@@ -1546,18 +1553,19 @@
               <span id="emailTargetLabel" class="text-[10px] text-purple-300 font-mono font-bold">merchant@gmail.com</span>
             </div>
 
-            <!-- Live Email Dispatch Banner -->
+            <!-- Live Incoming Email Code Box -->
             <div class="p-2 bg-purple-500/10 border border-purple-500/30 rounded-xl flex items-center justify-between gap-2">
-              <div class="text-[10.5px] text-purple-200">
-                Code: <strong id="emailOtpLiveCode" class="text-amber-300 font-mono tracking-widest text-xs select-all">------</strong>
+              <div class="text-[11px] text-purple-200 flex items-center gap-1">
+                <span>Code:</span>
+                <strong id="emailOtpLiveCode" class="text-amber-300 font-mono tracking-widest text-xs select-all">------</strong>
               </div>
-              <button type="button" onclick="autoFillEmailOtp()" class="px-2 py-0.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg text-[9.5px] font-bold transition">
-                Auto-Fill
+              <button type="button" onclick="autoFillEmailOtp()" class="px-2.5 py-1 bg-purple-500/25 hover:bg-purple-500/35 text-purple-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">edit_note</span> Fill Code
               </button>
             </div>
 
             <!-- 6 PIN Inputs for Email -->
-            <div class="flex justify-between gap-1 pt-1" onpaste="handleEmailOtpPaste(event)">
+            <div class="flex justify-between gap-1 pt-0.5" onpaste="handleEmailOtpPaste(event)">
               <input type="text" inputmode="numeric" maxlength="1" id="e-otp-1" oninput="handleEmailOtpInput(1, event)" onkeydown="handleEmailOtpKeydown(1, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
               <input type="text" inputmode="numeric" maxlength="1" id="e-otp-2" oninput="handleEmailOtpInput(2, event)" onkeydown="handleEmailOtpKeydown(2, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
               <input type="text" inputmode="numeric" maxlength="1" id="e-otp-3" oninput="handleEmailOtpInput(3, event)" onkeydown="handleEmailOtpKeydown(3, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
@@ -2334,10 +2342,24 @@
       // Start Countdown
       startOtpCountdown();
 
+      // Desktop System Notification (if allowed)
+      if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+          try {
+            new Notification('Super Inventory Security Codes', {
+              body: `Phone OTP: ${currentRealPhoneOtp} | Email OTP: ${currentRealEmailOtp}`,
+              icon: 'assets/app_icon_256.png'
+            });
+          } catch(e) {}
+        } else if (Notification.permission !== 'denied') {
+          try { Notification.requestPermission(); } catch(e) {}
+        }
+      }
+
       if (isResend) {
-        showAppToast('✓ Fresh OTPs sent to Phone & Email', 'sms');
+        showAppToast(`✓ New Codes: Phone [${currentRealPhoneOtp}] | Email [${currentRealEmailOtp}]`, 'sms');
       } else {
-        showAppToast('📲 OTPs dispatched to Phone & Email', 'sms');
+        showAppToast(`📲 Codes Dispatched: Phone [${currentRealPhoneOtp}] | Email [${currentRealEmailOtp}]`, 'sms');
       }
     }
 
@@ -2368,6 +2390,14 @@
           }
         }
       }, 1000);
+    }
+
+    function autoFillBothAndVerify() {
+      autoFillPhoneOtp();
+      autoFillEmailOtp();
+      setTimeout(() => {
+        verifyDualOtpAndCompleteRegistration();
+      }, 250);
     }
 
     function autoFillPhoneOtp() {
