@@ -1382,6 +1382,76 @@
 
     </div>
 
+    <!-- IN-APP QUANTITY & MEASUREMENT UNIT SELECTOR MODAL (KG / LITER / PCS) -->
+    <div id="qtyUnitModal" class="hidden absolute inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 rounded-[40px] transition-all">
+      <div class="bg-brand-surface border border-brand-surfaceBorder rounded-3xl p-5 w-full max-w-[340px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in duration-200">
+        <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-3">
+          <div>
+            <span class="text-[10px] font-black text-brand-secondary uppercase tracking-widest flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-brand-secondary animate-pulse"></span>
+              Select Quantity & Unit
+            </span>
+            <h3 class="text-sm font-black text-white mt-0.5" id="modalProdName">Product Name</h3>
+            <p class="text-[10px] text-brand-muted" id="modalProdRate">Base Rate: ₹0.00 / unit • GST: 0%</p>
+          </div>
+          <button onclick="closeQtyUnitModal()" class="p-1 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted hover:text-white transition">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+        <!-- Quantity Stepper & Input -->
+        <div>
+          <label class="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider block mb-1">Quantity (Number / Decimal Weight)</label>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="adjustModalQty(-1)" class="w-10 h-10 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-white font-black text-lg flex items-center justify-center active:scale-95 transition">-</button>
+            <input type="number" id="modalQtyInput" step="any" min="0.01" value="1" oninput="calculateModalTotal()" class="flex-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-center text-base font-black text-white outline-none focus:border-brand-secondary" />
+            <button type="button" onclick="adjustModalQty(1)" class="w-10 h-10 rounded-xl bg-brand-secondary text-black font-black text-lg flex items-center justify-center active:scale-95 transition shadow-md shadow-brand-secondary/30">+</button>
+          </div>
+
+          <!-- Quick Quantity Helper Chips -->
+          <div class="flex gap-1.5 mt-2 flex-wrap">
+            <button type="button" onclick="setModalQty(0.25)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">0.25</button>
+            <button type="button" onclick="setModalQty(0.5)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">0.5</button>
+            <button type="button" onclick="setModalQty(1)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">1.0</button>
+            <button type="button" onclick="setModalQty(1.5)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">1.5</button>
+            <button type="button" onclick="setModalQty(2)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">2.0</button>
+            <button type="button" onclick="setModalQty(5)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">5.0</button>
+          </div>
+        </div>
+
+        <!-- Measurement Unit Selector Grid -->
+        <div>
+          <label class="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider block mb-1">Measurement Unit</label>
+          <div class="grid grid-cols-4 gap-1.5" id="modalUnitButtons">
+            <button type="button" onclick="setModalUnit('kg')" data-unit="kg" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">kg</button>
+            <button type="button" onclick="setModalUnit('g')" data-unit="g" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">g</button>
+            <button type="button" onclick="setModalUnit('L')" data-unit="L" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">L (Liter)</button>
+            <button type="button" onclick="setModalUnit('ml')" data-unit="ml" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">ml</button>
+            <button type="button" onclick="setModalUnit('pcs')" data-unit="pcs" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">pcs (Number)</button>
+            <button type="button" onclick="setModalUnit('pack')" data-unit="pack" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">pack</button>
+            <button type="button" onclick="setModalUnit('box')" data-unit="box" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">box</button>
+            <button type="button" onclick="setModalUnit('dozen')" data-unit="dozen" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">dozen</button>
+          </div>
+        </div>
+
+        <!-- Live Calculation Summary Card in Greenish-Blue Glow -->
+        <div class="p-3 bg-brand-secondary/10 border border-brand-secondary/30 rounded-2xl flex items-center justify-between shadow-xs">
+          <div>
+            <span class="text-[10px] text-brand-muted font-bold block">Calculated Total to Add:</span>
+            <span class="text-xl font-black text-brand-secondary" id="modalCalcTotal">₹0.00</span>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] font-bold text-brand-muted block" id="modalBreakdown">Rate: ₹0 • Qty: 1</span>
+          </div>
+        </div>
+
+        <button type="button" onclick="confirmAddProductWithQty()" class="w-full py-3.5 bg-gradient-to-r from-teal-400 to-emerald-500 text-black font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/25 hover:opacity-95 active:scale-95 transition flex items-center justify-center gap-1.5">
+          <span class="material-symbols-outlined text-base">add_shopping_cart</span>
+          <span>CONFIRM & ADD TO BILL</span>
+        </button>
+      </div>
+    </div>
+
     <!-- STANDARD PLAY STORE 5-TAB BOTTOM APP NAVIGATION -->
     <nav id="bottomNav" class="w-full bg-brand-surface/95 backdrop-blur-xl border-t border-brand-surfaceBorder px-1 py-1.5 grid grid-cols-5 items-center justify-items-center absolute bottom-0 left-0 z-30 shadow-lg">
       <button onclick="switchScreen('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-2xl text-brand-primaryContainer transition active:scale-95 w-full">
@@ -1884,9 +1954,9 @@
       selectedModalUnit = unit;
       document.querySelectorAll('.unit-btn').forEach(btn => {
         if (btn.getAttribute('data-unit') === unit) {
-          btn.className = 'unit-btn py-1.5 px-2 bg-brand-primary text-white text-xs font-bold rounded-xl text-center shadow';
+          btn.className = 'unit-btn py-1.5 px-2 bg-brand-secondary text-black text-xs font-black rounded-xl text-center shadow-md shadow-brand-secondary/30 scale-[1.02] transition';
         } else {
-          btn.className = 'unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white';
+          btn.className = 'unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition';
         }
       });
       calculateModalTotal();
@@ -2381,71 +2451,5 @@
     renderDashboard();
     renderCart();
   </script>
-  <!-- QUANTITY & MEASUREMENT UNIT SELECTOR MODAL (KG / LITER / NUMBER) -->
-  <div id="qtyUnitModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-brand-surface border border-brand-surfaceBorder rounded-3xl p-5 w-full max-w-sm shadow-2xl text-left space-y-4 animate-in fade-in zoom-in duration-150">
-      <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-3">
-        <div>
-          <span class="text-[10px] font-extrabold text-brand-primaryContainer uppercase tracking-wider">Select Quantity & Unit</span>
-          <h3 class="text-sm font-black text-white" id="modalProdName">Product Name</h3>
-          <p class="text-[10px] text-brand-muted" id="modalProdRate">Base Rate: ₹0.00 / unit • GST: 0%</p>
-        </div>
-        <button onclick="closeQtyUnitModal()" class="p-1 rounded-lg hover:bg-brand-surfaceElevated text-brand-muted hover:text-white">
-          <span class="material-symbols-outlined text-lg">close</span>
-        </button>
-      </div>
-
-      <!-- Quantity Stepper & Input -->
-      <div>
-        <label class="text-[10px] font-bold text-brand-muted uppercase block mb-1">Enter Quantity (Numbers / Fractional Weight)</label>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="adjustModalQty(-1)" class="w-10 h-10 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-white font-black text-lg flex items-center justify-center active:scale-95 transition">-</button>
-          <input type="number" id="modalQtyInput" step="any" min="0.01" value="1" oninput="calculateModalTotal()" class="flex-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-center text-base font-black text-white outline-none focus:border-brand-primary" />
-          <button type="button" onclick="adjustModalQty(1)" class="w-10 h-10 rounded-xl bg-brand-primary text-white font-black text-lg flex items-center justify-center active:scale-95 transition shadow-sm">+</button>
-        </div>
-
-        <!-- Quick Quantity Helper Chips -->
-        <div class="flex gap-1.5 mt-2 flex-wrap">
-          <button type="button" onclick="setModalQty(0.25)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:text-white">0.25</button>
-          <button type="button" onclick="setModalQty(0.5)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:text-white">0.5</button>
-          <button type="button" onclick="setModalQty(1)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:text-white">1.0</button>
-          <button type="button" onclick="setModalQty(1.5)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:text-white">1.5</button>
-          <button type="button" onclick="setModalQty(2)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:text-white">2.0</button>
-          <button type="button" onclick="setModalQty(5)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:text-white">5.0</button>
-        </div>
-      </div>
-
-      <!-- Measurement Unit Selector Grid -->
-      <div>
-        <label class="text-[10px] font-bold text-brand-muted uppercase block mb-1">Measurement Unit</label>
-        <div class="grid grid-cols-4 gap-1.5" id="modalUnitButtons">
-          <button type="button" onclick="setModalUnit('kg')" data-unit="kg" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">kg</button>
-          <button type="button" onclick="setModalUnit('g')" data-unit="g" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">g</button>
-          <button type="button" onclick="setModalUnit('L')" data-unit="L" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">L (Liter)</button>
-          <button type="button" onclick="setModalUnit('ml')" data-unit="ml" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">ml</button>
-          <button type="button" onclick="setModalUnit('pcs')" data-unit="pcs" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">pcs (Number)</button>
-          <button type="button" onclick="setModalUnit('pack')" data-unit="pack" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">pack</button>
-          <button type="button" onclick="setModalUnit('box')" data-unit="box" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">box</button>
-          <button type="button" onclick="setModalUnit('dozen')" data-unit="dozen" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center">dozen</button>
-        </div>
-      </div>
-
-      <!-- Live Calculation Card -->
-      <div class="p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl flex items-center justify-between">
-        <div>
-          <span class="text-[10px] text-brand-muted font-bold block">Total Amount to Add:</span>
-          <span class="text-lg font-black text-brand-secondary" id="modalCalcTotal">₹0.00</span>
-        </div>
-        <div class="text-right">
-          <span class="text-[10px] text-brand-muted block" id="modalBreakdown">Rate: ₹0 • Qty: 1</span>
-        </div>
-      </div>
-
-      <button type="button" onclick="confirmAddProductWithQty()" class="w-full py-3 bg-brand-primary text-white font-extrabold text-xs rounded-2xl shadow-lg hover:bg-brand-primaryGlow transition flex items-center justify-center gap-1.5">
-        <span class="material-symbols-outlined text-base">add_shopping_cart</span>
-        <span>CONFIRM & ADD TO BILL</span>
-      </button>
-    </div>
-  </div>
-</body>
+  </body>
 </html>
