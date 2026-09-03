@@ -508,41 +508,53 @@
           </div>
         </div>
 
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <h3 class="text-xs font-bold text-white">Cart Items (<span id="cartCountBadge">0</span>)</h3>
-            <button onclick="clearCart()" class="text-[10px] text-red-400 hover:underline">Clear Cart</button>
+        <!-- EXPANDED CART ITEMS LIST WITH AMPLE VERTICAL SPACE -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center px-1">
+            <h3 class="text-xs font-black text-white flex items-center gap-1.5">
+              <span>Current Bill Items</span>
+              <span class="px-2 py-0.2 rounded-full bg-brand-primary text-white text-[10px] font-black" id="cartCountBadge">0</span>
+            </h3>
+            <button onclick="clearCart()" class="text-[10px] text-red-400 font-bold hover:underline flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-xs">delete</span> Clear
+            </button>
           </div>
-          <div id="cartItemsContainer" class="space-y-2 max-h-52 overflow-y-auto custom-scroll pr-1"></div>
+          <!-- Ample vertical scrolling space for all added items -->
+          <div id="cartItemsContainer" class="space-y-2 max-h-[340px] min-h-[140px] overflow-y-auto custom-scroll pr-1"></div>
         </div>
 
-        <div class="bg-brand-surface border border-brand-surfaceBorder p-4 rounded-3xl space-y-3">
-          <div class="space-y-1 text-xs">
-            <div class="flex justify-between text-brand-muted">
-              <span>Subtotal:</span>
-              <span id="cartSubtotalText" class="text-white font-semibold">₹0.00</span>
+        <!-- STREAMLINED COMPACT SUMMARY & CHECKOUT BAR -->
+        <div class="bg-brand-surface border border-brand-surfaceBorder p-3 rounded-2xl space-y-2.5 shadow-md">
+          <div class="flex items-center justify-between text-[11px] pb-1.5 border-b border-brand-surfaceBorder">
+            <div class="flex items-center gap-3">
+              <div>
+                <span class="text-brand-muted text-[10px] block leading-none">Subtotal</span>
+                <span id="cartSubtotalText" class="text-white font-bold">₹0.00</span>
+              </div>
+              <div class="h-5 w-[1px] bg-brand-surfaceBorder"></div>
+              <div>
+                <span class="text-brand-muted text-[10px] block leading-none">GST Tax</span>
+                <span id="cartGstText" class="text-white font-bold">₹0.00</span>
+              </div>
             </div>
-            <div class="flex justify-between text-brand-muted">
-              <span>GST (CGST + SGST):</span>
-              <span id="cartGstText" class="text-white font-semibold">₹0.00</span>
-            </div>
-            <div class="border-t border-brand-surfaceBorder pt-2 flex justify-between items-baseline">
-              <span class="text-xs font-bold text-brand-muted uppercase">Grand Total:</span>
-              <span id="cartGrandTotalText" class="text-2xl font-black text-brand-secondary">₹0.00</span>
+            <div class="text-right">
+              <span class="text-brand-muted text-[10px] block leading-none uppercase font-bold">Grand Total</span>
+              <span id="cartGrandTotalText" class="text-lg font-black text-brand-secondary leading-none">₹0.00</span>
             </div>
           </div>
 
-          <div class="grid grid-cols-4 gap-1.5 pt-1">
-            <button onclick="setPaymentMethod('CASH')" id="pay-cash" class="py-1.5 bg-brand-primary text-white text-[10px] font-bold rounded-xl border border-brand-primary">CASH</button>
-            <button onclick="setPaymentMethod('UPI')" id="pay-upi" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">UPI QR</button>
-            <button onclick="setPaymentMethod('CARD')" id="pay-card" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">CARD</button>
-            <button onclick="setPaymentMethod('SPLIT')" id="pay-split" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">SPLIT</button>
+          <div class="flex items-center gap-1.5">
+            <div class="grid grid-cols-4 gap-1 flex-1">
+              <button onclick="setPaymentMethod('CASH')" id="pay-cash" class="py-1 bg-brand-primary text-white text-[9.5px] font-bold rounded-lg border border-brand-primary">CASH</button>
+              <button onclick="setPaymentMethod('UPI')" id="pay-upi" class="py-1 bg-brand-surfaceElevated text-brand-muted text-[9.5px] font-bold rounded-lg border border-brand-surfaceBorder hover:text-white">UPI QR</button>
+              <button onclick="setPaymentMethod('CARD')" id="pay-card" class="py-1 bg-brand-surfaceElevated text-brand-muted text-[9.5px] font-bold rounded-lg border border-brand-surfaceBorder hover:text-white">CARD</button>
+              <button onclick="setPaymentMethod('SPLIT')" id="pay-split" class="py-1 bg-brand-surfaceElevated text-brand-muted text-[9.5px] font-bold rounded-lg border border-brand-surfaceBorder hover:text-white">SPLIT</button>
+            </div>
+            <button onclick="completeCheckout()" id="checkoutBtn" class="py-2.5 px-3.5 bg-brand-secondary text-black font-black text-xs rounded-xl hover:bg-emerald-400 active:scale-[0.98] transition flex items-center justify-center gap-1 shadow-md shadow-brand-secondary/20 whitespace-nowrap">
+              <span class="material-symbols-outlined text-sm">receipt_long</span>
+              <span>PAY & BILL</span>
+            </button>
           </div>
-
-          <button onclick="completeCheckout()" id="checkoutBtn" class="w-full py-3.5 bg-brand-secondary text-black font-extrabold text-sm rounded-2xl hover:bg-emerald-400 active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-lg shadow-brand-secondary/20">
-            <span class="material-symbols-outlined text-lg">check_circle</span>
-            PAY & GENERATE INVOICE
-          </button>
         </div>
       </div>
 
@@ -589,10 +601,10 @@
             <p class="text-[10px] text-brand-muted font-mono" id="rcptUpiId">superinventory@upi</p>
           </div>
 
-          <!-- Store Hours & Grievance Helpline (Printed on Bill) -->
+          <!-- Store Hours & Customer Support / Contact No (Printed on Bill) -->
           <div class="border-t border-dashed border-brand-surfaceBorder pt-2 text-[10px] space-y-0.5">
             <p class="text-brand-muted">⏱ Hours: <span id="rcptTimings" class="text-white font-semibold">Mon-Sun: 8:00 AM - 10:30 PM</span></p>
-            <p class="text-brand-muted">📞 Grievance Helpline: <span id="rcptHelpline" class="text-brand-primaryContainer font-bold">9876543210</span></p>
+            <p class="text-brand-muted">📞 Customer Support / Contact No: <span id="rcptHelpline" class="text-brand-primaryContainer font-bold">9876543210</span></p>
           </div>
 
           <!-- Promotional Festive Offer Ad Banner (Acts as an Ad) -->
@@ -2240,31 +2252,67 @@
 
     function completeCheckout() {
       if (cart.length === 0) {
-        alert('Please scan products first!');
+        alert('Please add products to the bill first!');
         return;
       }
       let subtotal = 0;
       let totalGst = 0;
-      cart.forEach(item => {
-        const lineSub = item.price * item.quantity;
-        subtotal += lineSub;
-        totalGst += lineSub * (item.gst / 100);
-      });
+
+      // Populate Detailed Tax Invoice Line Items
+      document.getElementById('rcptItemsList').innerHTML = `
+        <div class="border-b border-brand-surfaceBorder pb-1 text-[9.5px] font-black uppercase text-brand-muted flex justify-between">
+          <span>Item & Measurement Details</span>
+          <span>Amount (Incl GST)</span>
+        </div>
+      ` + cart.map((i, idx) => {
+        let normalizedQty = i.quantity;
+        if (i.unit === 'g') normalizedQty = i.quantity / 1000;
+        else if (i.unit === 'ml') normalizedQty = i.quantity / 1000;
+        else if (i.unit === 'dozen') normalizedQty = i.quantity * 12;
+
+        const lineNet = i.price * (i.unit === 'g' || i.unit === 'ml' ? normalizedQty : i.quantity);
+        const lineTax = lineNet * (i.gst / 100);
+        const lineTotal = lineNet + lineTax;
+
+        subtotal += lineNet;
+        totalGst += lineTax;
+
+        return `
+          <div class="py-2 border-b border-dashed border-brand-surfaceBorder/70 text-left">
+            <div class="flex justify-between items-start font-bold text-white text-xs">
+              <span>${idx + 1}. ${i.name}</span>
+              <span class="font-black text-brand-secondary ml-2 whitespace-nowrap">₹${lineTotal.toFixed(2)}</span>
+            </div>
+            <div class="flex justify-between items-center text-[10px] text-brand-muted mt-0.5">
+              <span>Qty: <b class="text-white">${i.quantity} ${i.unit || 'pcs'}</b> @ ₹${i.price.toFixed(2)}/${i.unit || 'unit'}</span>
+              <span class="text-[9.5px]">Net: ₹${lineNet.toFixed(2)} + GST ${i.gst}% (₹${lineTax.toFixed(2)})</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
       const grandTotal = subtotal + totalGst;
-      const invNo = `INV-20260901-${String(Math.floor(1000 + Math.random() * 9000))}`;
+      const invNo = `INV-20260904-${String(Math.floor(1000 + Math.random() * 9000))}`;
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+      // Update Store Header on Invoice
+      const storeName = document.getElementById('drawerShopName')?.innerText || 'Super Inventory Store';
+      const storeAddress = document.getElementById('drawerAddress')?.innerText || 'Main Branch • City Centre Road';
+      const storePhone = document.getElementById('drawerPhone')?.innerText || '9876543210';
+      const storeTimings = document.getElementById('drawerTimings')?.innerText || 'Mon-Sun: 8:00 AM - 10:30 PM';
+
+      document.getElementById('rcptShopName').innerText = storeName;
+      document.getElementById('rcptShopAddress').innerText = storeAddress;
+      document.getElementById('rcptHelpline').innerText = storePhone;
+      document.getElementById('rcptTimings').innerText = storeTimings;
+      document.getElementById('rcptDate').innerText = dateStr;
 
       document.getElementById('rcptInvoiceNo').innerText = invNo;
       document.getElementById('rcptSubtotal').innerText = `₹${subtotal.toFixed(2)}`;
       document.getElementById('rcptTax').innerText = `₹${totalGst.toFixed(2)}`;
       document.getElementById('rcptGrandTotal').innerText = `₹${grandTotal.toFixed(2)}`;
       document.getElementById('rcptPayMode').innerText = `PAID VIA ${paymentMode}`;
-
-      document.getElementById('rcptItemsList').innerHTML = cart.map(i => `
-        <div class="flex justify-between py-0.5">
-          <span>${i.name} (x${i.quantity})</span>
-          <span class="font-bold">₹${((i.price * i.quantity) * (1 + i.gst/100)).toFixed(2)}</span>
-        </div>
-      `).join('');
 
       const qrEl = document.getElementById('qrcodeCanvas');
       qrEl.innerHTML = '';
