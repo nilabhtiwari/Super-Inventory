@@ -234,11 +234,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       errorBuilder: (ctx, err, stack) => const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.inventory_2_rounded, color: AppTheme.secondary, size: 32),
+                          Icon(Icons.inventory_2_rounded, color: AppTheme.primary, size: 32),
                           SizedBox(width: 8),
                           Text(
                             'SUPER INVENTORY',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.primary, letterSpacing: 1),
                           ),
                         ],
                       ),
