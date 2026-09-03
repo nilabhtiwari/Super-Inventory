@@ -1388,7 +1388,7 @@
     </div>
 
             <!-- DEDICATED PAYMENT METHOD & SPLIT BILL WINDOW (POPS UP AFTER GENERATING BILL) -->
-    <div id="paymentModal" class="hidden absolute inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-3.5 rounded-[40px] transition-all">
+    <div id="paymentModal" onclick="if(event.target === this) closePaymentModal();" class="hidden absolute inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-3.5 rounded-[40px] transition-all">
       <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[345px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in duration-150">
         <!-- Header -->
         <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-3">
@@ -1488,7 +1488,7 @@
     </div>
 
         <!-- IN-APP QUANTITY & MEASUREMENT UNIT SELECTOR MODAL -->
-    <div id="qtyUnitModal" class="hidden absolute inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 rounded-[40px] transition-all">
+    <div id="qtyUnitModal" onclick="if(event.target === this) closeQtyUnitModal();" class="hidden absolute inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 rounded-[40px] transition-all">
       <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[340px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in duration-200">
         <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-3">
           <div>
@@ -1526,18 +1526,15 @@
           </div>
         </div>
 
-        <!-- Measurement Unit Selector Grid -->
+        <!-- Measurement Unit Selector Grid (Standard Professional Units Only) -->
         <div>
           <label class="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider block mb-1">Measurement Unit</label>
-          <div class="grid grid-cols-4 gap-1.5" id="modalUnitButtons">
-            <button type="button" onclick="setModalUnit('kg')" data-unit="kg" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">kg</button>
-            <button type="button" onclick="setModalUnit('g')" data-unit="g" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">g (Grams)</button>
-            <button type="button" onclick="setModalUnit('L')" data-unit="L" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">L (Liter)</button>
-            <button type="button" onclick="setModalUnit('ml')" data-unit="ml" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">ml</button>
-            <button type="button" onclick="setModalUnit('pcs')" data-unit="pcs" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">pcs (Number)</button>
-            <button type="button" onclick="setModalUnit('pack')" data-unit="pack" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">pack</button>
-            <button type="button" onclick="setModalUnit('box')" data-unit="box" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">box</button>
-            <button type="button" onclick="setModalUnit('dozen')" data-unit="dozen" class="unit-btn py-1.5 px-2 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">dozen</button>
+          <div class="grid grid-cols-5 gap-1.5" id="modalUnitButtons">
+            <button type="button" onclick="setModalUnit('kg')" data-unit="kg" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-black rounded-xl text-center hover:text-white transition">kg</button>
+            <button type="button" onclick="setModalUnit('g')" data-unit="g" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-black rounded-xl text-center hover:text-white transition">g</button>
+            <button type="button" onclick="setModalUnit('L')" data-unit="L" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-black rounded-xl text-center hover:text-white transition">L</button>
+            <button type="button" onclick="setModalUnit('ml')" data-unit="ml" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-black rounded-xl text-center hover:text-white transition">ml</button>
+            <button type="button" onclick="setModalUnit('pcs')" data-unit="pcs" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-black rounded-xl text-center hover:text-white transition">PCS</button>
           </div>
         </div>
 
@@ -2079,7 +2076,7 @@
         effectiveMultiplier = qty / 1000;
       } else if ((selectedModalUnit === 'kg' && currentModalProduct.unit === 'g') || (selectedModalUnit === 'L' && currentModalProduct.unit === 'ml')) {
         effectiveMultiplier = qty * 1000;
-      } else if (selectedModalUnit === 'dozen' && (currentModalProduct.unit === 'pcs' || currentModalProduct.unit === 'pack')) {
+      } else if (selectedModalUnit === 'pcs' && (currentModalProduct.unit === 'pcs' || currentModalProduct.unit === 'pcs')) {
         effectiveMultiplier = qty * 12;
       }
 
@@ -2259,7 +2256,7 @@
       cart.forEach(i => {
         let normalizedQty = i.quantity;
         if (i.unit === 'g' || i.unit === 'ml') normalizedQty = i.quantity / 1000;
-        else if (i.unit === 'dozen') normalizedQty = i.quantity * 12;
+        else if (i.unit === 'pcs') normalizedQty = i.quantity * 12;
         const lineNet = i.price * (i.unit === 'g' || i.unit === 'ml' ? normalizedQty : i.quantity);
         subtotal += lineNet;
         totalGst += lineNet * (i.gst / 100);
