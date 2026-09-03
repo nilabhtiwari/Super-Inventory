@@ -8,6 +8,8 @@ build/
 # Environment
 .env
 *.env.local
+email_config.json
+backend/email_config.json
 
 # Logs
 logs/

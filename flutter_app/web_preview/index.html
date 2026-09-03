@@ -1510,13 +1510,20 @@
               <p class="text-white text-[11px] font-medium leading-snug">
                 Your 6-digit OTP code is: <strong id="otpLiveDisplayCode" class="text-amber-300 font-mono tracking-widest text-sm select-all">------</strong>
               </p>
-              <div class="flex items-center gap-2 pt-1">
-                <button type="button" onclick="autoFillRealOtp()" class="px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
-                  <span class="material-symbols-outlined text-xs">auto_fix_high</span> Auto-Fill Code
-                </button>
-                <a id="otpWhatsAppSendLink" href="#" target="_blank" class="px-2.5 py-1 bg-brand-surfaceElevated hover:bg-brand-surfaceBorder border border-brand-surfaceBorder text-brand-muted hover:text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1">
-                  <span class="material-symbols-outlined text-xs">chat</span> Open in WhatsApp
-                </a>
+              <!-- Real Dispatch Actions (WhatsApp Free Forever & Python Gmail) -->
+              <div class="flex flex-col gap-2 pt-1.5">
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="autoFillRealOtp()" class="flex-1 py-1.5 px-2.5 bg-emerald-500/25 hover:bg-emerald-500/35 border border-emerald-500/50 text-emerald-300 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 shadow-sm">
+                    <span class="material-symbols-outlined text-xs">auto_fix_high</span> Auto-Fill Code
+                  </button>
+                  <a id="otpWhatsAppSendLink" href="#" target="_blank" class="flex-1 py-1.5 px-2.5 bg-[#25D366]/20 hover:bg-[#25D366]/30 border border-[#25D366]/50 text-[#25D366] rounded-xl text-[11px] font-black transition flex items-center justify-center gap-1 shadow-sm">
+                    <span class="material-symbols-outlined text-xs">chat</span> WhatsApp (Free)
+                  </a>
+                </div>
+                <div class="flex items-center justify-between text-[9.5px] text-brand-muted px-1">
+                  <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> WhatsApp: 100% Free Forever</span>
+                  <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span> Python Gmail SMTP: Port 587 TLS</span>
+                </div>
               </div>
             </div>
           </div>
@@ -2104,12 +2111,33 @@
       const displayCodeEl = document.getElementById('otpLiveDisplayCode');
       if (displayCodeEl) displayCodeEl.innerText = currentRealOtp;
 
-      // Update direct WhatsApp link
+      // 1. Configure Free WhatsApp Direct Dispatch
       let cleanPhone = identifier.replace(/[^0-9]/g, '');
       if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+      if (!cleanPhone || cleanPhone.length < 10) cleanPhone = '919876543210';
       const waLink = document.getElementById('otpWhatsAppSendLink');
       if (waLink) {
-        waLink.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent('Super Inventory Verification Code: ' + currentRealOtp + '. Valid for 5 minutes.')}`;
+        waLink.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent('Super Inventory Verification Code: ' + currentRealOtp + '. Valid for 5 minutes. Never share this code.')}`;
+      }
+
+      // 2. Trigger Python Gmail SMTP Relay if email provided
+      if (identifier.includes('@')) {
+        fetch('http://127.0.0.1:5050/api/send-email-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: identifier, otp: currentRealOtp })
+        })
+        .then(r => r.json())
+        .then(res => {
+          if (res.success) {
+            showAppToast(`✓ Real OTP emailed to ${identifier} via Python Gmail!`, 'mail');
+          } else {
+            console.log('Gmail SMTP Info:', res.error);
+          }
+        })
+        .catch(err => {
+          console.log('Local Python OTP service note:', err);
+        });
       }
 
       // Clear input values
