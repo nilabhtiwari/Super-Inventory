@@ -2321,16 +2321,35 @@
     }
 
     function updateCartQty(index, delta) {
-      cart[index].quantity += delta;
-      if (cart[index].quantity <= 0) {
-        cart.splice(index, 1);
+      if (!cart[index]) return;
+      const newQty = +(cart[index].quantity + delta).toFixed(3);
+      
+      if (newQty <= 0) {
+        promptRemoveCartItem(index);
+      } else {
+        cart[index].quantity = newQty;
+        renderCart();
       }
-      renderCart();
+    }
+
+    function promptRemoveCartItem(index) {
+      if (!cart[index]) return;
+      const itemName = cart[index].name;
+      
+      const shouldRemove = confirm(`⚠️ Remove Item from Bill?\n\nAre you sure you want to remove "${itemName}" (${cart[index].quantity} ${cart[index].unit || 'pcs'}) from the bill?`);
+      if (shouldRemove) {
+        cart.splice(index, 1);
+        renderCart();
+      }
     }
 
     function clearCart() {
-      cart = [];
-      renderCart();
+      if (cart.length === 0) return;
+      const shouldClear = confirm(`⚠️ Clear Entire Bill?\n\nAre you sure you want to remove all ${cart.length} item(s) from this bill?`);
+      if (shouldClear) {
+        cart = [];
+        renderCart();
+      }
     }
 
     function setPaymentMethod(mode) {
@@ -2349,52 +2368,74 @@
 
     function renderCart() {
       const container = document.getElementById('cartItemsContainer');
-      document.getElementById('cartCountBadge').innerText = cart.reduce((s, i) => s + i.quantity, 0);
+      const totalCount = cart.reduce((s, i) => s + (typeof i.quantity === 'number' ? i.quantity : 1), 0);
+      document.getElementById('cartCountBadge').innerText = totalCount;
 
       if (cart.length === 0) {
         container.innerHTML = `
           <div class="py-8 text-center text-brand-muted text-xs">
             <span class="material-symbols-outlined text-3xl opacity-40">shopping_cart</span>
-            <p class="mt-1">Cart is empty. Tap above buttons to scan.</p>
+            <p class="mt-1">Cart is empty. Scan or search products to add.</p>
           </div>
         `;
       } else {
         container.innerHTML = cart.map((item, idx) => {
-          const itemTax = (item.price * (item.gst / 100)) * item.quantity;
-          const itemTotal = (item.price * item.quantity) + itemTax;
+          let normalizedQty = item.quantity;
+          if (item.unit === 'g' || item.unit === 'ml') normalizedQty = item.quantity / 1000;
+          
+          const lineNet = item.price * normalizedQty;
+          const lineTax = lineNet * (item.gst / 100);
+          const lineTotal = lineNet + lineTax;
+
           return `
-            <div class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between">
-              <div class="leading-tight flex-1 pr-2">
-                <div class="flex items-center gap-1.5">
-                  <p class="text-xs font-bold text-white">${item.name}</p>
-                  <span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-brand-primaryContainer/20 text-brand-primaryContainer">${item.unit || 'pcs'}</span>
+            <div class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between gap-2 shadow-xs group hover:border-brand-primary/30 transition">
+              <div class="leading-tight flex-1 min-w-0 pr-1 text-left">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <p class="text-xs font-bold text-white truncate max-w-[150px]">${item.name}</p>
+                  <button onclick="openQtyUnitModal(sampleProducts.find(p => p.barcode === '${item.barcode}') || cart[${idx}])" class="text-[9px] font-black px-1.5 py-0.2 rounded bg-brand-secondary/15 text-brand-secondary hover:bg-brand-secondary/30 transition" title="Click to edit quantity or unit">
+                    ${item.quantity} ${item.unit || 'pcs'}
+                  </button>
                 </div>
-                <p class="text-[10px] text-brand-muted mt-0.5">₹${item.price.toFixed(2)} / ${item.unit || 'unit'} • GST ${item.gst}% (₹${itemTax.toFixed(1)})</p>
+                <p class="text-[10px] text-brand-muted mt-0.5">Rate: ₹${item.price.toFixed(2)} • GST ${item.gst}% (₹${lineTax.toFixed(1)})</p>
               </div>
-              <div class="flex items-center gap-1.5">
-                <button onclick="updateCartQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-xs font-bold">-</button>
-                <span class="text-xs font-black px-1 text-center min-w-6">${item.quantity}</span>
-                <button onclick="updateCartQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-brand-primary text-white text-xs font-bold">+</button>
-                <span class="text-xs font-black text-brand-secondary ml-2 whitespace-nowrap">₹${itemTotal.toFixed(2)}</span>
+
+              <!-- Action Controls: Steppers, Line Total & 1-Tap Remove Trash Button -->
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="updateCartQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-brand-surfaceElevated border border-brand-surfaceBorder text-white text-xs font-bold flex items-center justify-center active:scale-90 hover:border-brand-secondary/40 transition">-</button>
+                <span class="text-xs font-black px-0.5 text-center min-w-5">${item.quantity}</span>
+                <button type="button" onclick="updateCartQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-brand-primary text-white text-xs font-bold flex items-center justify-center active:scale-90 hover:opacity-90 transition">+</button>
+                
+                <span class="text-xs font-black text-brand-secondary ml-1 min-w-[52px] text-right whitespace-nowrap">₹${lineTotal.toFixed(2)}</span>
+                
+                <!-- Dedicated Item Delete Button with Confirmation -->
+                <button type="button" onclick="promptRemoveCartItem(${idx})" class="w-7 h-7 rounded-xl bg-red-500/10 hover:bg-red-500/25 border border-red-500/20 text-red-400 hover:text-red-300 flex items-center justify-center transition active:scale-90 ml-0.5" title="Remove item from bill">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
               </div>
             </div>
           `;
         }).join('');
       }
 
+      // Update Subtotal and Grand Total in checkout footer
       let subtotal = 0;
       let totalGst = 0;
-      cart.forEach(item => {
-        const lineSub = item.price * item.quantity;
-        const lineTax = lineSub * (item.gst / 100);
-        subtotal += lineSub;
-        totalGst += lineTax;
+      cart.forEach(i => {
+        let normalizedQty = i.quantity;
+        if (i.unit === 'g' || i.unit === 'ml') normalizedQty = i.quantity / 1000;
+        const lineNet = i.price * normalizedQty;
+        subtotal += lineNet;
+        totalGst += lineNet * (i.gst / 100);
       });
       const grandTotal = subtotal + totalGst;
 
-      document.getElementById('cartSubtotalText').innerText = `₹${subtotal.toFixed(2)}`;
-      document.getElementById('cartGstText').innerText = `₹${totalGst.toFixed(2)}`;
-      document.getElementById('cartGrandTotalText').innerText = `₹${grandTotal.toFixed(2)}`;
+      const subtotalEl = document.getElementById('cartSubtotalText');
+      const gstEl = document.getElementById('cartGstText');
+      const grandTotalEl = document.getElementById('cartGrandTotalText');
+
+      if (subtotalEl) subtotalEl.innerText = `₹${subtotal.toFixed(2)}`;
+      if (gstEl) gstEl.innerText = `₹${totalGst.toFixed(2)}`;
+      if (grandTotalEl) grandTotalEl.innerText = `₹${grandTotal.toFixed(2)}`;
     }
 
         let activePayMode = 'CASH';
