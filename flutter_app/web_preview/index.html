@@ -1382,11 +1382,11 @@
 
     </div>
 
-        <!-- PROFESSIONAL IN-APP MEASUREMENT & QUANTITY ENGINE MODAL -->
-    <div id="qtyUnitModal" class="hidden absolute inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-3.5 rounded-[40px] transition-all">
-      <div class="bg-brand-surface border border-brand-surfaceBorder rounded-3xl p-4.5 w-full max-w-[345px] shadow-2xl text-left space-y-3 animate-in fade-in zoom-in duration-150">
+            <!-- PROFESSIONAL IN-APP MEASUREMENT & QUANTITY ENGINE MODAL -->
+    <div id="qtyUnitModal" class="hidden absolute inset-0 bg-black/65 backdrop-blur-md z-50 flex items-center justify-center p-4 rounded-[40px] transition-all">
+      <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[335px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in duration-150">
         <!-- Header & Product Summary -->
-        <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-2.5">
+        <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-3">
           <div class="flex-1 pr-2">
             <div class="flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-brand-secondary animate-pulse"></span>
@@ -1395,42 +1395,42 @@
             <h3 class="text-xs font-black text-white mt-0.5 line-clamp-1" id="modalProdName">Product Name</h3>
             <p class="text-[10px] text-brand-muted mt-0.5" id="modalProdRate">Base Rate: ₹0.00 / kg • GST: 0%</p>
           </div>
-          <button onclick="closeQtyUnitModal()" class="p-1 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted hover:text-white transition">
+          <button onclick="closeQtyUnitModal()" class="w-8 h-8 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted hover:text-white transition flex items-center justify-center">
             <span class="material-symbols-outlined text-base">close</span>
           </button>
         </div>
 
         <!-- Quantity Input with Stepper Controls -->
         <div>
-          <div class="flex justify-between items-center mb-1">
+          <div class="flex justify-between items-center mb-1.5">
             <label class="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider">Quantity Value</label>
             <span class="text-[10px] font-bold text-brand-secondary" id="modalUnitHint">Enter amount in grams</span>
           </div>
-          <div class="flex items-center gap-1.5">
-            <button type="button" onclick="stepModalQty(-1)" class="w-10 h-10 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-white font-black text-base flex items-center justify-center active:scale-95 transition">-</button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="stepModalQty(-1)" class="w-11 h-11 rounded-2xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-white font-black text-base flex items-center justify-center active:scale-95 transition hover:border-brand-secondary/40">-</button>
             <div class="flex-1 relative flex items-center">
-              <input type="number" id="modalQtyInput" step="any" min="0.001" value="1" oninput="handleModalQtyInput(this.value)" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-center text-base font-black text-white outline-none focus:border-brand-secondary focus:ring-1 focus:ring-brand-secondary transition" />
-              <span class="absolute right-3 text-xs font-bold text-brand-muted pointer-events-none uppercase" id="modalInputUnitSuffix">g</span>
+              <input type="number" id="modalQtyInput" step="any" min="0.001" value="1" oninput="handleModalQtyInput(this.value)" class="w-full h-11 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl px-3 text-center text-base font-black text-white outline-none focus:border-brand-secondary focus:ring-1 focus:ring-brand-secondary transition" />
+              <span class="absolute right-3.5 text-xs font-bold text-brand-muted pointer-events-none uppercase" id="modalInputUnitSuffix">g</span>
             </div>
-            <button type="button" onclick="stepModalQty(1)" class="w-10 h-10 rounded-xl bg-brand-secondary text-black font-black text-base flex items-center justify-center active:scale-95 transition shadow-sm shadow-brand-secondary/30">+</button>
+            <button type="button" onclick="stepModalQty(1)" class="w-11 h-11 rounded-2xl bg-brand-secondary text-black font-black text-base flex items-center justify-center active:scale-95 transition shadow-sm shadow-brand-secondary/30 hover:opacity-95">+</button>
           </div>
 
           <!-- Dynamic Adaptive Quick Chips -->
-          <div class="flex gap-1.5 mt-2 overflow-x-auto custom-scroll pb-0.5" id="modalQuickChipsContainer">
+          <div class="flex gap-1.5 mt-2.5 overflow-x-auto custom-scroll pb-0.5" id="modalQuickChipsContainer">
             <!-- Rendered dynamically based on active unit -->
           </div>
         </div>
 
         <!-- Relevant Measurement Units -->
         <div>
-          <label class="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider block mb-1">Select Unit of Measure</label>
+          <label class="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider block mb-1.5">Select Unit of Measure</label>
           <div class="grid grid-cols-4 gap-1.5" id="modalUnitButtons">
             <!-- Rendered dynamically based on product type -->
           </div>
         </div>
 
         <!-- Smart Mathematical Conversion & Total Breakdown Card -->
-        <div class="p-3 bg-brand-secondary/10 border border-brand-secondary/30 rounded-2xl space-y-1 shadow-xs">
+        <div class="p-3.5 bg-brand-secondary/10 border border-brand-secondary/30 rounded-2xl space-y-1 shadow-xs">
           <div class="flex items-center justify-between">
             <span class="text-[10px] font-bold text-brand-muted">Calculated Total (Net + GST):</span>
             <span class="text-lg font-black text-brand-secondary" id="modalCalcTotal">₹0.00</span>
@@ -1446,12 +1446,13 @@
           ⚠️ Please enter a valid quantity greater than 0.
         </div>
 
-        <button type="button" onclick="confirmAddProductWithQty()" id="modalConfirmBtn" class="w-full py-3 bg-gradient-to-r from-teal-400 to-emerald-500 text-black font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/20 hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-1.5">
+        <button type="button" onclick="confirmAddProductWithQty()" id="modalConfirmBtn" class="w-full py-3.5 bg-gradient-to-r from-teal-400 to-emerald-500 text-black font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/20 hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-1.5">
           <span class="material-symbols-outlined text-base">check_circle</span>
           <span>ADD TO BILL</span>
         </button>
       </div>
-    </div><!-- STANDARD PLAY STORE 5-TAB BOTTOM APP NAVIGATION -->
+    </div>
+<!-- STANDARD PLAY STORE 5-TAB BOTTOM APP NAVIGATION -->
     <nav id="bottomNav" class="w-full bg-brand-surface/95 backdrop-blur-xl border-t border-brand-surfaceBorder px-1 py-1.5 grid grid-cols-5 items-center justify-items-center absolute bottom-0 left-0 z-30 shadow-lg">
       <button onclick="switchScreen('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-2xl text-brand-primaryContainer transition active:scale-95 w-full">
         <div class="nav-icon-pill p-1 rounded-xl flex items-center justify-center bg-brand-primary/15">
