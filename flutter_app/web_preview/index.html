@@ -1480,76 +1480,74 @@
       </div>
     </div>
 
-    <!-- IN-APP QUANTITY & MEASUREMENT UNIT SELECTOR MODAL (KG / LITER / PCS) -->
-    <div id="qtyUnitModal" class="hidden absolute inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 rounded-[40px] transition-all">
-      <div class="bg-brand-surface border border-brand-surfaceBorder rounded-3xl p-5 w-full max-w-[340px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in duration-200">
+        <!-- EXECUTIVE POS QUANTITY & MEASUREMENT CONSOLE MODAL -->
+    <div id="qtyUnitModal" onclick="if(event.target === this) closeQtyUnitModal();" class="hidden absolute inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-3.5 rounded-[40px] transition-all">
+      <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[30px] p-5 w-full max-w-[348px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in duration-150">
+        
+        <!-- Header: Category Pill & Product Meta -->
         <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-3">
-          <div>
-            <span class="text-[10px] font-black text-brand-secondary uppercase tracking-widest flex items-center gap-1">
+          <div class="flex-1 pr-2">
+            <div class="flex items-center gap-1.5 mb-1">
               <span class="w-1.5 h-1.5 rounded-full bg-brand-secondary animate-pulse"></span>
-              Select Quantity & Unit
-            </span>
-            <h3 class="text-sm font-black text-white mt-0.5" id="modalProdName">Product Name</h3>
-            <p class="text-[10px] text-brand-muted" id="modalProdRate">Base Rate: ₹0.00 / unit • GST: 0%</p>
+              <span class="text-[9px] font-black text-brand-secondary tracking-widest uppercase" id="modalCategoryBadge">SOLID / PACKAGED</span>
+            </div>
+            <h3 class="text-sm font-black text-white leading-tight line-clamp-1" id="modalProdName">Product Name</h3>
+            <p class="text-[10.5px] text-brand-muted mt-0.5" id="modalProdRate">Base Rate: ₹0.00 • GST: 0%</p>
           </div>
-          <button onclick="closeQtyUnitModal()" class="p-1 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted hover:text-white transition">
+          <button onclick="closeQtyUnitModal()" class="w-8 h-8 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted hover:text-white transition flex items-center justify-center active:scale-95">
             <span class="material-symbols-outlined text-base">close</span>
           </button>
         </div>
 
-        <!-- Quantity Stepper & Input -->
+        <!-- Segmented Unit Mode Selector (Tab Bar) -->
         <div>
-          <label class="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider block mb-1">Quantity (Number / Decimal Weight)</label>
+          <label class="text-[9.5px] font-extrabold text-brand-muted uppercase tracking-wider block mb-1.5">Measurement Mode</label>
+          <div class="p-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl grid grid-cols-3 gap-1" id="modalUnitButtons">
+            <!-- Rendered dynamically (e.g. g | kg | PCS for solids; ml | L | PCS for liquids) -->
+          </div>
+        </div>
+
+        <!-- Quantity Value Stepper & Input Display -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-[9.5px] font-extrabold text-brand-muted uppercase tracking-wider">Enter Quantity / Weight</label>
+            <span class="text-[10px] font-bold text-brand-secondary" id="modalInputHelperText">Step: ±50g</span>
+          </div>
           <div class="flex items-center gap-2">
-            <button type="button" onclick="adjustModalQty(-1)" class="w-10 h-10 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-white font-black text-lg flex items-center justify-center active:scale-95 transition">-</button>
-            <input type="number" id="modalQtyInput" step="any" min="0.01" value="1" oninput="calculateModalTotal()" class="flex-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-center text-base font-black text-white outline-none focus:border-brand-secondary" />
-            <button type="button" onclick="adjustModalQty(1)" class="w-10 h-10 rounded-xl bg-brand-secondary text-black font-black text-lg flex items-center justify-center active:scale-95 transition shadow-md shadow-brand-secondary/30">+</button>
+            <button type="button" onclick="adjustModalQty(-1)" class="w-12 h-12 rounded-2xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-white font-black text-lg flex items-center justify-center active:scale-90 hover:border-brand-secondary/50 transition">-</button>
+            <div class="flex-1 relative flex items-center">
+              <input type="number" id="modalQtyInput" step="any" min="0.001" value="1" oninput="calculateModalTotal()" class="w-full h-12 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl px-3 text-center text-lg font-black text-white outline-none focus:border-brand-secondary focus:ring-1 focus:ring-brand-secondary transition" />
+              <span class="absolute right-3.5 text-xs font-black text-brand-secondary pointer-events-none uppercase" id="modalInputUnitTag">g</span>
+            </div>
+            <button type="button" onclick="adjustModalQty(1)" class="w-12 h-12 rounded-2xl bg-brand-secondary text-black font-black text-lg flex items-center justify-center active:scale-90 hover:opacity-95 shadow-md shadow-brand-secondary/30 transition">+</button>
           </div>
 
-          <!-- Quick Quantity Helper Chips -->
-          <div id="modalQuickChips" class="flex gap-1.5 mt-2 flex-wrap">
-            <button type="button" onclick="setModalQty(0.25)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">0.25</button>
-            <button type="button" onclick="setModalQty(0.5)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">0.5</button>
-            <button type="button" onclick="setModalQty(1)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">1.0</button>
-            <button type="button" onclick="setModalQty(1.5)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">1.5</button>
-            <button type="button" onclick="setModalQty(2)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">2.0</button>
-            <button type="button" onclick="setModalQty(5)" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">5.0</button>
-            <button type="button" onclick="setModalQty(200); setModalUnit('g');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">200g</button>
-            <button type="button" onclick="setModalQty(500); setModalUnit('g');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">500g</button>
+          <!-- Dynamic Preset Value Chips -->
+          <div class="flex gap-1.5 mt-2.5 overflow-x-auto custom-scroll pb-0.5" id="modalQuickChips">
+            <!-- Rendered dynamically based on active unit -->
           </div>
         </div>
 
-        <!-- Measurement Unit Selector Grid (Standard 5 Units Only) -->
-        <div>
-          <label class="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider block mb-1">Measurement Unit</label>
-          <div class="grid grid-cols-5 gap-1.5" id="modalUnitButtons">
-            <button type="button" onclick="setModalUnit('kg')" data-unit="kg" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">kg</button>
-            <button type="button" onclick="setModalUnit('g')" data-unit="g" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">g</button>
-            <button type="button" onclick="setModalUnit('L')" data-unit="L" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">L</button>
-            <button type="button" onclick="setModalUnit('ml')" data-unit="ml" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">ml</button>
-            <button type="button" onclick="setModalUnit('pcs')" data-unit="pcs" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">PCS</button>
-          </div>
-        </div>
-
-        <!-- Live Calculation Summary Card in Greenish-Blue Glow -->
-        <div class="p-3 bg-brand-secondary/10 border border-brand-secondary/30 rounded-2xl flex items-center justify-between shadow-xs">
-          <div>
-            <span class="text-[10px] text-brand-muted font-bold block">Calculated Total to Add:</span>
+        <!-- Live Calculation Summary Card -->
+        <div class="p-3.5 bg-brand-secondary/10 border border-brand-secondary/30 rounded-2xl space-y-1 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold text-brand-muted">Total Price (Incl. GST):</span>
             <span class="text-xl font-black text-brand-secondary" id="modalCalcTotal">₹0.00</span>
           </div>
-          <div class="text-right">
-            <span class="text-[10px] font-bold text-brand-muted block" id="modalBreakdown">Rate: ₹0 • Qty: 1</span>
+          <div class="text-[10px] text-brand-muted flex items-center justify-between border-t border-brand-secondary/20 pt-1">
+            <span id="modalBreakdown" class="truncate pr-1">1 pcs @ ₹0.00</span>
+            <span class="font-bold text-white whitespace-nowrap" id="modalTaxText">GST: ₹0.00</span>
           </div>
         </div>
 
-        <button type="button" onclick="confirmAddProductWithQty()" class="w-full py-3.5 bg-gradient-to-r from-teal-400 to-emerald-500 text-black font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/25 hover:opacity-95 active:scale-95 transition flex items-center justify-center gap-1.5">
-          <span class="material-symbols-outlined text-base">add_shopping_cart</span>
-          <span>CONFIRM & ADD TO BILL</span>
+        <!-- Confirm CTA Button -->
+        <button type="button" onclick="confirmAddProductWithQty()" id="modalConfirmBtn" class="w-full py-3.5 bg-gradient-to-r from-teal-400 to-emerald-500 text-black font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/25 hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-base">check_circle</span>
+          <span id="modalConfirmBtnText">CONFIRM & ADD TO BILL</span>
         </button>
       </div>
     </div>
-
-    <!-- STANDARD PLAY STORE 5-TAB BOTTOM APP NAVIGATION -->
+<!-- STANDARD PLAY STORE 5-TAB BOTTOM APP NAVIGATION -->
     <nav id="bottomNav" class="w-full bg-brand-surface/95 backdrop-blur-xl border-t border-brand-surfaceBorder px-1 py-1.5 grid grid-cols-5 items-center justify-items-center absolute bottom-0 left-0 z-30 shadow-lg">
       <button onclick="switchScreen('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-2xl text-brand-primaryContainer transition active:scale-95 w-full">
         <div class="nav-icon-pill p-1 rounded-xl flex items-center justify-center bg-brand-primary/15">
@@ -2018,7 +2016,7 @@
       if (clearBtn) clearBtn.classList.add('hidden');
     }
 
-        let currentModalProduct = null;
+            let currentModalProduct = null;
     let selectedModalUnit = 'pcs';
 
     // Helper: Detect whether a product is Liquid/Volume vs Solid/Weight
@@ -2026,17 +2024,16 @@
       const name = (product.name || '').toLowerCase();
       const unit = (product.unit || '').toLowerCase();
       
-      // Explicit base unit check
       if (unit === 'l' || unit === 'ml') {
         return 'LIQUID';
       }
 
-      // Exact whole-word regex check for liquid terminology (NEVER single letter 'l')
+      // Exact whole-word regex check for liquid terminology
       const isLiquid = /\b(milk|oil|water|juice|syrup|shampoo|drink|beverage|sauce|handwash|potion|diesel|petrol)\b/i.test(name) ||
                        name.includes('toned milk') || name.includes('sunflower oil');
 
       if (isLiquid) return 'LIQUID';
-      return 'SOLID'; // Biscuits (Parle-G, Britannia, Marie, Good Day), Rice, Atta, Butter, Maggi, Tea, Produce are SOLID (g / kg / pcs)
+      return 'SOLID'; // Biscuits (Parle-G, Britannia, Marie Gold, Good Day), Rice, Atta, Butter, Maggi, Tea are SOLID (g / kg / pcs)
     }
 
     function openQtyUnitModal(product) {
@@ -2045,72 +2042,148 @@
       
       const category = getProductPhysicalCategory(product);
       
-      // Default to appropriate unit
+      document.getElementById('modalCategoryBadge').innerText = category === 'LIQUID' ? '💧 LIQUID / BEVERAGE' : '📦 SOLID / COMMODITY';
+      document.getElementById('modalProdName').innerText = product.name;
+      document.getElementById('modalProdRate').innerText = `Base Rate: ₹${product.price.toFixed(2)} / ${product.unit || 'unit'} • GST: ${product.gst}%`;
+      
+      // Select appropriate initial unit
       if (category === 'LIQUID') {
         selectedModalUnit = (product.unit === 'l' || product.unit === 'L' || product.unit === 'ml') ? product.unit : 'pcs';
       } else {
         selectedModalUnit = (product.unit === 'kg' || product.unit === 'g') ? product.unit : 'pcs';
       }
 
-      document.getElementById('modalProdName').innerText = product.name;
-      document.getElementById('modalProdRate').innerText = `Base Rate: ₹${product.price.toFixed(2)} / ${product.unit || 'unit'} • GST: ${product.gst}%`;
-      document.getElementById('modalQtyInput').value = '1';
-      
-      // Render ONLY compatible unit buttons (No Liter for biscuits/solids, No kg for liquids)
-      renderCompatibleUnitButtons(category);
-      renderAdaptiveQuickChips(category);
-      setModalUnit(selectedModalUnit);
-      calculateModalTotal();
+      // Default logical quantity for starting unit
+      if (selectedModalUnit === 'g') document.getElementById('modalQtyInput').value = '100';
+      else if (selectedModalUnit === 'ml') document.getElementById('modalQtyInput').value = '200';
+      else document.getElementById('modalQtyInput').value = '1';
+
+      renderCompatibleUnitTabs(category);
+      setModalUnit(selectedModalUnit, false);
 
       document.getElementById('qtyUnitModal').classList.remove('hidden');
     }
 
-    function renderCompatibleUnitButtons(category) {
+    function renderCompatibleUnitTabs(category) {
       const container = document.getElementById('modalUnitButtons');
       if (!container) return;
 
       if (category === 'LIQUID') {
-        container.className = 'grid grid-cols-3 gap-1.5';
         container.innerHTML = `
-          <button type="button" onclick="setModalUnit('ml')" data-unit="ml" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">ml (Milliliter)</button>
-          <button type="button" onclick="setModalUnit('L')" data-unit="L" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">L (Liter)</button>
-          <button type="button" onclick="setModalUnit('pcs')" data-unit="pcs" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">PCS (Count)</button>
+          <button type="button" onclick="setModalUnit('ml', true)" data-unit="ml" class="unit-tab-btn py-2 px-1 text-xs font-extrabold rounded-xl transition text-center flex items-center justify-center gap-1">
+            <span>ml</span>
+          </button>
+          <button type="button" onclick="setModalUnit('L', true)" data-unit="L" class="unit-tab-btn py-2 px-1 text-xs font-extrabold rounded-xl transition text-center flex items-center justify-center gap-1">
+            <span>Liter (L)</span>
+          </button>
+          <button type="button" onclick="setModalUnit('pcs', true)" data-unit="pcs" class="unit-tab-btn py-2 px-1 text-xs font-extrabold rounded-xl transition text-center flex items-center justify-center gap-1">
+            <span>Count (PCS)</span>
+          </button>
         `;
       } else {
-        container.className = 'grid grid-cols-3 gap-1.5';
         container.innerHTML = `
-          <button type="button" onclick="setModalUnit('g')" data-unit="g" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">g (Grams)</button>
-          <button type="button" onclick="setModalUnit('kg')" data-unit="kg" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">kg (Kilogram)</button>
-          <button type="button" onclick="setModalUnit('pcs')" data-unit="pcs" class="unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition">PCS (Count)</button>
+          <button type="button" onclick="setModalUnit('g', true)" data-unit="g" class="unit-tab-btn py-2 px-1 text-xs font-extrabold rounded-xl transition text-center flex items-center justify-center gap-1">
+            <span>Gram (g)</span>
+          </button>
+          <button type="button" onclick="setModalUnit('kg', true)" data-unit="kg" class="unit-tab-btn py-2 px-1 text-xs font-extrabold rounded-xl transition text-center flex items-center justify-center gap-1">
+            <span>Kilogram (kg)</span>
+          </button>
+          <button type="button" onclick="setModalUnit('pcs', true)" data-unit="pcs" class="unit-tab-btn py-2 px-1 text-xs font-extrabold rounded-xl transition text-center flex items-center justify-center gap-1">
+            <span>Pack (PCS)</span>
+          </button>
         `;
       }
     }
 
-    function renderAdaptiveQuickChips(category) {
+    function setModalUnit(newUnit, shouldConvert = true) {
+      const prevUnit = selectedModalUnit;
+      const input = document.getElementById('modalQtyInput');
+      let currentVal = parseFloat(input.value) || 1;
+
+      // Smart numerical conversion between compatible units
+      if (shouldConvert && prevUnit !== newUnit) {
+        if (prevUnit === 'kg' && newUnit === 'g') currentVal = Math.round(currentVal * 1000);
+        else if (prevUnit === 'g' && newUnit === 'kg') currentVal = +(currentVal / 1000).toFixed(3);
+        else if (prevUnit === 'L' && newUnit === 'ml') currentVal = Math.round(currentVal * 1000);
+        else if (prevUnit === 'ml' && newUnit === 'L') currentVal = +(currentVal / 1000).toFixed(3);
+        else if (newUnit === 'g') currentVal = 100;
+        else if (newUnit === 'ml') currentVal = 200;
+        else if (newUnit === 'kg' || newUnit === 'L' || newUnit === 'pcs') currentVal = 1;
+
+        input.value = currentVal;
+      }
+
+      selectedModalUnit = newUnit;
+      document.getElementById('modalInputUnitTag').innerText = newUnit;
+      
+      const stepText = (newUnit === 'g' || newUnit === 'ml') ? 'Step: ±50' + newUnit : 'Step: ±1 ' + newUnit;
+      document.getElementById('modalInputHelperText').innerText = stepText;
+
+      // Update Unit Tab Visual States
+      document.querySelectorAll('.unit-tab-btn').forEach(btn => {
+        if (btn.getAttribute('data-unit') === newUnit) {
+          btn.className = 'unit-tab-btn py-2 px-1 text-xs font-black rounded-xl bg-brand-secondary text-black shadow-md shadow-brand-secondary/30 scale-[1.02] transition text-center flex items-center justify-center gap-1';
+        } else {
+          btn.className = 'unit-tab-btn py-2 px-1 text-xs font-bold rounded-xl text-brand-muted hover:text-white transition text-center flex items-center justify-center gap-1';
+        }
+      });
+
+      renderDynamicPresetChips(newUnit);
+      calculateModalTotal();
+    }
+
+    function renderDynamicPresetChips(unit) {
       const container = document.getElementById('modalQuickChips');
       if (!container) return;
 
-      if (category === 'LIQUID') {
-        container.innerHTML = `
-          <button type="button" onclick="setModalQty(0.5); setModalUnit('L');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">0.5 L</button>
-          <button type="button" onclick="setModalQty(1); setModalUnit('L');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">1.0 L</button>
-          <button type="button" onclick="setModalQty(2); setModalUnit('L');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">2.0 L</button>
-          <button type="button" onclick="setModalQty(200); setModalUnit('ml');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">200 ml</button>
-          <button type="button" onclick="setModalQty(500); setModalUnit('ml');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">500 ml</button>
-          <button type="button" onclick="setModalQty(1); setModalUnit('pcs');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">1 PCS</button>
-        `;
+      let chips = [];
+      if (unit === 'g') {
+        chips = [
+          { label: '+50g', val: 50 },
+          { label: '+100g', val: 100 },
+          { label: '+200g', val: 200 },
+          { label: '+250g', val: 250 },
+          { label: '+500g', val: 500 },
+          { label: '+1000g', val: 1000 }
+        ];
+      } else if (unit === 'kg') {
+        chips = [
+          { label: '0.25 kg', val: 0.25 },
+          { label: '0.5 kg', val: 0.5 },
+          { label: '1.0 kg', val: 1.0 },
+          { label: '2.0 kg', val: 2.0 },
+          { label: '5.0 kg', val: 5.0 }
+        ];
+      } else if (unit === 'ml') {
+        chips = [
+          { label: '+100 ml', val: 100 },
+          { label: '+200 ml', val: 200 },
+          { label: '+250 ml', val: 250 },
+          { label: '+500 ml', val: 500 },
+          { label: '+1000 ml', val: 1000 }
+        ];
+      } else if (unit === 'L') {
+        chips = [
+          { label: '0.5 L', val: 0.5 },
+          { label: '1.0 L', val: 1.0 },
+          { label: '2.0 L', val: 2.0 },
+          { label: '5.0 L', val: 5.0 }
+        ];
       } else {
-        container.innerHTML = `
-          <button type="button" onclick="setModalQty(0.25); setModalUnit('kg');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">0.25 kg</button>
-          <button type="button" onclick="setModalQty(0.5); setModalUnit('kg');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">0.5 kg</button>
-          <button type="button" onclick="setModalQty(1); setModalUnit('kg');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">1.0 kg</button>
-          <button type="button" onclick="setModalQty(2); setModalUnit('kg');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">2.0 kg</button>
-          <button type="button" onclick="setModalQty(100); setModalUnit('g');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">100g</button>
-          <button type="button" onclick="setModalQty(200); setModalUnit('g');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">200g</button>
-          <button type="button" onclick="setModalQty(500); setModalUnit('g');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">500g</button>
-          <button type="button" onclick="setModalQty(1); setModalUnit('pcs');" class="px-2 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[10px] font-bold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary transition">1 PCS</button>
-        `;
+        chips = [
+          { label: '1 PCS', val: 1 },
+          { label: '2 PCS', val: 2 },
+          { label: '3 PCS', val: 3 },
+          { label: '5 PCS', val: 5 },
+          { label: '10 PCS', val: 10 }
+        ];
       }
+
+      container.innerHTML = chips.map(c => `
+        <button type="button" onclick="setModalQty(${c.val})" class="px-2.5 py-1 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl text-[10px] font-extrabold text-brand-muted hover:border-brand-secondary hover:text-brand-secondary whitespace-nowrap transition">
+          ${c.label}
+        </button>
+      `).join('');
     }
 
     function closeQtyUnitModal() {
@@ -2118,29 +2191,18 @@
       currentModalProduct = null;
     }
 
-    function adjustModalQty(delta) {
+    function adjustModalQty(direction) {
       const input = document.getElementById('modalQtyInput');
       let val = parseFloat(input.value || '1');
-      const step = (selectedModalUnit === 'g' || selectedModalUnit === 'ml') ? 50 : 1;
-      val = Math.max(0.01, +(val + (delta * (selectedModalUnit === 'g' || selectedModalUnit === 'ml' ? 50 : 1))).toFixed(2));
+      const step = (selectedModalUnit === 'g' || selectedModalUnit === 'ml') ? 50 : (selectedModalUnit === 'kg' || selectedModalUnit === 'L') ? 0.25 : 1;
+      
+      val = Math.max(0.001, +(val + (direction * step)).toFixed(3));
       input.value = val;
       calculateModalTotal();
     }
 
     function setModalQty(qty) {
       document.getElementById('modalQtyInput').value = qty;
-      calculateModalTotal();
-    }
-
-    function setModalUnit(unit) {
-      selectedModalUnit = unit;
-      document.querySelectorAll('.unit-btn').forEach(btn => {
-        if (btn.getAttribute('data-unit') === unit) {
-          btn.className = 'unit-btn py-2 px-1 bg-brand-secondary text-black text-xs font-black rounded-xl text-center shadow-md shadow-brand-secondary/30 scale-[1.02] transition';
-        } else {
-          btn.className = 'unit-btn py-2 px-1 bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted text-xs font-bold rounded-xl text-center hover:text-white transition';
-        }
-      });
       calculateModalTotal();
     }
 
@@ -2154,37 +2216,50 @@
       const packWeight = nameMatch ? parseFloat(nameMatch[1]) : null;
       const packUnit = nameMatch ? nameMatch[2].toLowerCase() : null;
 
+      let formulaText = '';
+
       if (selectedModalUnit === 'g') {
         if (currentModalProduct.unit === 'kg') {
-          // Base price is per kg (e.g. Rice @ ₹95/kg)
           effectiveMultiplier = qty / 1000;
+          formulaText = `${qty} g (${effectiveMultiplier.toFixed(3)} kg @ ₹${currentModalProduct.price.toFixed(2)}/kg)`;
         } else if (packWeight && packUnit === 'g') {
-          // Product is a packaged unit with specific gram size (e.g. 100g Biscuit for ₹10)
           effectiveMultiplier = qty / packWeight;
+          formulaText = `${qty} g (${effectiveMultiplier.toFixed(2)} packs @ ₹${currentModalProduct.price.toFixed(2)}/pack)`;
         } else {
           effectiveMultiplier = qty / 1000;
+          formulaText = `${qty} g @ ₹${currentModalProduct.price.toFixed(2)}`;
         }
       } else if (selectedModalUnit === 'kg') {
         if (currentModalProduct.unit === 'g' || (packWeight && packUnit === 'g')) {
           const baseGrams = packWeight || 100;
           effectiveMultiplier = (qty * 1000) / baseGrams;
+          formulaText = `${qty} kg (${qty * 1000} g @ ₹${currentModalProduct.price.toFixed(2)}/${baseGrams}g)`;
         } else {
           effectiveMultiplier = qty;
+          formulaText = `${qty} kg @ ₹${currentModalProduct.price.toFixed(2)}/kg`;
         }
       } else if (selectedModalUnit === 'ml') {
         if (currentModalProduct.unit === 'l' || currentModalProduct.unit === 'L') {
           effectiveMultiplier = qty / 1000;
+          formulaText = `${qty} ml (${effectiveMultiplier.toFixed(3)} L @ ₹${currentModalProduct.price.toFixed(2)}/L)`;
         } else if (packWeight && packUnit === 'ml') {
           effectiveMultiplier = qty / packWeight;
+          formulaText = `${qty} ml (${effectiveMultiplier.toFixed(2)} units @ ₹${currentModalProduct.price.toFixed(2)}/unit)`;
         } else {
           effectiveMultiplier = qty / 1000;
+          formulaText = `${qty} ml @ ₹${currentModalProduct.price.toFixed(2)}`;
         }
       } else if (selectedModalUnit === 'L') {
         if (packWeight && packUnit === 'ml') {
           effectiveMultiplier = (qty * 1000) / packWeight;
+          formulaText = `${qty} L (${qty * 1000} ml @ ₹${currentModalProduct.price.toFixed(2)}/${packWeight}ml)`;
         } else {
           effectiveMultiplier = qty;
+          formulaText = `${qty} L @ ₹${currentModalProduct.price.toFixed(2)}/L`;
         }
+      } else {
+        effectiveMultiplier = qty;
+        formulaText = `${qty} ${selectedModalUnit} @ ₹${currentModalProduct.price.toFixed(2)}/unit`;
       }
 
       const baseAmount = currentModalProduct.price * effectiveMultiplier;
@@ -2192,12 +2267,19 @@
       const totalAmount = baseAmount + taxAmount;
 
       document.getElementById('modalCalcTotal').innerText = `₹${totalAmount.toFixed(2)}`;
-      document.getElementById('modalBreakdown').innerText = `${qty} ${selectedModalUnit} × Rate ₹${currentModalProduct.price.toFixed(2)}`;
+      document.getElementById('modalBreakdown').innerText = formulaText;
+      document.getElementById('modalTaxText').innerText = `GST (${currentModalProduct.gst}%): ₹${taxAmount.toFixed(2)}`;
+      
+      const confirmBtnText = document.getElementById('modalConfirmBtnText');
+      if (confirmBtnText) {
+        confirmBtnText.innerText = `CONFIRM & ADD TO BILL • ₹${totalAmount.toFixed(2)}`;
+      }
     }
 
     function confirmAddProductWithQty() {
       if (!currentModalProduct) return;
       const qty = parseFloat(document.getElementById('modalQtyInput').value || '1');
+      if (isNaN(qty) || qty <= 0) return;
       
       const existing = cart.find(i => i.barcode === currentModalProduct.barcode && i.unit === selectedModalUnit);
       if (existing) {
