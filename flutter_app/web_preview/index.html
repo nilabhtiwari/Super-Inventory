@@ -2026,11 +2026,17 @@
       const name = (product.name || '').toLowerCase();
       const unit = (product.unit || '').toLowerCase();
       
-      const liquidKeywords = ['milk', 'oil', 'liquid', 'water', 'juice', 'syrup', 'shampoo', 'beverage', 'drink', 'sauce', 'l', 'ml', 'liter', 'litre'];
-      const isLiquid = liquidKeywords.some(k => name.includes(k)) || unit === 'l' || unit === 'ml';
+      // Explicit base unit check
+      if (unit === 'l' || unit === 'ml') {
+        return 'LIQUID';
+      }
+
+      // Exact whole-word regex check for liquid terminology (NEVER single letter 'l')
+      const isLiquid = /\b(milk|oil|water|juice|syrup|shampoo|drink|beverage|sauce|handwash|potion|diesel|petrol)\b/i.test(name) ||
+                       name.includes('toned milk') || name.includes('sunflower oil');
 
       if (isLiquid) return 'LIQUID';
-      return 'SOLID'; // Default for biscuits, grocery, grains, produce, snacks
+      return 'SOLID'; // Biscuits (Parle-G, Britannia, Marie, Good Day), Rice, Atta, Butter, Maggi, Tea, Produce are SOLID (g / kg / pcs)
     }
 
     function openQtyUnitModal(product) {
