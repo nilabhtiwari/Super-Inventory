@@ -2521,19 +2521,19 @@
       let subtotal = 0;
       let totalGst = 0;
 
-      // Populate Detailed Tax Invoice Line Items
+            // Populate Detailed Tax Invoice Line Items with explicit Qty, Rate excl. GST, and GST%
       document.getElementById('rcptItemsList').innerHTML = `
         <div class="border-b border-brand-surfaceBorder pb-1 text-[9.5px] font-black uppercase text-brand-muted flex justify-between">
-          <span>Item & Measurement Details</span>
-          <span>Amount (Incl GST)</span>
+          <span>Item & Pricing Breakdown</span>
+          <span>Item Total (₹)</span>
         </div>
       ` + cart.map((i, idx) => {
         let normalizedQty = i.quantity;
         if (i.unit === 'g') normalizedQty = i.quantity / 1000;
         else if (i.unit === 'ml') normalizedQty = i.quantity / 1000;
-        else if (i.unit === 'dozen') normalizedQty = i.quantity * 12;
 
-        const lineNet = i.price * (i.unit === 'g' || i.unit === 'ml' ? normalizedQty : i.quantity);
+        const baseUnitRate = i.price;
+        const lineNet = baseUnitRate * (i.unit === 'g' || i.unit === 'ml' ? normalizedQty : i.quantity);
         const lineTax = lineNet * (i.gst / 100);
         const lineTotal = lineNet + lineTax;
 
@@ -2541,14 +2541,22 @@
         totalGst += lineTax;
 
         return `
-          <div class="py-2 border-b border-dashed border-brand-surfaceBorder/70 text-left">
+          <div class="py-2 border-b border-dashed border-brand-surfaceBorder/70 text-left space-y-0.5">
             <div class="flex justify-between items-start font-bold text-white text-xs">
               <span>${idx + 1}. ${i.name}</span>
               <span class="font-black text-brand-secondary ml-2 whitespace-nowrap">₹${lineTotal.toFixed(2)}</span>
             </div>
-            <div class="flex justify-between items-center text-[10px] text-brand-muted mt-0.5">
-              <span>Qty: <b class="text-white">${i.quantity} ${i.unit || 'pcs'}</b> @ ₹${i.price.toFixed(2)}/${i.unit || 'unit'}</span>
-              <span class="text-[9.5px]">Net: ₹${lineNet.toFixed(2)} + GST ${i.gst}% (₹${lineTax.toFixed(2)})</span>
+            
+            <!-- Explicit Quantity & Rate Without GST -->
+            <div class="flex justify-between text-[10px] text-brand-muted">
+              <span>Quantity: <b class="text-white">${i.quantity} ${i.unit || 'pcs'}</b></span>
+              <span>Rate (excl. GST): <b class="text-white">₹${baseUnitRate.toFixed(2)}/${i.unit || 'unit'}</b></span>
+            </div>
+
+            <!-- Explicit GST % and Net Taxable Breakdown -->
+            <div class="flex justify-between text-[9.5px] text-brand-muted">
+              <span>Taxable Value: ₹${lineNet.toFixed(2)}</span>
+              <span class="text-emerald-400 font-bold">GST ${i.gst}%: +₹${lineTax.toFixed(2)}</span>
             </div>
           </div>
         `;
