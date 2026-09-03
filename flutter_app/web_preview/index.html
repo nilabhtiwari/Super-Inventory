@@ -1489,7 +1489,7 @@
     </div>
 
     <!-- IN-APP CONFIRMATION MODAL (NO BROWSER POPUPS) -->
-    <div id="appConfirmModal" class="hidden absolute inset-0 bg-black/75 backdrop-blur-md z-[90] flex items-center justify-center p-4 rounded-[40px] transition-all">
+    <div id="appConfirmModal" style="display: none;" class="hidden absolute inset-0 bg-black/75 backdrop-blur-md z-[90] flex items-center justify-center p-4 rounded-[40px] transition-all">
       <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[320px] shadow-2xl text-left space-y-3 animate-in fade-in zoom-in duration-150">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400">
@@ -1513,7 +1513,7 @@
     </div>
 
     <!-- IN-APP INPUT PROMPT MODAL (NO BROWSER POPUPS) -->
-    <div id="appPromptModal" class="hidden absolute inset-0 bg-black/75 backdrop-blur-md z-[90] flex items-center justify-center p-4 rounded-[40px] transition-all">
+    <div id="appPromptModal" style="display: none;" class="hidden absolute inset-0 bg-black/75 backdrop-blur-md z-[90] flex items-center justify-center p-4 rounded-[40px] transition-all">
       <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[320px] shadow-2xl text-left space-y-3 animate-in fade-in zoom-in duration-150">
         <div class="flex items-center justify-between border-b border-brand-surfaceBorder pb-2">
           <h4 class="text-xs font-black text-white" id="promptModalTitle">Enter Details</h4>
@@ -1782,11 +1782,11 @@
       okBtn.className = `py-2.5 ${isDestructive ? 'bg-red-500 hover:bg-red-600' : 'bg-brand-primary hover:bg-brand-primaryGlow'} text-white text-xs font-black rounded-xl shadow-lg transition`;
       
       confirmModalCallback = onConfirm;
-      document.getElementById('appConfirmModal').classList.remove('hidden');
+      document.getElementById('appConfirmModal').classList.remove('hidden'); document.getElementById('appConfirmModal').style.display = 'flex';
     }
 
     function closeAppConfirm(confirmed) {
-      document.getElementById('appConfirmModal').classList.add('hidden');
+      document.getElementById('appConfirmModal').classList.add('hidden'); document.getElementById('appConfirmModal').style.display = 'none';
       if (confirmed && typeof confirmModalCallback === 'function') {
         confirmModalCallback();
       }
@@ -1800,13 +1800,13 @@
       const input = document.getElementById('promptModalInput');
       input.value = defaultValue;
       promptModalCallback = onSubmit;
-      document.getElementById('appPromptModal').classList.remove('hidden');
+      document.getElementById('appPromptModal').classList.remove('hidden'); document.getElementById('appPromptModal').style.display = 'flex';
       setTimeout(() => input.focus(), 50);
     }
 
     function submitAppPrompt() {
       const val = document.getElementById('promptModalInput').value;
-      document.getElementById('appPromptModal').classList.add('hidden');
+      document.getElementById('appPromptModal').classList.add('hidden'); document.getElementById('appPromptModal').style.display = 'none';
       if (typeof promptModalCallback === 'function') {
         promptModalCallback(val);
       }
@@ -1814,7 +1814,7 @@
     }
 
     function closeAppPrompt() {
-      document.getElementById('appPromptModal').classList.add('hidden');
+      document.getElementById('appPromptModal').classList.add('hidden'); document.getElementById('appPromptModal').style.display = 'none';
       promptModalCallback = null;
     }
 
@@ -2611,7 +2611,6 @@
           showAppToast('Cleared all items from bill', 'delete_sweep');
         }
       });
-    }
     }
 
     function setPaymentMethod(mode) {
