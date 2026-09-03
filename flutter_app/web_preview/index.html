@@ -204,6 +204,12 @@
     #smartphoneWrapper.theme-light .bg-red-500 {
       color: #FFFFFF !important;
     }
+  
+    /* CRITICAL: Enforce hidden display none over flex / grid */
+    .hidden {
+      display: none !important;
+    }
+
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start p-2 sm:p-6 bg-black text-white">
@@ -277,8 +283,8 @@
     <!-- ============================================================ -->
     <!-- SLIDING STORE PROFILE & MULTI-STORE SIDE DRAWER (INSIDE PHONE) -->
     <!-- ============================================================ -->
-    <div id="storeDrawerOverlay" onclick="toggleStoreDrawer()" class="hidden absolute inset-0 bg-black/75 backdrop-blur-sm z-40 transition-opacity rounded-[36px]"></div>
-    <div id="storeSideDrawer" class="hidden absolute top-0 left-0 bottom-0 w-[270px] bg-brand-surface border-r border-brand-surfaceBorder z-50 p-5 flex flex-col justify-between shadow-2xl overflow-y-auto rounded-l-[36px]">
+    <div id="storeDrawerOverlay" style="display: none;" onclick="toggleStoreDrawer()" class="hidden absolute inset-0 bg-black/75 backdrop-blur-sm z-40 transition-opacity rounded-[36px]"></div>
+    <div id="storeSideDrawer" style="display: none;" class="hidden absolute top-0 left-0 bottom-0 w-[270px] bg-brand-surface border-r border-brand-surfaceBorder z-50 p-5 flex flex-col justify-between shadow-2xl overflow-y-auto rounded-l-[36px]">
       <div class="space-y-4 text-left">
         <div class="flex items-center justify-between pb-3 border-b border-brand-surfaceBorder">
           <div class="flex items-center gap-2.5">
@@ -1354,7 +1360,7 @@
       <!-- ============================================================ -->
       <!-- 10. 6-DIGIT OTP VERIFICATION MODAL -->
       <!-- ============================================================ -->
-      <div id="otpModal" class="hidden absolute inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end p-4">
+      <div id="otpModal" style="display: none;" class="hidden absolute inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end p-4">
         <div class="bg-brand-surface border border-brand-surfaceBorder p-6 rounded-3xl space-y-4 text-center shadow-2xl">
           <div class="w-12 h-12 rounded-full bg-brand-primary/20 border border-brand-primaryContainer text-brand-primaryContainer flex items-center justify-center mx-auto">
             <span class="material-symbols-outlined text-2xl">mark_email_read</span>
@@ -1696,7 +1702,7 @@
       document.getElementById('settingsUserEmail').innerText = identifier;
 
       // Show OTP Verification Modal
-      document.getElementById('otpModal').classList.remove('hidden');
+      const om = document.getElementById('otpModal'); om.classList.remove('hidden'); om.style.display = 'flex';
     }
 
     function verifyOtpAndLogin() {
@@ -1729,7 +1735,7 @@
     }
 
     function closeOtpModal() {
-      document.getElementById('otpModal').classList.add('hidden');
+      const om = document.getElementById('otpModal'); om.classList.add('hidden'); om.style.display = 'none';
     }
 
     function handleGoogleSignIn() {
@@ -2033,11 +2039,11 @@
       setModalUnit(selectedModalUnit);
       calculateModalTotal();
 
-      document.getElementById('qtyUnitModal').classList.remove('hidden');
+      const qm = document.getElementById('qtyUnitModal'); qm.classList.remove('hidden'); qm.style.display = 'flex';
     }
 
     function closeQtyUnitModal() {
-      document.getElementById('qtyUnitModal').classList.add('hidden');
+      const qm = document.getElementById('qtyUnitModal'); qm.classList.add('hidden'); qm.style.display = 'none';
       currentModalProduct = null;
     }
 
@@ -2286,11 +2292,11 @@
         });
       }
 
-      document.getElementById('paymentModal').classList.remove('hidden');
+      const pm = document.getElementById('paymentModal'); pm.classList.remove('hidden'); pm.style.display = 'flex';
     }
 
     function closePaymentModal() {
-      document.getElementById('paymentModal').classList.add('hidden');
+      const pm = document.getElementById('paymentModal'); pm.classList.add('hidden'); pm.style.display = 'none';
     }
 
     function selectPaymentTab(mode) {
