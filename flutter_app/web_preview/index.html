@@ -2290,7 +2290,7 @@
 
 
 
-        function promptCustomScan(missingBarcode = '') {
+            function promptCustomScan(missingBarcode = '') {
       const name = prompt('Enter Item Name & Variant (e.g. Parle-G 50g or Loose Sugar):', missingBarcode ? `Product (${missingBarcode})` : 'Parle-G 50g');
       if (!name) return;
       const price = parseFloat(prompt('Enter Selling Price (₹):', '5.00') || '0');
@@ -2313,9 +2313,6 @@
       } else {
         scanProduct(newProd.barcode);
       }
-    };
-      sampleProducts.push(newProd);
-      scanProduct(newProd.barcode);
     }
 
     function updateCartQty(index, delta) {
