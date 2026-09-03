@@ -490,20 +490,20 @@
             <span class="text-brand-secondary">3-Tier Lookup Active</span>
           </div>
           <div class="flex gap-1.5 overflow-x-auto custom-scroll pb-1">
+            <button onclick="scanProduct('8901030762100')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
+              + Parle-G 100g (₹10)
+            </button>
             <button onclick="scanProduct('8901030762512')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
-              + Parle-G (₹80)
+              + Parle-G 800g (₹80)
             </button>
-            <button onclick="scanProduct('8901058000491')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
-              + Amul Butter (₹275)
+            <button onclick="scanProduct('8901058000100')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
+              + Amul 100g (₹58)
             </button>
-            <button onclick="scanProduct('8901058852236')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
-              + Maggi (₹60)
-            </button>
-            <button onclick="scanProduct('8901719106361')" class="px-2.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-primary/30 border border-brand-surfaceBorder rounded-xl text-[11px] font-bold text-brand-primaryContainer whitespace-nowrap">
-              + Tata Tea (₹155)
+            <button onclick="scanProduct('8901234567890')" class="px-2.5 py-1.5 bg-brand-secondary/15 hover:bg-brand-secondary/30 border border-brand-secondary/40 rounded-xl text-[11px] font-bold text-brand-secondary whitespace-nowrap">
+              + Rice (₹95/kg)
             </button>
             <button onclick="promptCustomScan()" class="px-2.5 py-1.5 bg-brand-tertiary/20 hover:bg-brand-tertiary/30 border border-brand-tertiary/40 rounded-xl text-[11px] font-bold text-brand-tertiary whitespace-nowrap">
-              + Quick Add
+              + Manual Item
             </button>
           </div>
         </div>
@@ -516,32 +516,30 @@
           <div id="cartItemsContainer" class="space-y-2 max-h-80 min-h-[120px] overflow-y-auto custom-scroll pr-1"></div>
         </div>
 
-        <div class="bg-brand-surface border border-brand-surfaceBorder p-4 rounded-3xl space-y-3">
-          <div class="space-y-1 text-xs">
-            <div class="flex justify-between text-brand-muted">
-              <span>Subtotal:</span>
-              <span id="cartSubtotalText" class="text-white font-semibold">₹0.00</span>
+        <!-- STREAMLINED COMPACT SUMMARY & GENERATE BILL TRIGGER -->
+        <div class="bg-brand-surface border border-brand-surfaceBorder p-3.5 rounded-2xl space-y-3 shadow-lg">
+          <div class="flex items-center justify-between text-xs pb-2 border-b border-brand-surfaceBorder">
+            <div class="flex items-center gap-3">
+              <div>
+                <span class="text-brand-muted text-[10px] block leading-none">Subtotal</span>
+                <span id="cartSubtotalText" class="text-white font-bold text-xs mt-0.5">₹0.00</span>
+              </div>
+              <div class="h-5 w-[1px] bg-brand-surfaceBorder"></div>
+              <div>
+                <span class="text-brand-muted text-[10px] block leading-none">GST Tax</span>
+                <span id="cartGstText" class="text-white font-bold text-xs mt-0.5">₹0.00</span>
+              </div>
             </div>
-            <div class="flex justify-between text-brand-muted">
-              <span>GST (CGST + SGST):</span>
-              <span id="cartGstText" class="text-white font-semibold">₹0.00</span>
-            </div>
-            <div class="border-t border-brand-surfaceBorder pt-2 flex justify-between items-baseline">
-              <span class="text-xs font-bold text-brand-muted uppercase">Grand Total:</span>
-              <span id="cartGrandTotalText" class="text-2xl font-black text-brand-secondary">₹0.00</span>
+            <div class="text-right">
+              <span class="text-brand-muted text-[10px] block leading-none uppercase font-extrabold">Final Amount</span>
+              <span id="cartGrandTotalText" class="text-xl font-black text-brand-secondary leading-none mt-0.5">₹0.00</span>
             </div>
           </div>
 
-          <div class="grid grid-cols-4 gap-1.5 pt-1">
-            <button onclick="setPaymentMethod('CASH')" id="pay-cash" class="py-1.5 bg-brand-primary text-white text-[10px] font-bold rounded-xl border border-brand-primary">CASH</button>
-            <button onclick="setPaymentMethod('UPI')" id="pay-upi" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">UPI QR</button>
-            <button onclick="setPaymentMethod('CARD')" id="pay-card" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">CARD</button>
-            <button onclick="setPaymentMethod('SPLIT')" id="pay-split" class="py-1.5 bg-brand-surfaceElevated text-brand-muted text-[10px] font-bold rounded-xl border border-brand-surfaceBorder">SPLIT</button>
-          </div>
-
-          <button onclick="completeCheckout()" id="checkoutBtn" class="w-full py-3.5 bg-brand-secondary text-black font-extrabold text-sm rounded-2xl hover:bg-emerald-400 active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-lg shadow-brand-secondary/20">
-            <span class="material-symbols-outlined text-lg">check_circle</span>
-            PAY & GENERATE INVOICE
+          <!-- 1-Tap Proceed to Payment Window -->
+          <button onclick="openPaymentModal()" id="checkoutBtn" class="w-full py-3 bg-gradient-to-r from-teal-400 to-emerald-500 text-black font-black text-xs rounded-xl hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+            <span class="material-symbols-outlined text-base">receipt_long</span>
+            <span>GENERATE BILL & PROCEED TO PAYMENT</span>
           </button>
         </div>
       </div>
@@ -1382,6 +1380,106 @@
 
     </div>
 
+    <!-- DEDICATED IN-APP PAYMENT WINDOW (POPS UP ON GENERATE BILL) -->
+    <div id="paymentModal" class="hidden absolute inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-3.5 rounded-[40px] transition-all">
+      <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[345px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in duration-150">
+        <!-- Header -->
+        <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-3">
+          <div>
+            <span class="text-[9.5px] font-black text-brand-secondary uppercase tracking-widest flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-brand-secondary animate-pulse"></span>
+              Payment Checkout
+            </span>
+            <h3 class="text-xs font-bold text-white mt-0.5">Select Payment Mode</h3>
+          </div>
+          <button onclick="closePaymentModal()" class="w-8 h-8 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted hover:text-white transition flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+        <!-- Total Payable Amount Hero -->
+        <div class="p-3 bg-brand-secondary/10 border border-brand-secondary/30 rounded-2xl flex items-center justify-between shadow-xs">
+          <div>
+            <span class="text-[10px] text-brand-muted font-bold block">Total Amount Payable:</span>
+            <span class="text-2xl font-black text-brand-secondary" id="paymentModalTotalText">₹0.00</span>
+          </div>
+          <span class="px-2 py-1 rounded-lg bg-brand-surfaceElevated border border-brand-surfaceBorder text-[10px] font-bold text-brand-muted" id="paymentModalItemsBadge">0 Items</span>
+        </div>
+
+        <!-- Payment Method Grid (Cash, UPI QR, Card, Split) -->
+        <div class="grid grid-cols-4 gap-1.5" id="paymentModeTabs">
+          <button type="button" onclick="selectPaymentTab('CASH')" id="tab-pay-cash" class="pay-tab-btn py-2 px-1 rounded-xl bg-brand-secondary text-black font-black text-[10px] flex flex-col items-center gap-1 shadow-md shadow-brand-secondary/30 transition">
+            <span class="material-symbols-outlined text-base">payments</span>
+            <span>CASH</span>
+          </button>
+          <button type="button" onclick="selectPaymentTab('UPI')" id="tab-pay-upi" class="pay-tab-btn py-2 px-1 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted font-bold text-[10px] flex flex-col items-center gap-1 hover:text-white transition">
+            <span class="material-symbols-outlined text-base">qr_code_2</span>
+            <span>UPI QR</span>
+          </button>
+          <button type="button" onclick="selectPaymentTab('CARD')" id="tab-pay-card" class="pay-tab-btn py-2 px-1 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted font-bold text-[10px] flex flex-col items-center gap-1 hover:text-white transition">
+            <span class="material-symbols-outlined text-base">credit_card</span>
+            <span>CARD</span>
+          </button>
+          <button type="button" onclick="selectPaymentTab('SPLIT')" id="tab-pay-split" class="pay-tab-btn py-2 px-1 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted font-bold text-[10px] flex flex-col items-center gap-1 hover:text-white transition">
+            <span class="material-symbols-outlined text-base">call_split</span>
+            <span>SPLIT</span>
+          </button>
+        </div>
+
+        <!-- Contextual Payment Details Panel -->
+        <!-- 1. Cash Calculator -->
+        <div id="panel-pay-cash" class="space-y-2 p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl">
+          <div class="flex justify-between items-center text-[10px] font-bold text-brand-muted">
+            <span>Cash Tendered / Received (₹):</span>
+            <span class="text-emerald-400 font-extrabold" id="cashChangeText">Change: ₹0.00</span>
+          </div>
+          <input type="number" id="cashReceivedInput" oninput="calculateCashChange()" placeholder="Enter received amount..." class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-3 py-2 text-sm font-bold text-white outline-none focus:border-brand-secondary" />
+          <div class="flex gap-1.5 flex-wrap">
+            <button type="button" onclick="quickCashAmount('exact')" class="px-2 py-0.5 rounded-lg bg-brand-surface border border-brand-surfaceBorder text-[10px] font-bold text-brand-muted hover:text-white">Exact</button>
+            <button type="button" onclick="quickCashAmount(100)" class="px-2 py-0.5 rounded-lg bg-brand-surface border border-brand-surfaceBorder text-[10px] font-bold text-brand-muted hover:text-white">₹100</button>
+            <button type="button" onclick="quickCashAmount(200)" class="px-2 py-0.5 rounded-lg bg-brand-surface border border-brand-surfaceBorder text-[10px] font-bold text-brand-muted hover:text-white">₹200</button>
+            <button type="button" onclick="quickCashAmount(500)" class="px-2 py-0.5 rounded-lg bg-brand-surface border border-brand-surfaceBorder text-[10px] font-bold text-brand-muted hover:text-white">₹500</button>
+            <button type="button" onclick="quickCashAmount(2000)" class="px-2 py-0.5 rounded-lg bg-brand-surface border border-brand-surfaceBorder text-[10px] font-bold text-brand-muted hover:text-white">₹2000</button>
+          </div>
+        </div>
+
+        <!-- 2. UPI QR Code Preview -->
+        <div id="panel-pay-upi" class="hidden p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl flex flex-col items-center text-center space-y-1.5">
+          <div class="p-2 bg-white rounded-xl shadow-md" id="paymentModalQrCanvas"></div>
+          <p class="text-[10px] font-mono text-brand-muted" id="paymentModalUpiText">superinventory@upi</p>
+          <span class="text-[9.5px] font-bold text-emerald-400">● Dynamic Auto-Reconciled UPI QR</span>
+        </div>
+
+        <!-- 3. Card POS Swipe -->
+        <div id="panel-pay-card" class="hidden p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl space-y-2 text-center">
+          <span class="material-symbols-outlined text-2xl text-brand-primaryContainer">contactless</span>
+          <p class="text-[11px] font-bold text-white">Tap / Insert Customer Card</p>
+          <input type="text" id="cardAuthRef" placeholder="Optional Transaction / Approval Code" value="TXN-APP-8842" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2.5 py-1.5 text-xs text-white outline-none" />
+        </div>
+
+        <!-- 4. Split Payment Calculator -->
+        <div id="panel-pay-split" class="hidden p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl space-y-2">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[9.5px] font-bold text-brand-muted block mb-0.5">Cash Part (₹):</label>
+              <input type="number" id="splitCashInput" oninput="calculateSplitBalance()" value="0" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2 py-1.5 text-xs font-bold text-white outline-none focus:border-brand-secondary" />
+            </div>
+            <div>
+              <label class="text-[9.5px] font-bold text-brand-muted block mb-0.5">UPI / Card Part (₹):</label>
+              <input type="number" id="splitDigitalInput" oninput="calculateSplitBalance()" value="0" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2 py-1.5 text-xs font-bold text-white outline-none focus:border-brand-secondary" />
+            </div>
+          </div>
+          <p class="text-[10px] text-brand-muted text-center" id="splitStatusText">Total Split must equal payable amount.</p>
+        </div>
+
+        <!-- Confirm Action -->
+        <button type="button" onclick="finalizeBillPayment()" class="w-full py-3 bg-gradient-to-r from-teal-400 to-emerald-500 text-black font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/20 hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-1.5">
+          <span class="material-symbols-outlined text-base">check_circle</span>
+          <span>CONFIRM PAYMENT & ISSUE INVOICE</span>
+        </button>
+      </div>
+    </div>
+
     <!-- IN-APP QUANTITY & MEASUREMENT UNIT SELECTOR MODAL (KG / LITER / PCS) -->
     <div id="qtyUnitModal" class="hidden absolute inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 rounded-[40px] transition-all">
       <div class="bg-brand-surface border border-brand-surfaceBorder rounded-3xl p-5 w-full max-w-[340px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in duration-200">
@@ -1491,17 +1589,22 @@
   </div>
 
   <script>
-    const sampleProducts = [
-      { id: 1, barcode: '8901030762512', name: 'Parle-G Gold Biscuits 800g', price: 80.0, gst: 5.0, qty: 120, unit: 'pack' },
-      { id: 2, barcode: '8901058000491', name: 'Amul Butter 500g', price: 275.0, gst: 12.0, qty: 45, unit: 'pack' },
-      { id: 3, barcode: '8901058852236', name: 'Maggi 2-Min Masala Noodles 280g', price: 60.0, gst: 18.0, qty: 80, unit: 'pack' },
-      { id: 4, barcode: '8901719106361', name: 'Tata Tea Gold 250g', price: 155.0, gst: 5.0, qty: 60, unit: 'pack' },
-      { id: 5, barcode: '8901030383847', name: 'Dettol Liquid Handwash 200ml', price: 99.0, gst: 18.0, qty: 8, unit: 'pcs' },
-      { id: 6, barcode: '8901234567890', name: 'Fresh Premium Basmati Rice', price: 95.0, gst: 0.0, qty: 250, unit: 'kg' },
-      { id: 7, barcode: '8901234567891', name: 'Amul Taaza Toned Milk', price: 56.0, gst: 0.0, qty: 90, unit: 'L' },
-      { id: 8, barcode: '8901234567892', name: 'Farm Fresh Organic Potatoes', price: 30.0, gst: 0.0, qty: 180, unit: 'kg' },
-      { id: 9, barcode: '8901234567893', name: 'Fortune Sunlite Sunflower Oil', price: 165.0, gst: 5.0, qty: 40, unit: 'L' },
-      { id: 10, barcode: '8901234567894', name: 'Aashirvaad Superior MP Atta', price: 48.0, gst: 0.0, qty: 300, unit: 'kg' }
+        const sampleProducts = [
+      { id: 1, barcode: '8901030762050', name: 'Parle-G Glucose Biscuits 50g', price: 5.0, gst: 5.0, qty: 200, unit: 'pcs' },
+      { id: 2, barcode: '8901030762100', name: 'Parle-G Glucose Biscuits 100g', price: 10.0, gst: 5.0, qty: 150, unit: 'pcs' },
+      { id: 3, barcode: '8901030762250', name: 'Parle-G Gold Biscuits 250g', price: 30.0, gst: 5.0, qty: 80, unit: 'pcs' },
+      { id: 4, barcode: '8901030762512', name: 'Parle-G Gold Biscuits 800g (Family Pack)', price: 80.0, gst: 5.0, qty: 120, unit: 'pcs' },
+      { id: 5, barcode: '8901058000100', name: 'Amul Butter 100g', price: 58.0, gst: 12.0, qty: 60, unit: 'pcs' },
+      { id: 6, barcode: '8901058000491', name: 'Amul Butter 500g', price: 275.0, gst: 12.0, qty: 45, unit: 'pcs' },
+      { id: 7, barcode: '8901058852070', name: 'Maggi 2-Min Masala Noodles 70g (Single)', price: 14.0, gst: 18.0, qty: 100, unit: 'pcs' },
+      { id: 8, barcode: '8901058852236', name: 'Maggi 2-Min Masala Noodles 280g (4-Pack)', price: 60.0, gst: 18.0, qty: 80, unit: 'pcs' },
+      { id: 9, barcode: '8901719106361', name: 'Tata Tea Gold 250g', price: 155.0, gst: 5.0, qty: 60, unit: 'pcs' },
+      { id: 10, barcode: '8901030383847', name: 'Dettol Liquid Handwash 200ml', price: 99.0, gst: 18.0, qty: 8, unit: 'pcs' },
+      { id: 11, barcode: '8901234567890', name: 'Fresh Premium Basmati Rice', price: 95.0, gst: 0.0, qty: 250, unit: 'kg' },
+      { id: 12, barcode: '8901234567891', name: 'Amul Taaza Toned Milk', price: 56.0, gst: 0.0, qty: 90, unit: 'L' },
+      { id: 13, barcode: '8901234567892', name: 'Farm Fresh Organic Potatoes', price: 30.0, gst: 0.0, qty: 180, unit: 'kg' },
+      { id: 14, barcode: '8901234567893', name: 'Fortune Sunlite Sunflower Oil', price: 165.0, gst: 5.0, qty: 40, unit: 'L' },
+      { id: 15, barcode: '8901234567894', name: 'Aashirvaad Superior MP Atta', price: 48.0, gst: 0.0, qty: 300, unit: 'kg' }
     ];
 
     let cart = [];
@@ -2099,6 +2202,120 @@
       document.getElementById('cartSubtotalText').innerText = `₹${subtotal.toFixed(2)}`;
       document.getElementById('cartGstText').innerText = `₹${totalGst.toFixed(2)}`;
       document.getElementById('cartGrandTotalText').innerText = `₹${grandTotal.toFixed(2)}`;
+    }
+
+        let activePayMode = 'CASH';
+    let currentPayableGrandTotal = 0;
+
+    function openPaymentModal() {
+      if (cart.length === 0) {
+        alert('Please add products to the bill first!');
+        return;
+      }
+
+      let subtotal = 0;
+      let totalGst = 0;
+      cart.forEach(i => {
+        let normalizedQty = i.quantity;
+        if (i.unit === 'g' || i.unit === 'ml') normalizedQty = i.quantity / 1000;
+        const lineNet = i.price * normalizedQty;
+        subtotal += lineNet;
+        totalGst += lineNet * (i.gst / 100);
+      });
+      currentPayableGrandTotal = subtotal + totalGst;
+
+      document.getElementById('paymentModalTotalText').innerText = `₹${currentPayableGrandTotal.toFixed(2)}`;
+      document.getElementById('paymentModalItemsBadge').innerText = `${cart.reduce((s, i) => s + i.quantity, 0)} Items`;
+      document.getElementById('cashReceivedInput').value = currentPayableGrandTotal.toFixed(0);
+      
+      calculateCashChange();
+      selectPaymentTab('CASH');
+
+      // Generate Dynamic QR inside payment modal
+      const qrEl = document.getElementById('paymentModalQrCanvas');
+      if (qrEl) {
+        qrEl.innerHTML = '';
+        const invNo = `INV-${Date.now().toString().slice(-6)}`;
+        const upiUrl = `upi://pay?pa=superinventory@upi&pn=Super+Inventory&am=${currentPayableGrandTotal.toFixed(2)}&tn=${invNo}&cu=INR`;
+        new QRCode(qrEl, {
+          text: upiUrl,
+          width: 120,
+          height: 120,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+
+      document.getElementById('paymentModal').classList.remove('hidden');
+    }
+
+    function closePaymentModal() {
+      document.getElementById('paymentModal').classList.add('hidden');
+    }
+
+    function selectPaymentTab(mode) {
+      activePayMode = mode;
+      paymentMode = mode;
+
+      ['CASH', 'UPI', 'CARD', 'SPLIT'].forEach(m => {
+        const btn = document.getElementById(`tab-pay-${m.toLowerCase()}`);
+        const panel = document.getElementById(`panel-pay-${m.toLowerCase()}`);
+        if (btn) {
+          if (m === mode) {
+            btn.className = 'pay-tab-btn py-2 px-1 rounded-xl bg-brand-secondary text-black font-black text-[10px] flex flex-col items-center gap-1 shadow-md shadow-brand-secondary/30 scale-[1.02] transition';
+          } else {
+            btn.className = 'pay-tab-btn py-2 px-1 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-muted font-bold text-[10px] flex flex-col items-center gap-1 hover:text-white transition';
+          }
+        }
+        if (panel) {
+          if (m === mode) panel.classList.remove('hidden');
+          else panel.classList.add('hidden');
+        }
+      });
+
+      if (mode === 'SPLIT') {
+        const half = +(currentPayableGrandTotal / 2).toFixed(2);
+        document.getElementById('splitCashInput').value = half;
+        document.getElementById('splitDigitalInput').value = +(currentPayableGrandTotal - half).toFixed(2);
+        calculateSplitBalance();
+      }
+    }
+
+    function calculateCashChange() {
+      const rec = parseFloat(document.getElementById('cashReceivedInput').value || '0');
+      const change = Math.max(0, rec - currentPayableGrandTotal);
+      document.getElementById('cashChangeText').innerText = `Change: ₹${change.toFixed(2)}`;
+    }
+
+    function quickCashAmount(val) {
+      if (val === 'exact') {
+        document.getElementById('cashReceivedInput').value = currentPayableGrandTotal.toFixed(2);
+      } else {
+        document.getElementById('cashReceivedInput').value = val;
+      }
+      calculateCashChange();
+    }
+
+    function calculateSplitBalance() {
+      const cash = parseFloat(document.getElementById('splitCashInput').value || '0');
+      const dig = parseFloat(document.getElementById('splitDigitalInput').value || '0');
+      const sum = cash + dig;
+      const diff = +(currentPayableGrandTotal - sum).toFixed(2);
+      const statusEl = document.getElementById('splitStatusText');
+
+      if (Math.abs(diff) < 0.01) {
+        statusEl.innerHTML = `<span class="text-emerald-400 font-bold">✓ Split Matches Exactly: ₹${cash.toFixed(2)} Cash + ₹${dig.toFixed(2)} Digital</span>`;
+      } else if (diff > 0) {
+        statusEl.innerHTML = `<span class="text-amber-400 font-bold">⚠️ ₹${diff.toFixed(2)} remaining to balance.</span>`;
+      } else {
+        statusEl.innerHTML = `<span class="text-red-400 font-bold">⚠️ Over by ₹${Math.abs(diff).toFixed(2)}.</span>`;
+      }
+    }
+
+    function finalizeBillPayment() {
+      closePaymentModal();
+      completeCheckout();
     }
 
     function completeCheckout() {
