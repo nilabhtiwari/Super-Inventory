@@ -48,7 +48,7 @@ app.use(errorHandler);
 const start = async () => {
   await testConnection();
   app.listen(PORT, () => {
-    logger.info(`🚀 QEXmanage API running on http://localhost:${PORT}`);
+    logger.info(`🚀 Super Inventory API running on http://localhost:${PORT}`);
     logger.info(`📦 Environment: ${process.env.NODE_ENV}`);
   });
 };

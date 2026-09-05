@@ -25,7 +25,7 @@ A production-ready **Smart POS & Inventory Management Application** built with *
 ## Project Structure
 
 ```
-QEXmanage1/
+super-inventory/
 ├── backend/          Node.js + Express REST API
 │   ├── sql/          MySQL schema
 │   ├── src/

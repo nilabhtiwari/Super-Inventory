@@ -3,13 +3,13 @@ version: '3.9'
 services:
   mysql:
     image: mysql:8.0
-    container_name: qexmanage_mysql
+    container_name: super_inventory_mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: qexmanage_pos
-      MYSQL_USER: qexmanage
-      MYSQL_PASSWORD: qexmanage_pass
+      MYSQL_DATABASE: super_inventory_pos
+      MYSQL_USER: super_inventory
+      MYSQL_PASSWORD: super_inventory_pass
     ports:
       - '3306:3306'
     volumes:
@@ -17,7 +17,7 @@ services:
       - ./backend/sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-time-zone='+05:30'
     healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'qexmanage', '-pqexmanage_pass']
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'super_inventory', '-psuper_inventory_pass']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,7 +26,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: qexmanage_api
+    container_name: super_inventory_api
     restart: unless-stopped
     env_file: ./backend/.env
     environment:

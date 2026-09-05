@@ -1,14 +1,14 @@
 -- ============================================================
--- QEXmanage POS — MySQL Database Schema
+-- Super Inventory POS — MySQL Database Schema
 -- ============================================================
 -- Run: mysql -u root -p < schema.sql
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS qexmanage_pos
+CREATE DATABASE IF NOT EXISTS super_inventory_pos
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE qexmanage_pos;
+USE super_inventory_pos;
 
 -- ============================================================
 -- 1. SELLERS (users / staff)

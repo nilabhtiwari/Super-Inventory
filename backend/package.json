@@ -1,7 +1,7 @@
 {
-  "name": "qexmanage-backend",
+  "name": "super-inventory-backend",
   "version": "1.0.0",
-  "description": "QEXmanage POS Backend API",
+  "description": "Super Inventory POS Backend API",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

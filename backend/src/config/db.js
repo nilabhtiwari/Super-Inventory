@@ -4,9 +4,9 @@ const mysql = require('mysql2/promise');
 const pool = mysql.createPool({
   host:     process.env.DB_HOST     || 'localhost',
   port:     parseInt(process.env.DB_PORT || '3306'),
-  user:     process.env.DB_USER     || 'qexmanage',
-  password: process.env.DB_PASSWORD || 'qexmanage_pass',
-  database: process.env.DB_NAME     || 'qexmanage_pos',
+  user:     process.env.DB_USER     || 'super_inventory',
+  password: process.env.DB_PASSWORD || 'super_inventory_pass',
+  database: process.env.DB_NAME     || 'super_inventory_pos',
   waitForConnections: true,
   connectionLimit:    20,
   queueLimit:         0,
