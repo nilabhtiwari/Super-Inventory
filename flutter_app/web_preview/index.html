@@ -1429,19 +1429,19 @@
           <div id="authSignupFields" class="hidden space-y-2">
             <div>
               <label class="text-[10px] font-bold text-brand-muted block mb-1">Store / Business Name</label>
-              <input type="text" id="authStoreName" placeholder="E.g. Super Inventory Store" value="Super Inventory Store" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+              <input type="text" id="authStoreName" placeholder="E.g. My Fresh Supermarket" value="" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
             </div>
             <div>
               <label class="text-[10px] font-bold text-brand-muted block mb-1">Mobile Phone Number (For OTP Verification)</label>
-              <input type="tel" id="authSignupPhone" placeholder="+91 9876543210" value="+91 9876543210" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+              <input type="tel" id="authSignupPhone" placeholder="+91 9876543210" value="" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
             </div>
           </div>
 
           <!-- Identifier (Email / Phone Number) -->
           <div class="space-y-2">
             <div>
-              <label class="text-[10px] font-semibold text-brand-muted block mb-1" id="authIdentifierLabel">Email / Phone Number</label>
-              <input type="text" id="authEmailInput" placeholder="Enter Email / Phone Number" value="merchant@gmail.com" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+              <label class="text-[10px] font-semibold text-brand-muted block mb-1" id="authIdentifierLabel">Registered Email or Phone Number</label>
+              <input type="text" id="authEmailInput" placeholder="Enter Email or Phone Number" value="" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
               <p id="emailErrorText" class="hidden text-[10px] text-red-400 font-bold mt-1">Please enter your email or phone number</p>
             </div>
 
@@ -1452,7 +1452,7 @@
                 <button onclick="setAuthView('forgot')" class="text-[10px] text-brand-primaryContainer font-bold hover:underline">Forgot Password?</button>
               </div>
               <div class="relative">
-                <input type="password" id="authPasswordInput" value="Merchant@1234" placeholder="Enter password" class="w-full bg-[#181B29] border border-white/10 rounded-xl pl-3 pr-10 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+                <input type="password" id="authPasswordInput" value="" placeholder="Enter password" class="w-full bg-[#181B29] border border-white/10 rounded-xl pl-3 pr-10 py-2 text-xs text-white outline-none focus:border-brand-primary" />
                 <button type="button" onclick="togglePasswordVisibility('authPasswordInput', 'authPwEyeIcon')" class="absolute right-3 top-2 text-brand-muted hover:text-white transition flex items-center">
                   <span class="material-symbols-outlined text-base" id="authPwEyeIcon">visibility_off</span>
                 </button>
@@ -1469,6 +1469,14 @@
                 </button>
               </div>
             </div>
+          </div>
+
+                    <!-- Quick Test / Demo Credentials Chip -->
+          <div class="flex items-center justify-between px-1 pt-1 pb-0.5" id="demoAccountChipRow">
+            <span class="text-[9.5px] text-brand-muted">Quick Testing?</span>
+            <button type="button" onclick="fillDemoMerchantCredentials()" class="text-[10px] font-bold text-amber-300 hover:text-amber-200 flex items-center gap-1 bg-amber-400/10 px-2 py-0.5 rounded-lg border border-amber-400/20">
+              <span class="material-symbols-outlined text-xs">vpn_key</span> Fill Demo Account
+            </button>
           </div>
 
           <!-- Submit Button -->
@@ -2095,6 +2103,12 @@
 
     let currentAuthMode = 'login'; // 'login', 'signup', 'forgot'
 
+        function fillDemoMerchantCredentials() {
+      document.getElementById('authEmailInput').value = 'merchant@gmail.com';
+      document.getElementById('authPasswordInput').value = 'Merchant@1234';
+      showAppToast('✓ Demo credentials loaded: merchant@gmail.com', 'info');
+    }
+
     function setAuthView(mode) {
       currentAuthMode = mode;
       const tabHeader = document.getElementById('authTabHeader');
@@ -2108,6 +2122,11 @@
       const biometricBtn = document.getElementById('authBiometricBtn');
       const label = document.getElementById('authIdentifierLabel');
       const emailInput = document.getElementById('authEmailInput');
+      const pwInput = document.getElementById('authPasswordInput');
+      const demoRow = document.getElementById('demoAccountChipRow');
+
+      // Clear field errors
+      document.getElementById('emailErrorText')?.classList.add('hidden');
 
       if (mode === 'login') {
         tabHeader.classList.remove('hidden');
@@ -2118,6 +2137,7 @@
         pwGroup.classList.remove('hidden');
         newPwGroup.classList.add('hidden');
         biometricBtn.classList.remove('hidden');
+        if (demoRow) demoRow.classList.remove('hidden');
         label.innerText = 'Registered Email or Phone Number';
         emailInput.placeholder = 'Enter Email or Phone Number';
         submitText.innerText = 'Sign In (Instant Password Verification)';
@@ -2130,9 +2150,14 @@
         pwGroup.classList.remove('hidden');
         newPwGroup.classList.add('hidden');
         biometricBtn.classList.add('hidden');
+        if (demoRow) demoRow.classList.add('hidden');
         label.innerText = 'Email Address (For Verification)';
-        emailInput.placeholder = 'your_name@gmail.com';
+        emailInput.placeholder = 'your_store@gmail.com';
         submitText.innerText = 'Verify Phone & Email (Send OTP)';
+        
+        // If values were demo values, reset them for clean registration
+        if (emailInput.value === 'merchant@gmail.com') emailInput.value = '';
+        if (pwInput.value === 'Merchant@1234') pwInput.value = '';
       } else if (mode === 'forgot') {
         tabHeader.classList.add('hidden');
         forgotBanner.classList.remove('hidden');
@@ -2140,6 +2165,7 @@
         pwGroup.classList.add('hidden');
         newPwGroup.classList.remove('hidden');
         biometricBtn.classList.add('hidden');
+        if (demoRow) demoRow.classList.add('hidden');
         label.innerText = 'Registered Email or Phone Number';
         emailInput.placeholder = 'Enter registered Email or Phone';
         submitText.innerText = 'Send OTP to Reset Password';
@@ -2155,6 +2181,100 @@
 
       if (!identifier) {
         document.getElementById('emailErrorText').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('emailErrorText').classList.add('hidden');
+
+      // -------------------------------------------------------------
+      // 1. SIGN IN MODE: DIRECT PASSWORD & STORED CREDENTIALS MATCHING (NO OTP)
+      // -------------------------------------------------------------
+      if (currentAuthMode === 'login') {
+        if (!pw) {
+          showAppToast('Please enter your password', 'lock', true);
+          return;
+        }
+
+        const users = getStoredUsers();
+        const cleanInputPhone = cleanPhoneNum(identifier);
+        const isEmailInput = identifier.includes('@');
+
+        // Look up registered user by email or phone
+        const matchedUser = users.find(u => {
+          if (isEmailInput) {
+            return u.email.toLowerCase() === identifier.toLowerCase();
+          } else {
+            return cleanPhoneNum(u.phone) === cleanInputPhone || cleanPhoneNum(u.phone).endsWith(cleanInputPhone);
+          }
+        });
+
+        if (!matchedUser) {
+          showAppToast('No store account found. Please click Sign Up to create one.', 'error', true);
+          return;
+        }
+
+        // Verify Password Match
+        if (matchedUser.password !== pw) {
+          showAppToast('Incorrect password. Please try again.', 'error', true);
+          return;
+        }
+
+        // LOGIN SUCCESSFUL (MATCH FOUND)
+        isLoggedIn = true;
+        document.getElementById('headerShopName').innerText = matchedUser.storeName;
+        document.getElementById('settingsStoreName').innerText = matchedUser.storeName;
+        document.getElementById('settingsUserEmail').innerText = matchedUser.email;
+        document.getElementById('drawerPhone').innerText = matchedUser.phone;
+        document.getElementById('rcptShopName').innerText = matchedUser.storeName;
+
+        showAppToast(`✓ Welcome back, ${matchedUser.storeName}!`, 'verified');
+        switchScreen('dashboard');
+        return;
+      }
+
+      // -------------------------------------------------------------
+      // 2. SIGN UP MODE: REQUIRES REAL OTP TO VERIFY PHONE & EMAIL
+      // -------------------------------------------------------------
+      if (currentAuthMode === 'signup') {
+        const storeName = document.getElementById('authStoreName').value.trim() || 'Super Inventory Store';
+        const phone = document.getElementById('authSignupPhone').value.trim();
+        
+        if (!phone || cleanPhoneNum(phone).length < 10) {
+          showAppToast('Please enter a valid 10-digit mobile number', 'warning', true);
+          return;
+        }
+        if (!identifier.includes('@')) {
+          showAppToast('Please enter a valid email address for verification', 'warning', true);
+          return;
+        }
+        if (!pw || pw.length < 6) {
+          showAppToast('Please set a password with at least 6 characters', 'warning', true);
+          return;
+        }
+
+        // Check if phone or email already registered
+        const users = getStoredUsers();
+        const cleanP = cleanPhoneNum(phone);
+        const existing = users.find(u => u.email.toLowerCase() === identifier.toLowerCase() || cleanPhoneNum(u.phone) === cleanP);
+        
+        // If existing, notify clearly and allow them to proceed with OTP verification to update or reclaim their account
+        if (existing) {
+          showAppToast('Account already exists. Proceeding with OTP verification to update credentials.', 'info');
+        }
+
+        // Save pending registration details
+        pendingRegistration = {
+          storeName: storeName,
+          phone: phone,
+          email: identifier,
+          password: pw,
+          createdAt: new Date().toISOString()
+        };
+
+        // Open OTP Modal to verify phone & email
+        const targetEl = document.getElementById('otpTargetEmail');
+        if (targetEl) targetEl.innerText = `${phone} & ${identifier}`;
+        document.getElementById('otpModal').classList.remove('hidden');
+        generateAndSendDualOtp();
         return;
       }
       document.getElementById('emailErrorText').classList.add('hidden');
