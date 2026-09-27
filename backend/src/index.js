@@ -1,3 +1,4 @@
+const path = require('path');
 require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
@@ -11,6 +12,7 @@ const logger = require('./config/logger');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const webPreviewDir = path.join(__dirname, '../../flutter_app/web_preview');
 
 // ── Security ──────────────────────────────────────────────────────────────────
 app.use(helmet({ crossOriginResourcePolicy: false }));
@@ -47,6 +49,13 @@ app.use('/api/settings',  require('./routes/settings'));
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), env: process.env.NODE_ENV });
+});
+
+// ── Static Web App Serving ───────────────────────────────────────────────────
+app.use(express.static(webPreviewDir));
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path === '/health') return next();
+  res.sendFile(path.join(webPreviewDir, 'index.html'));
 });
 
 // ── 404 + Error handlers ──────────────────────────────────────────────────────
