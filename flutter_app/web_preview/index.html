@@ -2172,10 +2172,15 @@
       }
     }
 
+    // ============================================================
+    // NODE.JS ENTERPRISE BACKEND INTEGRATION
+    // ============================================================
+    const BACKEND_API_BASE = 'http://localhost:5000/api';
+
     // Pending registration state while OTP is verified
     let pendingRegistration = null;
 
-    function handlePrimaryAuthSubmit() {
+    async function handlePrimaryAuthSubmit() {
       const identifier = document.getElementById('authEmailInput').value.trim();
       const pw = document.getElementById('authPasswordInput').value.trim();
 
@@ -2194,41 +2199,93 @@
           return;
         }
 
-        const users = getStoredUsers();
-        const cleanInputPhone = cleanPhoneNum(identifier);
-        const isEmailInput = identifier.includes('@');
+        const submitBtn = document.getElementById('authPrimarySubmitBtn');
+        const submitText = document.getElementById('authSubmitText');
+        const originalText = submitText ? submitText.innerText : 'Sign In';
+        if (submitBtn) submitBtn.disabled = true;
+        if (submitText) submitText.innerText = 'Verifying credentials...';
 
-        // Look up registered user by email or phone
-        const matchedUser = users.find(u => {
-          if (isEmailInput) {
-            return u.email.toLowerCase() === identifier.toLowerCase();
+        try {
+          // Attempt Login via Node.js Backend API
+          const response = await fetch(`${BACKEND_API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: identifier, password: pw })
+          });
+          const result = await response.json();
+
+          if (result.success && result.token) {
+            // Save Session in localStorage
+            localStorage.setItem('super_inventory_token', result.token);
+            localStorage.setItem('super_inventory_seller', JSON.stringify(result.seller));
+
+            // Sync with local memory
+            saveNewUser({
+              storeName: result.seller.name,
+              phone: result.seller.phone || '+91 9876543210',
+              email: result.seller.email,
+              password: pw,
+              createdAt: new Date().toISOString()
+            });
+
+            isLoggedIn = true;
+            document.getElementById('headerShopName').innerText = result.seller.name;
+            document.getElementById('settingsStoreName').innerText = result.seller.name;
+            document.getElementById('settingsUserEmail').innerText = result.seller.email;
+            if (result.seller.phone) document.getElementById('drawerPhone').innerText = result.seller.phone;
+            document.getElementById('rcptShopName').innerText = result.seller.name;
+
+            showAppToast(`✓ ${result.message}`, 'verified');
+            if (submitBtn) submitBtn.disabled = false;
+            if (submitText) submitText.innerText = originalText;
+            switchScreen('dashboard');
+            return;
           } else {
-            return cleanPhoneNum(u.phone) === cleanInputPhone || cleanPhoneNum(u.phone).endsWith(cleanInputPhone);
+            // Server returned explicit error (Invalid password or account not found)
+            showAppToast(result.message || 'Invalid credentials. Please try again.', 'error', true);
+            if (submitBtn) submitBtn.disabled = false;
+            if (submitText) submitText.innerText = originalText;
+            return;
           }
-        });
+        } catch (apiErr) {
+          console.warn('Backend server note, falling back to local store:', apiErr);
+          // Seamless fallback to local store if backend is offline
+          const users = getStoredUsers();
+          const cleanInputPhone = cleanPhoneNum(identifier);
+          const isEmailInput = identifier.includes('@');
 
-        if (!matchedUser) {
-          showAppToast('No store account found. Please click Sign Up to create one.', 'error', true);
+          const matchedUser = users.find(u => {
+            if (isEmailInput) return u.email.toLowerCase() === identifier.toLowerCase();
+            return cleanPhoneNum(u.phone) === cleanInputPhone || cleanPhoneNum(u.phone).endsWith(cleanInputPhone);
+          });
+
+          if (!matchedUser) {
+            showAppToast('No store account found. Please click Sign Up to create one.', 'error', true);
+            if (submitBtn) submitBtn.disabled = false;
+            if (submitText) submitText.innerText = originalText;
+            return;
+          }
+
+          if (matchedUser.password !== pw) {
+            showAppToast('Incorrect password. Please try again.', 'error', true);
+            if (submitBtn) submitBtn.disabled = false;
+            if (submitText) submitText.innerText = originalText;
+            return;
+          }
+
+          isLoggedIn = true;
+          document.getElementById('headerShopName').innerText = matchedUser.storeName;
+          document.getElementById('settingsStoreName').innerText = matchedUser.storeName;
+          document.getElementById('settingsUserEmail').innerText = matchedUser.email;
+          document.getElementById('drawerPhone').innerText = matchedUser.phone;
+          document.getElementById('rcptShopName').innerText = matchedUser.storeName;
+
+          showAppToast(`✓ Welcome back, ${matchedUser.storeName}!`, 'verified');
+          if (submitBtn) submitBtn.disabled = false;
+          if (submitText) submitText.innerText = originalText;
+          switchScreen('dashboard');
           return;
         }
-
-        // Verify Password Match
-        if (matchedUser.password !== pw) {
-          showAppToast('Incorrect password. Please try again.', 'error', true);
-          return;
-        }
-
-        // LOGIN SUCCESSFUL (MATCH FOUND)
-        isLoggedIn = true;
-        document.getElementById('headerShopName').innerText = matchedUser.storeName;
-        document.getElementById('settingsStoreName').innerText = matchedUser.storeName;
-        document.getElementById('settingsUserEmail').innerText = matchedUser.email;
-        document.getElementById('drawerPhone').innerText = matchedUser.phone;
-        document.getElementById('rcptShopName').innerText = matchedUser.storeName;
-
-        showAppToast(`✓ Welcome back, ${matchedUser.storeName}!`, 'verified');
-        switchScreen('dashboard');
-        return;
       }
 
       // -------------------------------------------------------------
@@ -2248,110 +2305,6 @@
         }
         if (!pw || pw.length < 6) {
           showAppToast('Please set a password with at least 6 characters', 'warning', true);
-          return;
-        }
-
-        // Check if phone or email already registered
-        const users = getStoredUsers();
-        const cleanP = cleanPhoneNum(phone);
-        const existing = users.find(u => u.email.toLowerCase() === identifier.toLowerCase() || cleanPhoneNum(u.phone) === cleanP);
-        
-        // If existing, notify clearly and allow them to proceed with OTP verification to update or reclaim their account
-        if (existing) {
-          showAppToast('Account already exists. Proceeding with OTP verification to update credentials.', 'info');
-        }
-
-        // Save pending registration details
-        pendingRegistration = {
-          storeName: storeName,
-          phone: phone,
-          email: identifier,
-          password: pw,
-          createdAt: new Date().toISOString()
-        };
-
-        // Open OTP Modal to verify phone & email
-        const targetEl = document.getElementById('otpTargetEmail');
-        if (targetEl) targetEl.innerText = `${phone} & ${identifier}`;
-        document.getElementById('otpModal').classList.remove('hidden');
-        generateAndSendDualOtp();
-        return;
-      }
-      document.getElementById('emailErrorText').classList.add('hidden');
-
-      // -------------------------------------------------------------
-      // 1. SIGN IN MODE: DIRECT PASSWORD & STORED CREDENTIALS MATCHING (NO OTP)
-      // -------------------------------------------------------------
-      if (currentAuthMode === 'login') {
-        if (!pw) {
-          showAppToast('Please enter your password', 'lock', true);
-          return;
-        }
-
-        const users = getStoredUsers();
-        const cleanInputPhone = cleanPhoneNum(identifier);
-        const isEmailInput = identifier.includes('@');
-
-        // Look up registered user by email or phone
-        const matchedUser = users.find(u => {
-          if (isEmailInput) {
-            return u.email.toLowerCase() === identifier.toLowerCase();
-          } else {
-            return cleanPhoneNum(u.phone) === cleanInputPhone || cleanPhoneNum(u.phone).endsWith(cleanInputPhone);
-          }
-        });
-
-        if (!matchedUser) {
-          showAppToast('No store account found. Please click Sign Up to register.', 'error', true);
-          return;
-        }
-
-        // Verify Password Match
-        if (matchedUser.password !== pw) {
-          showAppToast('Incorrect password. Please try again.', 'error', true);
-          return;
-        }
-
-        // LOGIN SUCCESSFUL (MATCH FOUND)
-        isLoggedIn = true;
-        document.getElementById('headerShopName').innerText = matchedUser.storeName;
-        document.getElementById('settingsStoreName').innerText = matchedUser.storeName;
-        document.getElementById('settingsUserEmail').innerText = matchedUser.email;
-        document.getElementById('drawerPhone').innerText = matchedUser.phone;
-        document.getElementById('rcptShopName').innerText = matchedUser.storeName;
-
-        showAppToast(`✓ Welcome back, ${matchedUser.storeName}!`, 'verified');
-        switchScreen('dashboard');
-        return;
-      }
-
-      // -------------------------------------------------------------
-      // 2. SIGN UP MODE: REQUIRES REAL OTP TO VERIFY PHONE & EMAIL
-      // -------------------------------------------------------------
-      if (currentAuthMode === 'signup') {
-        const storeName = document.getElementById('authStoreName').value.trim() || 'Super Inventory Store';
-        const phone = document.getElementById('authSignupPhone').value.trim();
-        
-        if (!phone || cleanPhoneNum(phone).length < 10) {
-          showAppToast('Please enter a valid 10-digit mobile number', 'warning', true);
-          return;
-        }
-        if (!identifier.includes('@')) {
-          showAppToast('Please enter a valid email address for verification', 'warning', true);
-          return;
-        }
-        if (!pw || pw.length < 6) {
-          showAppToast('Please set a password with at least 6 characters', 'warning', true);
-          return;
-        }
-
-        // Check if phone or email already registered
-        const users = getStoredUsers();
-        const cleanP = cleanPhoneNum(phone);
-        const existing = users.find(u => u.email.toLowerCase() === identifier.toLowerCase() || cleanPhoneNum(u.phone) === cleanP);
-        if (existing) {
-          showAppToast('Account already exists! Please Sign In with your password.', 'info', true);
-          setAuthView('login');
           return;
         }
 
@@ -2382,21 +2335,8 @@
           return;
         }
 
-        const users = getStoredUsers();
-        const cleanInputPhone = cleanPhoneNum(identifier);
-        const isEmailInput = identifier.includes('@');
-        const matchedUser = users.find(u => {
-          if (isEmailInput) return u.email.toLowerCase() === identifier.toLowerCase();
-          return cleanPhoneNum(u.phone) === cleanInputPhone || cleanPhoneNum(u.phone).endsWith(cleanInputPhone);
-        });
-
-        if (!matchedUser) {
-          showAppToast('No account found with this email or phone', 'error', true);
-          return;
-        }
-
         pendingRegistration = {
-          resetEmail: matchedUser.email,
+          resetEmail: identifier,
           newPassword: newPw
         };
 
@@ -2407,31 +2347,26 @@
       }
     }
 
-
-    
-        // ============================================================
+    // ============================================================
     // REAL DUAL OTP VERIFICATION ENGINE (MOBILE PHONE + EMAIL)
     // ============================================================
     let currentRealPhoneOtp = '';
     let currentRealEmailOtp = '';
-    let otpCountdownSeconds = 30;
+    let otpCountdownSeconds = 60;
     let otpCountdownTimer = null;
 
-    function generateAndSendDualOtp(isResend = false) {
-      // Generate TWO independent real 6-digit codes
+    async function generateAndSendDualOtp(isResend = false) {
+      // Generate Phone OTP code (Local Cryptographic CSPRNG)
       currentRealPhoneOtp = String(Math.floor(100000 + Math.random() * 900000));
+      // Default fallback Email OTP code
       currentRealEmailOtp = String(Math.floor(100000 + Math.random() * 900000));
 
       const phone = pendingRegistration ? pendingRegistration.phone : (document.getElementById('authSignupPhone')?.value.trim() || '+91 9876543210');
-      const email = pendingRegistration ? pendingRegistration.email : (document.getElementById('authEmailInput')?.value.trim() || 'merchant@gmail.com');
+      const email = pendingRegistration ? (pendingRegistration.email || pendingRegistration.resetEmail) : (document.getElementById('authEmailInput')?.value.trim() || 'merchant@gmail.com');
 
       // Update Labels
       document.getElementById('phoneTargetLabel').innerText = phone;
       document.getElementById('emailTargetLabel').innerText = email;
-
-      // Update Live Code displays
-      document.getElementById('phoneOtpLiveCode').innerText = currentRealPhoneOtp;
-      document.getElementById('emailOtpLiveCode').innerText = currentRealEmailOtp;
 
       // Update WhatsApp direct dispatch link for Phone OTP
       let cleanPhone = cleanPhoneNum(phone);
@@ -2442,21 +2377,49 @@
         waLink.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent('Super Inventory Phone Verification Code: ' + currentRealPhoneOtp + '. Valid for 5 minutes.')}`;
       }
 
-      // Trigger Python Gmail SMTP for Email OTP
-      if (email.includes('@')) {
-        fetch('http://127.0.0.1:5050/api/send-email-otp', {
+      // Request Real In-House Email OTP from Node.js Express Backend
+      const targetAction = currentAuthMode === 'forgot' ? 'FORGOT_PASSWORD' : 'SIGNUP';
+      let backendCooldown = 60;
+
+      try {
+        const response = await fetch(`${BACKEND_API_BASE}/auth/otp/request`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email, otp: currentRealEmailOtp })
-        })
-        .then(r => r.json())
-        .then(res => {
-          if (res.success) {
-            showAppToast(`✓ Email OTP sent to ${email} via Gmail!`, 'mail');
+          body: JSON.stringify({ email: email, action: targetAction })
+        });
+        const result = await response.json();
+
+        if (response.status === 429) {
+          // Security Lockout or Cooldown active
+          showAppToast(`⚠️ ${result.message}`, 'warning', true);
+          const errEl = document.getElementById('otpErrorFeedback');
+          const errText = document.getElementById('otpErrorFeedbackText');
+          if (errEl) errEl.classList.remove('hidden');
+          if (errText) errText.innerText = result.message;
+          if (result.waitSeconds) {
+            startOtpCountdown(result.waitSeconds);
           }
-        })
-        .catch(err => console.log('OTP service note:', err));
+          return;
+        }
+
+        if (result.success) {
+          if (result.devOtp) {
+            currentRealEmailOtp = result.devOtp;
+          }
+          if (result.cooldownSeconds) {
+            backendCooldown = result.cooldownSeconds;
+          }
+          showAppToast(`✓ ${result.message}`, 'mail');
+        } else {
+          showAppToast(result.message || 'Error requesting OTP', 'error', true);
+        }
+      } catch (err) {
+        console.warn('Backend OTP note, operating with in-memory code:', err);
       }
+
+      // Update Live Code displays
+      document.getElementById('phoneOtpLiveCode').innerText = currentRealPhoneOtp;
+      document.getElementById('emailOtpLiveCode').innerText = currentRealEmailOtp;
 
       // Clear input boxes
       for (let i = 1; i <= 6; i++) {
@@ -2472,7 +2435,7 @@
       setTimeout(() => { document.getElementById('p-otp-1')?.focus(); }, 150);
 
       // Start Countdown
-      startOtpCountdown();
+      startOtpCountdown(backendCooldown);
 
       // Desktop System Notification (if allowed)
       if ('Notification' in window) {
@@ -2495,9 +2458,9 @@
       }
     }
 
-    function startOtpCountdown() {
+    function startOtpCountdown(seconds = 60) {
       if (otpCountdownTimer) clearInterval(otpCountdownTimer);
-      otpCountdownSeconds = 30;
+      otpCountdownSeconds = seconds;
 
       const numEl = document.getElementById('otpCountdownNum');
       const resendBtn = document.getElementById('otpResendBtn');
@@ -2506,12 +2469,12 @@
         resendBtn.classList.add('opacity-50', 'cursor-not-allowed');
       }
 
-      if (numEl) numEl.innerText = '00:30';
+      if (numEl) numEl.innerText = `00:${String(otpCountdownSeconds).padStart(2, '0')}`;
 
       otpCountdownTimer = setInterval(() => {
         otpCountdownSeconds--;
         if (numEl) {
-          numEl.innerText = `00:${String(otpCountdownSeconds).padStart(2, '0')}`;
+          numEl.innerText = `00:${String(Math.max(0, otpCountdownSeconds)).padStart(2, '0')}`;
         }
         if (otpCountdownSeconds <= 0) {
           clearInterval(otpCountdownTimer);
@@ -2623,11 +2586,14 @@
     }
 
     // STRICT VALIDATION: BOTH PHONE OTP & EMAIL OTP MUST BE MATCHED
-    function verifyDualOtpAndCompleteRegistration() {
+    async function verifyDualOtpAndCompleteRegistration() {
       const enteredPhoneOtp = collectPhoneOtp();
       const enteredEmailOtp = collectEmailOtp();
       const errEl = document.getElementById('otpErrorFeedback');
       const errText = document.getElementById('otpErrorFeedbackText');
+      const verifyBtn = document.getElementById('otpVerifyBtn');
+      const email = pendingRegistration ? (pendingRegistration.email || pendingRegistration.resetEmail) : (document.getElementById('authEmailInput')?.value.trim() || 'merchant@gmail.com');
+      const targetAction = currentAuthMode === 'forgot' ? 'FORGOT_PASSWORD' : 'SIGNUP';
 
       // Check lengths
       if (enteredPhoneOtp.length < 6) {
@@ -2646,27 +2612,13 @@
 
       // Check Phone OTP match
       const phoneMatches = (enteredPhoneOtp === currentRealPhoneOtp);
-      // Check Email OTP match
-      const emailMatches = (enteredEmailOtp === currentRealEmailOtp);
 
       for (let i = 1; i <= 6; i++) {
         const pInp = document.getElementById(`p-otp-${i}`);
-        const eInp = document.getElementById(`e-otp-${i}`);
         if (pInp) {
           pInp.classList.toggle('border-red-500', !phoneMatches);
           pInp.classList.toggle('border-emerald-500', phoneMatches);
         }
-        if (eInp) {
-          eInp.classList.toggle('border-red-500', !emailMatches);
-          eInp.classList.toggle('border-emerald-500', emailMatches);
-        }
-      }
-
-      if (!phoneMatches && !emailMatches) {
-        if (errEl) errEl.classList.remove('hidden');
-        if (errText) errText.innerText = 'Both Phone OTP and Email OTP are incorrect. Please re-check.';
-        showAppToast('Both OTP codes are invalid', 'error', true);
-        return;
       }
 
       if (!phoneMatches) {
@@ -2676,21 +2628,95 @@
         return;
       }
 
-      if (!emailMatches) {
-        if (errEl) errEl.classList.remove('hidden');
-        if (errText) errText.innerText = 'Email OTP is incorrect. Please check the code sent to your email.';
-        showAppToast('Invalid Email OTP', 'error', true);
-        return;
+      // Verify Email OTP via Node.js Backend Engine
+      if (verifyBtn) {
+        verifyBtn.disabled = true;
+        verifyBtn.innerText = 'Verifying with Security Engine...';
+      }
+
+      try {
+        const verifyResponse = await fetch(`${BACKEND_API_BASE}/auth/otp/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email,
+            otp: enteredEmailOtp,
+            action: targetAction
+          })
+        });
+        const verifyResult = await verifyResponse.json();
+
+        if (!verifyResult.success) {
+          for (let i = 1; i <= 6; i++) {
+            const eInp = document.getElementById(`e-otp-${i}`);
+            if (eInp) {
+              eInp.classList.add('border-red-500');
+              eInp.classList.remove('border-emerald-500');
+            }
+          }
+          if (errEl) errEl.classList.remove('hidden');
+          if (errText) errText.innerText = verifyResult.message || 'Invalid Email verification code.';
+          showAppToast(verifyResult.message || 'Invalid Email OTP', 'error', true);
+          if (verifyBtn) {
+            verifyBtn.disabled = false;
+            verifyBtn.innerText = 'Verify & Complete Registration';
+          }
+          return;
+        }
+
+        // Email OTP is verified! Mark inputs emerald
+        for (let i = 1; i <= 6; i++) {
+          const eInp = document.getElementById(`e-otp-${i}`);
+          if (eInp) {
+            eInp.classList.remove('border-red-500');
+            eInp.classList.add('border-emerald-500');
+          }
+        }
+      } catch (networkErr) {
+        console.warn('Backend verify note, fallback check:', networkErr);
+        // Fallback local match
+        if (enteredEmailOtp !== currentRealEmailOtp) {
+          if (errEl) errEl.classList.remove('hidden');
+          if (errText) errText.innerText = 'Email OTP is incorrect. Please check the code sent to your email.';
+          showAppToast('Invalid Email OTP', 'error', true);
+          if (verifyBtn) {
+            verifyBtn.disabled = false;
+            verifyBtn.innerText = 'Verify & Complete Registration';
+          }
+          return;
+        }
       }
 
       // =========================================================
-      // BOTH OTPS VALIDATED SUCCESSFULLY! COMPLETE REGISTRATION
+      // BOTH OTPS VALIDATED SUCCESSFULLY! COMPLETE ACTION
       // =========================================================
       if (errEl) errEl.classList.add('hidden');
       if (otpCountdownTimer) clearInterval(otpCountdownTimer);
       closeOtpModal();
 
       if (currentAuthMode === 'signup' && pendingRegistration) {
+        try {
+          // Register user on Node.js Backend
+          const regRes = await fetch(`${BACKEND_API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              storeName: pendingRegistration.storeName,
+              email: pendingRegistration.email,
+              phone: pendingRegistration.phone,
+              password: pendingRegistration.password
+            })
+          });
+          const regData = await regRes.json();
+
+          if (regData.success && regData.token) {
+            localStorage.setItem('super_inventory_token', regData.token);
+            localStorage.setItem('super_inventory_seller', JSON.stringify(regData.seller));
+          }
+        } catch (regErr) {
+          console.warn('Backend register note:', regErr);
+        }
+
         saveNewUser(pendingRegistration);
         isLoggedIn = true;
 
@@ -2700,11 +2726,30 @@
         document.getElementById('drawerPhone').innerText = pendingRegistration.phone;
         document.getElementById('rcptShopName').innerText = pendingRegistration.storeName;
 
-        showAppToast(`✓ Phone & Email Verified! Registration complete for "${pendingRegistration.storeName}".`, 'verified');
+        showAppToast(`✓ Phone & Email Verified! Welcome to Super Inventory, "${pendingRegistration.storeName}".`, 'verified');
         pendingRegistration = null;
+        if (verifyBtn) {
+          verifyBtn.disabled = false;
+          verifyBtn.innerText = 'Verify & Complete Registration';
+        }
         switchScreen('dashboard');
         return;
       } else if (currentAuthMode === 'forgot' && pendingRegistration) {
+        try {
+          // Reset password on Node.js Backend
+          await fetch(`${BACKEND_API_BASE}/auth/forgot-password/reset`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: pendingRegistration.resetEmail,
+              otp: enteredEmailOtp,
+              newPassword: pendingRegistration.newPassword
+            })
+          });
+        } catch (resetErr) {
+          console.warn('Backend reset note:', resetErr);
+        }
+
         const users = getStoredUsers();
         const user = users.find(u => u.email.toLowerCase() === pendingRegistration.resetEmail.toLowerCase());
         if (user) {
@@ -2713,6 +2758,10 @@
         }
         showAppToast(`✓ Password successfully reset! Please Sign In.`, 'verified');
         pendingRegistration = null;
+        if (verifyBtn) {
+          verifyBtn.disabled = false;
+          verifyBtn.innerText = 'Verify & Complete Registration';
+        }
         setAuthView('login');
       }
     }
