@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
 const logger = require('../config/logger');
 
 /**
@@ -10,11 +12,32 @@ const logger = require('../config/logger');
 
 let transporter = null;
 
-function getTransporter() {
-  if (!transporter) {
-    const user = process.env.GMAIL_USER || process.env.SMTP_USER || '';
-    const pass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD || '').replace(/\s+/g, '');
+function getCredentials() {
+  let user = process.env.GMAIL_USER || process.env.SMTP_USER || '';
+  let pass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD || '').replace(/\s+/g, '');
 
+  // If not in .env, check backend/email_config.json
+  if (!user || !pass || user.includes('your_email')) {
+    try {
+      const configPath = path.join(__dirname, '../../email_config.json');
+      if (fs.existsSync(configPath)) {
+        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        if (config.gmail_sender && config.gmail_app_password && !config.gmail_sender.includes('your_email')) {
+          user = config.gmail_sender.trim();
+          pass = (config.gmail_app_password || '').replace(/\s+/g, '');
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  return { user, pass };
+}
+
+function getTransporter() {
+  const { user, pass } = getCredentials();
+  if (!transporter) {
     // Connection pooling keeps TCP/TLS connection warm in memory
     transporter = nodemailer.createTransport({
       pool: true,
@@ -107,18 +130,30 @@ async function sendFastOtpEmail(toEmail, otpCode, action = 'SIGNUP') {
     </html>
   `;
 
-  const senderUser = process.env.GMAIL_USER || process.env.SMTP_USER || '';
-  const senderPass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD || '').replace(/\s+/g, '');
+  const { user: senderUser, pass: senderPass } = getCredentials();
 
   // If real credentials are provided, transmit through connection pool
   if (senderUser && senderPass && !senderUser.includes('your_email')) {
     const mailer = getTransporter();
-    return await mailer.sendMail({
-      from: `"Super Inventory" <${senderUser}>`,
-      to: toEmail,
-      subject: `Super Inventory - Your OTP is ${otpCode} [Valid 5 Min]`,
-      html: htmlContent
-    });
+    try {
+      const info = await mailer.sendMail({
+        from: `"Super Inventory" <${senderUser}>`,
+        to: toEmail,
+        subject: `Super Inventory - Your OTP is ${otpCode} [Valid 5 Min]`,
+        html: htmlContent
+      });
+      console.log(`\n=============================================================`);
+      console.log(`📧 [REAL EMAIL SENT VIA GMAIL SMTP]`);
+      console.log(`📬 Sent To    : ${toEmail}`);
+      console.log(`🔑 OTP Code   : ${otpCode}`);
+      console.log(`🚀 Message ID : ${info.messageId}`);
+      console.log(`=============================================================\n`);
+      return info;
+    } catch (sendError) {
+      console.error(`\n❌ Failed to dispatch email via Gmail SMTP:`, sendError.message);
+      console.log(`🔑 Fallback OTP for ${toEmail}: ${otpCode}\n`);
+      throw sendError;
+    }
   } else {
     // Sandbox / Dev Mode fallback (Logs real code so developer/tester is never blocked)
     console.log(`\n=============================================================`);

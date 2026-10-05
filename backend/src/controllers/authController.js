@@ -18,20 +18,23 @@ const requestOtp = async (req, res, next) => {
     const { email, action } = req.body; // 'SIGNUP' | 'FORGOT_PASSWORD' | 'REVERIFY'
     const targetAction = (action || 'SIGNUP').toUpperCase();
 
-    if (!email || !email.includes('@')) {
-      return res.status(400).json({ success: false, message: 'A valid email address is required.' });
-    }
+    let recipientEmail = (email || '').trim().toLowerCase();
 
-    // If Forgot Password, verify account actually exists
+    // If Forgot Password, allow lookup by registered Email OR Phone
     if (targetAction === 'FORGOT_PASSWORD') {
-      const seller = await sellerModel.findByEmail(email);
+      const seller = await sellerModel.findByEmailOrPhone(recipientEmail);
       if (!seller) {
-        return res.status(404).json({ success: false, message: 'No store account found with this email address.' });
+        return res.status(404).json({ success: false, message: 'No store account found with this email or phone.' });
+      }
+      recipientEmail = seller.email.toLowerCase().trim();
+    } else {
+      if (!recipientEmail || !recipientEmail.includes('@')) {
+        return res.status(400).json({ success: false, message: 'A valid email address is required.' });
       }
     }
 
     // Check cache memory for cooldown / 5-resend limit
-    const cacheResult = otpCache.createOtpRequest(email, targetAction);
+    const cacheResult = otpCache.createOtpRequest(recipientEmail, targetAction);
     if (!cacheResult.success) {
       return res.status(429).json({
         success: false,
@@ -42,12 +45,13 @@ const requestOtp = async (req, res, next) => {
       });
     }
 
-    // High-speed email dispatch
-    await sendFastOtpEmail(email, cacheResult.otp, targetAction);
+    // High-speed email dispatch to the user's real or registered email
+    await sendFastOtpEmail(recipientEmail, cacheResult.otp, targetAction);
 
     res.json({
       success: true,
-      message: `Verification code successfully sent to ${email}. Valid for 5 minutes.`,
+      recipientEmail: recipientEmail,
+      message: `Verification code successfully sent to ${recipientEmail}. Valid for 5 minutes.`,
       cooldownSeconds: cacheResult.cooldownSeconds,
       resendsRemaining: cacheResult.resendsRemaining,
       expiresInSeconds: cacheResult.expiresInSeconds,
