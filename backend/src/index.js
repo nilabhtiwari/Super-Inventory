@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 const webPreviewDir = path.join(__dirname, '../../flutter_app/web_preview');
 
 // ── Security ──────────────────────────────────────────────────────────────────
-app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: false }));
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || process.env.NODE_ENV !== 'production') {
