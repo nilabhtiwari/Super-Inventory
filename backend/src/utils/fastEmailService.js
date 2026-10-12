@@ -4,21 +4,12 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../config/logger');
 
-/**
- * Super Inventory High-Speed Email Dispatch Service
- * Priority:
- * 1. Resend.com Official API (Fastest, zero-latency HTTP API, production recommended)
- * 2. Gmail / Custom SMTP via Connection Pool (Fallback)
- * 3. Local Sandbox Logging (Ensures dev & verification are never blocked)
- */
-
 let resendClient = null;
 if (process.env.RESEND_API_KEY) {
   try {
     resendClient = new Resend(process.env.RESEND_API_KEY);
-    logger.info('🚀 Resend.com Email API active');
   } catch (e) {
-    logger.warn('⚠️ Resend client initialization failed: ' + e.message);
+    // ignore
   }
 }
 
@@ -63,12 +54,6 @@ function getTransporter() {
   return transporter;
 }
 
-/**
- * Dispatches high-speed branded OTP email
- * @param {string} toEmail
- * @param {string} otpCode
- * @param {string} action - 'SIGNUP' | 'FORGOT_PASSWORD' | 'REVERIFY'
- */
 async function sendFastOtpEmail(toEmail, otpCode, action = 'SIGNUP') {
   const titles = {
     SIGNUP: 'Store Registration Security Code',
@@ -115,30 +100,7 @@ async function sendFastOtpEmail(toEmail, otpCode, action = 'SIGNUP') {
     </html>
   `;
 
-  // 1. Try Resend API (production standard)
-  if (resendClient || process.env.RESEND_API_KEY) {
-    try {
-      const client = resendClient || new Resend(process.env.RESEND_API_KEY);
-      const fromAddr = process.env.RESEND_FROM_EMAIL || 'Super Inventory <onboarding@resend.dev>';
-      const data = await client.emails.send({
-        from: fromAddr,
-        to: toEmail,
-        subject: `Super Inventory - Your OTP is ${otpCode} [Valid 5 Min]`,
-        html: htmlContent
-      });
-      console.log(`\n=============================================================`);
-      console.log(`📧 [REAL EMAIL SENT VIA RESEND API]`);
-      console.log(`📬 Sent To    : ${toEmail}`);
-      console.log(`🔑 OTP Code   : ${otpCode}`);
-      console.log(`🚀 Resend ID  : ${data.id || JSON.stringify(data)}`);
-      console.log(`=============================================================\n`);
-      return data;
-    } catch (resendErr) {
-      console.warn(`⚠️ Resend dispatch error: ${resendErr.message}. Falling back...`);
-    }
-  }
-
-  // 2. Try Gmail SMTP if configured
+  // 1. Send via Gmail SMTP (Allows sending to ANY recipient: Gmail, Yahoo, Outlook, custom)
   const { user: senderUser, pass: senderPass } = getCredentials();
   if (senderUser && senderPass && !senderUser.includes('your_email')) {
     const mailer = getTransporter();
@@ -157,11 +119,34 @@ async function sendFastOtpEmail(toEmail, otpCode, action = 'SIGNUP') {
       console.log(`=============================================================\n`);
       return info;
     } catch (sendError) {
-      console.error(`\n❌ Failed via Gmail SMTP:`, sendError.message);
+      console.warn(`⚠️ Gmail SMTP send warning: ${sendError.message}. Trying Resend fallback...`);
     }
   }
 
-  // 3. Fallback Sandbox Mode
+  // 2. Fallback to Resend.com
+  if (resendClient || process.env.RESEND_API_KEY) {
+    try {
+      const client = resendClient || new Resend(process.env.RESEND_API_KEY);
+      const fromAddr = process.env.RESEND_FROM_EMAIL || 'Super Inventory <onboarding@resend.dev>';
+      const data = await client.emails.send({
+        from: fromAddr,
+        to: toEmail,
+        subject: `Super Inventory - Your OTP is ${otpCode} [Valid 5 Min]`,
+        html: htmlContent
+      });
+      console.log(`\n=============================================================`);
+      console.log(`📧 [REAL EMAIL SENT VIA RESEND API]`);
+      console.log(`📬 Sent To    : ${toEmail}`);
+      console.log(`🔑 OTP Code   : ${otpCode}`);
+      console.log(`🚀 Resend ID  : ${data.id || JSON.stringify(data)}`);
+      console.log(`=============================================================\n`);
+      return data;
+    } catch (resendErr) {
+      console.warn(`⚠️ Resend dispatch error: ${resendErr.message}`);
+    }
+  }
+
+  // 3. Fallback Sandbox Console Log
   console.log(`\n=============================================================`);
   console.log(`📧 [SUPER INVENTORY DISPATCH] ${title}`);
   console.log(`📬 Recipient : ${toEmail}`);
