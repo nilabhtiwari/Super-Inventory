@@ -100,6 +100,71 @@
       border: 1px solid rgba(46, 50, 77, 0.8);
     }
 
+    /* Fixed Smartphone App Layout Container Architecture */
+    #smartphoneWrapper {
+      display: flex !important;
+      flex-direction: column !important;
+      height: 840px !important;
+      max-height: 90vh !important;
+      position: relative !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #phoneTopAppBar {
+      flex-shrink: 0 !important;
+      z-index: 30 !important;
+    }
+
+    #screenContainer {
+      flex: 1 1 0% !important;
+      min-height: 0 !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      -webkit-overflow-scrolling: touch;
+      position: relative !important;
+      padding-bottom: 2rem !important;
+    }
+
+    #bottomNav {
+      flex-shrink: 0 !important;
+      position: relative !important;
+      width: 100% !important;
+      height: 64px !important;
+      min-height: 64px !important;
+      max-height: 64px !important;
+      padding: 0 4px !important;
+      background: var(--bg-surface) !important;
+      border-top: 1px solid var(--border-surface) !important;
+      z-index: 40 !important;
+      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1) !important;
+      display: grid !important;
+      grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+      align-items: center !important;
+      box-sizing: border-box !important;
+    }
+
+    #bottomNav button.nav-item {
+      padding: 2px 0 !important;
+      margin: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 1px !important;
+    }
+
+    #bottomNav .nav-icon-pill {
+      padding: 2px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    #bottomNav .material-symbols-outlined {
+      font-size: 20px !important;
+    }
+
     @font-face {
       font-family: 'Material Symbols Outlined';
       font-style: normal;
@@ -379,12 +444,12 @@
   </header>
 
   <!-- SMARTPHONE DEVICE WRAPPER -->
-  <div id="smartphoneWrapper" class="theme-light w-full max-w-md h-[840px] bg-brand-dark border-4 border-brand-surfaceBorder rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative transition-all duration-300">
+  <div id="smartphoneWrapper" class="theme-light w-full max-w-md h-[840px] bg-brand-dark border-4 border-brand-surfaceBorder rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative transition-all duration-300" style="display:flex;flex-direction:column;height:840px;overflow:hidden;">
 
     <!-- TOP APP BAR -->
-    <header id="phoneTopAppBar" class="p-4 border-b border-brand-surfaceBorder flex items-center justify-between bg-brand-surface sticky top-0 z-30 shadow-md">
+    <header id="phoneTopAppBar" class="shrink-0 p-3.5 border-b border-brand-surfaceBorder flex items-center justify-between bg-brand-surface sticky top-0 z-30 shadow-sm" style="flex-shrink:0;">
       <!-- Top Left Store Icon (Clickable Side Dropdown/Drawer) -->
-      <div onclick="launchAppWithSplashScreen()" title="Click to reload Launch Screen" class="flex items-center gap-2.5 cursor-pointer p-1.5 rounded-xl hover:bg-brand-surfaceElevated transition active:scale-95 group">
+      <div onclick="toggleStoreDrawer()" title="Open Store Profile & Menu" class="flex items-center gap-2.5 cursor-pointer p-1.5 rounded-xl hover:bg-brand-surfaceElevated transition active:scale-95 group">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-primary to-brand-secondary flex items-center justify-center text-white shadow-md shadow-brand-primary/20 group-hover:scale-105 transition">
           <span class="material-symbols-outlined text-xl">storefront</span>
         </div>
@@ -401,8 +466,11 @@
       </div>
 
       <!-- Right Header Actions -->
-      <div class="flex items-center gap-2">
-        <button onclick="switchScreen('settings')" class="w-8 h-8 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder flex items-center justify-center text-brand-muted hover:text-white transition">
+      <div class="flex items-center gap-1.5">
+        <button onclick="switchScreen('edit-profile')" title="Edit Profile & Store Details" class="w-8 h-8 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder flex items-center justify-center text-brand-muted hover:text-white hover:border-brand-primary transition">
+          <span class="material-symbols-outlined text-base">person</span>
+        </button>
+        <button onclick="switchScreen('settings')" title="App Settings" class="w-8 h-8 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder flex items-center justify-center text-brand-muted hover:text-white transition">
           <span class="material-symbols-outlined text-base">settings</span>
         </button>
       </div>
@@ -490,7 +558,7 @@
     </div>
 
     <!-- MAIN SCROLLABLE VIEWPORT -->
-    <div class="flex-1 overflow-y-auto custom-scroll p-4 pb-24 relative" id="screenContainer">
+    <div class="flex-1 overflow-y-auto custom-scroll p-4 pb-4 relative" id="screenContainer" style="min-height:0;overflow-y:auto;">
 
       <!-- ============================================================ -->
       <!-- 0. STITCH APP LAUNCH & SPLASH SCREEN - SUPER INVENTORY -->
@@ -1481,8 +1549,8 @@
               <input type="text" id="authStoreName" placeholder="E.g. My Fresh Supermarket" value="" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
             </div>
             <div>
-              <label class="text-[10px] font-bold text-brand-muted block mb-1">Mobile Phone Number (For OTP Verification)</label>
-              <input type="tel" id="authSignupPhone" placeholder="+91 9876543210" value="" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
+              <label class="text-[10px] font-bold text-brand-muted block mb-1">Mobile Phone Number (Optional)</label>
+              <input type="tel" id="authSignupPhone" placeholder="+91 9876543210 (Optional)" value="" class="w-full bg-[#181B29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary" />
             </div>
           </div>
 
@@ -1561,7 +1629,7 @@
               </div>
               <div class="text-left">
                 <h3 class="text-xs sm:text-sm font-black text-white" id="otpModalTitle">Security Verification</h3>
-                <p class="text-[10px] text-brand-muted" id="otpModalSubtitle">Verify both Phone and Email to complete registration</p>
+                <p class="text-[10px] text-brand-muted" id="otpModalSubtitle">Enter the verification code sent to your email (Phone OTP is optional)</p>
               </div>
             </div>
             <button type="button" onclick="closeOtpModal()" class="w-7 h-7 rounded-lg bg-brand-surfaceElevated text-brand-muted hover:text-white flex items-center justify-center">
@@ -1572,7 +1640,7 @@
           <!-- 1-TAP INSTANT VERIFICATION QUICK BUTTON (GUARANTEED NO-FAIL) -->
           <button type="button" onclick="autoFillBothAndVerify()" class="w-full py-2.5 px-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-[11px] rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2 border border-emerald-400/40">
             <span class="material-symbols-outlined text-base animate-pulse">bolt</span>
-            <span>⚡ 1-Click Auto-Fill Both & Verify</span>
+            <span>⚡ 1-Click Auto-Fill & Verify</span>
           </button>
 
           <!-- SECTION 1: MOBILE PHONE OTP -->
@@ -1580,7 +1648,7 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-emerald-400 text-base">phone_iphone</span>
-                <span class="text-[11px] font-bold text-white">1. Mobile Phone OTP</span>
+                <span class="text-[11px] font-bold text-white">1. Mobile Phone OTP (Optional)</span>
               </div>
               <span id="phoneTargetLabel" class="text-[10px] text-emerald-300 font-mono font-bold">+91 9876543210</span>
             </div>
@@ -1966,7 +2034,7 @@
       </div>
     </div>
 <!-- STANDARD PLAY STORE 5-TAB BOTTOM APP NAVIGATION -->
-    <nav id="bottomNav" class="w-full bg-brand-surface/95 backdrop-blur-xl border-t border-brand-surfaceBorder px-1 py-1.5 grid grid-cols-5 items-center justify-items-center absolute bottom-0 left-0 z-30 shadow-lg">
+    <nav id="bottomNav" class="shrink-0 w-full bg-brand-surface border-t border-brand-surfaceBorder px-1 py-1.5 grid grid-cols-5 items-center justify-items-center z-30 shadow-lg" style="flex-shrink:0;">
       <button onclick="switchScreen('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-2xl text-brand-primaryContainer transition active:scale-95 w-full">
         <div class="nav-icon-pill p-1 rounded-xl flex items-center justify-center bg-brand-primary/15">
           <span class="material-symbols-outlined text-xl">grid_view</span>
@@ -2338,16 +2406,12 @@
       }
 
       // -------------------------------------------------------------
-      // 2. SIGN UP MODE: REQUIRES REAL OTP TO VERIFY PHONE & EMAIL
+      // 2. SIGN UP MODE: EMAIL VERIFICATION REQUIRED (PHONE OPTIONAL)
       // -------------------------------------------------------------
       if (currentAuthMode === 'signup') {
         const storeName = document.getElementById('authStoreName').value.trim() || 'Super Inventory Store';
         const phone = document.getElementById('authSignupPhone').value.trim();
         
-        if (!phone || cleanPhoneNum(phone).length < 10) {
-          showAppToast('Please enter a valid 10-digit mobile number', 'warning', true);
-          return;
-        }
         if (!identifier.includes('@')) {
           showAppToast('Please enter a valid email address for verification', 'warning', true);
           return;
@@ -2357,7 +2421,7 @@
           return;
         }
 
-        // Save pending registration details
+        // Save pending registration details (Phone is optional)
         pendingRegistration = {
           storeName: storeName,
           phone: phone,
@@ -2366,9 +2430,9 @@
           createdAt: new Date().toISOString()
         };
 
-        // Open OTP Modal to verify phone & email
+        // Open OTP Modal for verification
         const targetEl = document.getElementById('otpTargetEmail');
-        if (targetEl) targetEl.innerText = `${phone} & ${identifier}`;
+        if (targetEl) targetEl.innerText = identifier;
         document.getElementById('otpModal').classList.remove('hidden');
         generateAndSendDualOtp();
         return;
@@ -2640,7 +2704,7 @@
       return code.trim();
     }
 
-    // STRICT VALIDATION: BOTH PHONE OTP & EMAIL OTP MUST BE MATCHED
+    // VALIDATION: EMAIL OTP REQUIRED (PHONE OTP OPTIONAL)
     async function verifyDualOtpAndCompleteRegistration() {
       const enteredPhoneOtp = collectPhoneOtp();
       const enteredEmailOtp = collectEmailOtp();
@@ -2650,37 +2714,30 @@
       const email = pendingRegistration ? (pendingRegistration.email || pendingRegistration.resetEmail) : (document.getElementById('authEmailInput')?.value.trim() || 'merchant@gmail.com');
       const targetAction = currentAuthMode === 'forgot' ? 'FORGOT_PASSWORD' : 'SIGNUP';
 
-      // Check lengths
-      if (enteredPhoneOtp.length < 6) {
-        if (errEl) errEl.classList.remove('hidden');
-        if (errText) errText.innerText = 'Please enter all 6 digits of the Mobile Phone OTP.';
-        showAppToast('Please enter complete Phone OTP', 'warning', true);
-        return;
-      }
-
+      // Check Email OTP length (Primary Required Verification)
       if (enteredEmailOtp.length < 6) {
         if (errEl) errEl.classList.remove('hidden');
-        if (errText) errText.innerText = 'Please enter all 6 digits of the Email OTP.';
+        if (errText) errText.innerText = 'Please enter all 6 digits of the Email OTP verification code.';
         showAppToast('Please enter complete Email OTP', 'warning', true);
         return;
       }
 
-      // Check Phone OTP match
-      const phoneMatches = (enteredPhoneOtp === currentRealPhoneOtp);
-
-      for (let i = 1; i <= 6; i++) {
-        const pInp = document.getElementById(`p-otp-${i}`);
-        if (pInp) {
-          pInp.classList.toggle('border-red-500', !phoneMatches);
-          pInp.classList.toggle('border-emerald-500', phoneMatches);
+      // Check Phone OTP only if entered by user
+      if (enteredPhoneOtp.length > 0 && currentRealPhoneOtp) {
+        const phoneMatches = (enteredPhoneOtp === currentRealPhoneOtp);
+        for (let i = 1; i <= 6; i++) {
+          const pInp = document.getElementById(`p-otp-${i}`);
+          if (pInp) {
+            pInp.classList.toggle('border-red-500', !phoneMatches);
+            pInp.classList.toggle('border-emerald-500', phoneMatches);
+          }
         }
-      }
-
-      if (!phoneMatches) {
-        if (errEl) errEl.classList.remove('hidden');
-        if (errText) errText.innerText = 'Mobile Phone OTP is incorrect. Please check WhatsApp/SMS code.';
-        showAppToast('Invalid Phone OTP', 'error', true);
-        return;
+        if (!phoneMatches) {
+          if (errEl) errEl.classList.remove('hidden');
+          if (errText) errText.innerText = 'Phone OTP did not match. You can leave it blank to continue with Email verification.';
+          showAppToast('Invalid Phone OTP (or leave blank)', 'error', true);
+          return;
+        }
       }
 
       // Verify Email OTP via Node.js Backend Engine
