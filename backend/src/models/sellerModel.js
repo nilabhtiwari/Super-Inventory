@@ -1,162 +1,167 @@
-const { query, queryOne } = require('../config/db');
+const { supabase } = require('../config/supabase');
+const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
+const logger = require('../config/logger');
 
-// In-Memory Fallback Store (Ensures 100% uptime even when local MySQL is offline)
-const fallbackSellers = [
-  {
+// Resilient in-memory fallback store
+const memoryStores = new Map();
+
+// Seed initial demo seller
+(async () => {
+  const hash = await bcrypt.hash('Merchant@1234', 10);
+  memoryStores.set('merchant@gmail.com', {
     id: 1,
-    uuid: '00000000-0000-0000-0000-000000000001',
-    name: 'Super Inventory Store',
+    store_name: 'Super Inventory Flagship',
+    owner_name: 'Merchant Partner',
     email: 'merchant@gmail.com',
-    phone: '+91 9876543210',
-    password_hash: bcrypt.hashSync('Merchant@1234', 10),
-    role: 'admin',
-    is_active: 1,
-    avatar_url: null,
-    created_at: new Date().toISOString()
-  }
-];
+    phone: '9876543210',
+    password_hash: hash,
+    role: 'seller',
+    status: 'active',
+    created_at: new Date()
+  });
+})();
 
-const cleanPhoneNum = (ph) => (ph || '').replace(/[^0-9]/g, '');
+class SellerModel {
+  static async findByEmail(email) {
+    const cleanEmail = email.toLowerCase().trim();
 
-const findByEmail = async (email) => {
-  try {
-    const row = await queryOne('SELECT * FROM sellers WHERE email = ?', [email]);
-    if (row) return row;
-  } catch (e) {
-    // MySQL error -> use fallback
-  }
-  return fallbackSellers.find(s => s.email.toLowerCase() === (email || '').toLowerCase()) || null;
-};
+    // 1. Check Supabase PostgreSQL if active
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('sellers')
+          .select('*')
+          .eq('email', cleanEmail)
+          .maybeSingle();
 
-const findByPhone = async (phone) => {
-  const clean = cleanPhoneNum(phone);
-  try {
-    const row = await queryOne('SELECT * FROM sellers WHERE phone = ? OR REPLACE(REPLACE(phone, "+", ""), " ", "") LIKE ?', [phone, `%${clean.slice(-10)}%`]);
-    if (row) return row;
-  } catch (e) {}
-  return fallbackSellers.find(s => cleanPhoneNum(s.phone) === clean || cleanPhoneNum(s.phone).endsWith(clean.slice(-10))) || null;
-};
-
-const findByEmailOrPhone = async (identifier) => {
-  if (!identifier) return null;
-  const isEmail = identifier.includes('@');
-  if (isEmail) {
-    return await findByEmail(identifier);
-  }
-  return await findByPhone(identifier);
-};
-
-const findById = async (id) => {
-  try {
-    const row = await queryOne('SELECT id, uuid, name, email, phone, role, is_active, avatar_url, last_login, created_at FROM sellers WHERE id = ?', [id]);
-    if (row) return row;
-  } catch (e) {}
-  return fallbackSellers.find(s => s.id === id) || null;
-};
-
-const getAll = async (includeInactive = false) => {
-  try {
-    return await query(
-      `SELECT id, uuid, name, email, phone, role, is_active, last_login, created_at FROM sellers ${includeInactive ? '' : 'WHERE is_active = 1'} ORDER BY name`,
-      []
-    );
-  } catch (e) {
-    return fallbackSellers.filter(s => includeInactive || s.is_active);
-  }
-};
-
-const create = async (data) => {
-  const { uuid, name, email, phone, password_hash, role } = data;
-  try {
-    const result = await query(
-      'INSERT INTO sellers (uuid, name, email, phone, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)',
-      [uuid, name, email, phone || null, password_hash, role || 'seller']
-    );
-    return result.insertId;
-  } catch (e) {
-    // Save to fallback store
-    const newId = fallbackSellers.length + 1;
-    fallbackSellers.push({
-      id: newId,
-      uuid,
-      name,
-      email,
-      phone: phone || null,
-      password_hash,
-      role: role || 'seller',
-      is_active: 1,
-      avatar_url: null,
-      created_at: new Date().toISOString()
-    });
-    return newId;
-  }
-};
-
-const updateLastLogin = async (id) => {
-  try {
-    await query('UPDATE sellers SET last_login = NOW() WHERE id = ?', [id]);
-  } catch (e) {
-    const seller = fallbackSellers.find(s => s.id === id);
-    if (seller) seller.last_login = new Date().toISOString();
-  }
-};
-
-const updateStatus = async (id, is_active) => {
-  try {
-    await query('UPDATE sellers SET is_active = ? WHERE id = ?', [is_active ? 1 : 0, id]);
-  } catch (e) {
-    const seller = fallbackSellers.find(s => s.id === id);
-    if (seller) seller.is_active = is_active ? 1 : 0;
-  }
-};
-
-const updateRole = async (id, role) => {
-  try {
-    await query('UPDATE sellers SET role = ? WHERE id = ?', [role, id]);
-  } catch (e) {
-    const seller = fallbackSellers.find(s => s.id === id);
-    if (seller) seller.role = role;
-  }
-};
-
-const updateProfile = async (id, data) => {
-  const { name, phone, avatar_url } = data;
-  try {
-    return await query(
-      'UPDATE sellers SET name = ?, phone = ?, avatar_url = ? WHERE id = ?',
-      [name, phone || null, avatar_url || null, id]
-    );
-  } catch (e) {
-    const seller = fallbackSellers.find(s => s.id === id);
-    if (seller) {
-      if (name) seller.name = name;
-      if (phone) seller.phone = phone;
-      if (avatar_url) seller.avatar_url = avatar_url;
+        if (!error && data) return data;
+      } catch (err) {
+        logger.warn('Supabase findByEmail error: ' + err.message);
+      }
     }
-    return true;
-  }
-};
 
-const updatePassword = async (id, password_hash) => {
-  try {
-    await query('UPDATE sellers SET password_hash = ? WHERE id = ?', [password_hash, id]);
-  } catch (e) {
-    const seller = fallbackSellers.find(s => s.id === id);
-    if (seller) seller.password_hash = password_hash;
-  }
-};
+    // 2. Check local MySQL if connected
+    if (pool) {
+      try {
+        const [rows] = await pool.query('SELECT * FROM sellers WHERE email = ? LIMIT 1', [cleanEmail]);
+        if (rows && rows.length > 0) return rows[0];
+      } catch (err) {
+        // Fall through to memory
+      }
+    }
 
-module.exports = {
-  findByEmail,
-  findByPhone,
-  findByEmailOrPhone,
-  findById,
-  getAll,
-  create,
-  updateLastLogin,
-  updateStatus,
-  updateRole,
-  updateProfile,
-  updatePassword
-};
+    // 3. In-memory store
+    return memoryStores.get(cleanEmail) || null;
+  }
+
+  static async findByPhone(phone) {
+    if (!phone) return null;
+    const cleanPhone = phone.trim();
+
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('sellers')
+          .select('*')
+          .eq('phone', cleanPhone)
+          .maybeSingle();
+
+        if (!error && data) return data;
+      } catch (err) {
+        logger.warn('Supabase findByPhone error: ' + err.message);
+      }
+    }
+
+    if (pool) {
+      try {
+        const [rows] = await pool.query('SELECT * FROM sellers WHERE phone = ? LIMIT 1', [cleanPhone]);
+        if (rows && rows.length > 0) return rows[0];
+      } catch (err) {
+        // Fall through
+      }
+    }
+
+    for (const seller of memoryStores.values()) {
+      if (seller.phone === cleanPhone) return seller;
+    }
+    return null;
+  }
+
+  static async create({ storeName, ownerName, email, phone, password }) {
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanPhone = phone ? phone.trim() : null;
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // 1. Persist to Supabase PostgreSQL
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('sellers')
+          .insert([
+            {
+              store_name: storeName,
+              owner_name: ownerName || storeName,
+              email: cleanEmail,
+              phone: cleanPhone,
+              password_hash: passwordHash,
+              role: 'seller',
+              status: 'active'
+            }
+          ])
+          .select()
+          .single();
+
+        if (!error && data) {
+          memoryStores.set(cleanEmail, data);
+          return data;
+        }
+      } catch (err) {
+        logger.warn('Supabase insert seller error: ' + err.message);
+      }
+    }
+
+    // 2. Persist to local MySQL
+    if (pool) {
+      try {
+        const [result] = await pool.query(
+          `INSERT INTO sellers (store_name, owner_name, email, phone, password_hash, role, status)
+           VALUES (?, ?, ?, ?, ?, 'seller', 'active')`,
+          [storeName, ownerName || storeName, cleanEmail, cleanPhone, passwordHash]
+        );
+        const newSeller = {
+          id: result.insertId,
+          store_name: storeName,
+          owner_name: ownerName || storeName,
+          email: cleanEmail,
+          phone: cleanPhone,
+          role: 'seller',
+          status: 'active',
+          created_at: new Date()
+        };
+        memoryStores.set(cleanEmail, newSeller);
+        return newSeller;
+      } catch (err) {
+        // Fall through
+      }
+    }
+
+    // 3. In-memory persistence
+    const id = memoryStores.size + 1;
+    const seller = {
+      id,
+      store_name: storeName,
+      owner_name: ownerName || storeName,
+      email: cleanEmail,
+      phone: cleanPhone,
+      password_hash: passwordHash,
+      role: 'seller',
+      status: 'active',
+      created_at: new Date()
+    };
+    memoryStores.set(cleanEmail, seller);
+    return seller;
+  }
+}
+
+module.exports = SellerModel;
