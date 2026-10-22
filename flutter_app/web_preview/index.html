@@ -1650,16 +1650,10 @@
               <span id="emailTargetLabel" class="text-[10px] text-brand-secondary font-mono font-bold truncate max-w-[170px]">merchant@gmail.com</span>
             </div>
 
-            <!-- Live Code Notification Indicator -->
-            <div class="p-2.5 bg-brand-primary/10 border border-brand-primary/30 rounded-xl flex items-center justify-between gap-2">
-              <div class="text-[11px] text-purple-200 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
-                <span>Code:</span>
-                <strong id="emailOtpLiveCode" class="text-amber-300 font-mono tracking-widest text-xs select-all">------</strong>
-              </div>
-              <button type="button" onclick="autoFillEmailOtp()" class="px-2.5 py-1 bg-brand-primary/20 hover:bg-brand-primary/30 text-brand-primaryContainer rounded-lg text-[10.5px] font-bold transition flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">edit_note</span> Fill Code
-              </button>
+            <!-- Security Notice Banner -->
+            <div class="p-2.5 bg-brand-surface border border-brand-surfaceBorder rounded-xl flex items-center gap-2">
+              <span class="material-symbols-outlined text-brand-primary text-base">lock</span>
+              <p class="text-[10px] text-brand-muted leading-tight">We have dispatched a 6-digit confidential code to your inbox. Please check your email.</p>
             </div>
 
             <!-- 6 PIN Inputs for Email OTP -->
@@ -2381,12 +2375,16 @@
         const storeName = document.getElementById('authStoreName').value.trim() || 'Super Inventory Store';
         const phone = document.getElementById('authSignupPhone').value.trim();
         
-        if (!identifier.includes('@')) {
-          showAppToast('Please enter a valid email address for verification', 'warning', true);
-          return;
-        }
-        if (!pw || pw.length < 6) {
-          showAppToast('Please set a password with at least 6 characters', 'warning', true);
+        // Check if user is already registered
+        const existingUsers = getStoredUsers();
+        const alreadyExists = existingUsers.some(u => u.email && u.email.toLowerCase() === identifier.toLowerCase());
+        if (alreadyExists) {
+          showAppToast('An account with this email is already registered. Please Sign In.', 'warning', true);
+          currentAuthMode = 'login';
+          updateAuthFormUI();
+          document.getElementById('authEmailInput').value = identifier;
+          document.getElementById('authPasswordInput').value = '';
+          document.getElementById('authPasswordInput')?.focus();
           return;
         }
 
@@ -2525,24 +2523,10 @@
       // Start Countdown
       startOtpCountdown(backendCooldown);
 
-      // Desktop System Notification (if allowed)
-      if ('Notification' in window) {
-        if (Notification.permission === 'granted') {
-          try {
-            new Notification('Super Inventory Security Code', {
-              body: `Email Verification OTP: ${currentRealEmailOtp}`,
-              icon: 'assets/app_icon_256.png'
-            });
-          } catch(e) {}
-        } else if (Notification.permission !== 'denied') {
-          try { Notification.requestPermission(); } catch(e) {}
-        }
-      }
-
       if (isResend) {
-        showAppToast(`✓ New Code Sent: Email [${currentRealEmailOtp}]`, 'mail');
+        showAppToast(`✓ New verification code sent to your email inbox.`, 'mail');
       } else {
-        showAppToast(`📨 Verification Code Sent to ${email}`, 'mail');
+        showAppToast(`📨 Verification code dispatched to ${email}`, 'mail');
       }
     }
 
@@ -2818,7 +2802,7 @@
         document.getElementById('authPasswordInput').value = '';
         document.getElementById('authPasswordInput')?.focus();
 
-        showAppToast(`✓ Email verified successfully! Please enter your password to sign in.`, 'verified', true);
+        showAppToast(`✓ Sign Up Complete! Your store "${regStoreName}" has been registered. Please enter your password to sign in.`, 'verified', true);
         switchScreen('login');
         return;
       } else if (currentAuthMode === 'forgot' && pendingRegistration) {

@@ -48,16 +48,15 @@ const requestOtp = async (req, res, next) => {
     // High-speed email dispatch to the user's real or registered email
     await sendFastOtpEmail(recipientEmail, cacheResult.otp, targetAction);
 
-    res.json({
-      success: true,
-      recipientEmail: recipientEmail,
-      message: `Verification code successfully sent to ${recipientEmail}. Valid for 5 minutes.`,
-      cooldownSeconds: cacheResult.cooldownSeconds,
-      resendsRemaining: cacheResult.resendsRemaining,
-      expiresInSeconds: cacheResult.expiresInSeconds,
-      ...(process.env.NODE_ENV !== 'production' ? { devOtp: cacheResult.otp } : {})
-    });
-  } catch (err) {
+      res.json({
+        success: true,
+        recipientEmail: recipientEmail,
+        message: `Verification code successfully sent to ${recipientEmail}. Valid for 5 minutes.`,
+        cooldownSeconds: cacheResult.cooldownSeconds,
+        resendsRemaining: cacheResult.resendsRemaining,
+        expiresInSeconds: cacheResult.expiresInSeconds
+      });
+    } catch (err) {
     next(err);
   }
 };
