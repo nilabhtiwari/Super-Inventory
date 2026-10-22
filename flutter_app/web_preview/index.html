@@ -1618,18 +1618,21 @@
                               <!-- ============================================================ -->
       <!-- 10. REAL DUAL OTP VERIFICATION MODAL (GUARANTEED DISPATCH) -->
       <!-- ============================================================ -->
-      <div id="otpModal" class="hidden absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 overflow-y-auto">
-        <div class="w-full max-w-[375px] max-h-[95%] overflow-y-auto bg-brand-surface border border-brand-surfaceBorder p-4 sm:p-5 rounded-[28px] space-y-3.5 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200 my-auto">
+      <!-- ============================================================ -->
+      <!-- 10. PROFESSIONAL EMAIL OTP VERIFICATION POPUP -->
+      <!-- ============================================================ -->
+      <div id="otpModal" class="hidden absolute inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="w-full max-w-[360px] bg-brand-surface border border-brand-surfaceBorder p-5 sm:p-6 rounded-[28px] space-y-4 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200 my-auto">
           
           <!-- Modal Header -->
-          <div class="flex items-center justify-between border-b border-brand-surfaceBorder pb-2.5">
-            <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 text-white flex items-center justify-center shadow-md">
-                <span class="material-symbols-outlined text-lg">verified_user</span>
+          <div class="flex items-center justify-between border-b border-brand-surfaceBorder pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-primary to-brand-secondary text-white flex items-center justify-center shadow-md">
+                <span class="material-symbols-outlined text-xl">mark_email_read</span>
               </div>
               <div class="text-left">
-                <h3 class="text-xs sm:text-sm font-black text-white" id="otpModalTitle">Security Verification</h3>
-                <p class="text-[10px] text-brand-muted" id="otpModalSubtitle">Enter the verification code sent to your email (Phone OTP is optional)</p>
+                <h3 class="text-xs sm:text-sm font-black text-white" id="otpModalTitle">Email Verification</h3>
+                <p class="text-[10px] text-brand-muted" id="otpModalSubtitle">Enter the 6-digit code sent to your email</p>
               </div>
             </div>
             <button type="button" onclick="closeOtpModal()" class="w-7 h-7 rounded-lg bg-brand-surfaceElevated text-brand-muted hover:text-white flex items-center justify-center">
@@ -1637,99 +1640,65 @@
             </button>
           </div>
 
-          <!-- 1-TAP INSTANT VERIFICATION QUICK BUTTON (GUARANTEED NO-FAIL) -->
-          <button type="button" onclick="autoFillBothAndVerify()" class="w-full py-2.5 px-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-[11px] rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2 border border-emerald-400/40">
-            <span class="material-symbols-outlined text-base animate-pulse">bolt</span>
-            <span>⚡ 1-Click Auto-Fill & Verify</span>
-          </button>
-
-          <!-- SECTION 1: MOBILE PHONE OTP -->
-          <div class="p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl space-y-2 text-left">
+          <!-- SECTION: EMAIL ADDRESS OTP -->
+          <div id="emailOtpSection" class="p-4 bg-brand-surfaceElevated/70 border border-brand-surfaceBorder rounded-2xl space-y-3 text-left">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-emerald-400 text-base">phone_iphone</span>
-                <span class="text-[11px] font-bold text-white">1. Mobile Phone OTP (Optional)</span>
+                <span class="material-symbols-outlined text-brand-primary text-base">mail</span>
+                <span class="text-[11px] font-bold text-white">Verification Code</span>
               </div>
-              <span id="phoneTargetLabel" class="text-[10px] text-emerald-300 font-mono font-bold">+91 9876543210</span>
+              <span id="emailTargetLabel" class="text-[10px] text-brand-secondary font-mono font-bold truncate max-w-[170px]">merchant@gmail.com</span>
             </div>
 
-            <!-- Live Incoming Phone Code Box -->
-            <div class="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between gap-2">
-              <div class="text-[11px] text-emerald-200 flex items-center gap-1">
-                <span>Code:</span>
-                <strong id="phoneOtpLiveCode" class="text-amber-300 font-mono tracking-widest text-xs select-all">------</strong>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <button type="button" onclick="autoFillPhoneOtp()" class="px-2.5 py-1 bg-emerald-500/25 hover:bg-emerald-500/35 text-emerald-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
-                  <span class="material-symbols-outlined text-xs">edit_note</span> Fill Code
-                </button>
-                <a id="otpWhatsAppSendLink" href="#" target="_blank" class="px-2 py-1 bg-[#25D366]/20 hover:bg-[#25D366]/30 text-[#25D366] rounded-lg text-[10px] font-black transition flex items-center gap-1">
-                  <span class="material-symbols-outlined text-xs">chat</span> WhatsApp
-                </a>
-              </div>
-            </div>
-
-            <!-- 6 PIN Inputs for Phone -->
-            <div class="flex justify-between gap-1 pt-0.5" onpaste="handlePhoneOtpPaste(event)">
-              <input type="text" inputmode="numeric" maxlength="1" id="p-otp-1" oninput="handlePhoneOtpInput(1, event)" onkeydown="handlePhoneOtpKeydown(1, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
-              <input type="text" inputmode="numeric" maxlength="1" id="p-otp-2" oninput="handlePhoneOtpInput(2, event)" onkeydown="handlePhoneOtpKeydown(2, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
-              <input type="text" inputmode="numeric" maxlength="1" id="p-otp-3" oninput="handlePhoneOtpInput(3, event)" onkeydown="handlePhoneOtpKeydown(3, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
-              <input type="text" inputmode="numeric" maxlength="1" id="p-otp-4" oninput="handlePhoneOtpInput(4, event)" onkeydown="handlePhoneOtpKeydown(4, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
-              <input type="text" inputmode="numeric" maxlength="1" id="p-otp-5" oninput="handlePhoneOtpInput(5, event)" onkeydown="handlePhoneOtpKeydown(5, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
-              <input type="text" inputmode="numeric" maxlength="1" id="p-otp-6" oninput="handlePhoneOtpInput(6, event)" onkeydown="handlePhoneOtpKeydown(6, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
-            </div>
-          </div>
-
-          <!-- SECTION 2: EMAIL ADDRESS OTP -->
-          <div id="emailOtpSection" class="p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl space-y-2 text-left">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-purple-400 text-base">mail</span>
-                <span class="text-[11px] font-bold text-white">2. Email Address OTP</span>
-              </div>
-              <span id="emailTargetLabel" class="text-[10px] text-purple-300 font-mono font-bold">merchant@gmail.com</span>
-            </div>
-
-            <!-- Live Incoming Email Code Box -->
-            <div class="p-2 bg-purple-500/10 border border-purple-500/30 rounded-xl flex items-center justify-between gap-2">
-              <div class="text-[11px] text-purple-200 flex items-center gap-1">
+            <!-- Live Code Notification Indicator -->
+            <div class="p-2.5 bg-brand-primary/10 border border-brand-primary/30 rounded-xl flex items-center justify-between gap-2">
+              <div class="text-[11px] text-purple-200 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
                 <span>Code:</span>
                 <strong id="emailOtpLiveCode" class="text-amber-300 font-mono tracking-widest text-xs select-all">------</strong>
               </div>
-              <button type="button" onclick="autoFillEmailOtp()" class="px-2.5 py-1 bg-purple-500/25 hover:bg-purple-500/35 text-purple-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
+              <button type="button" onclick="autoFillEmailOtp()" class="px-2.5 py-1 bg-brand-primary/20 hover:bg-brand-primary/30 text-brand-primaryContainer rounded-lg text-[10.5px] font-bold transition flex items-center gap-1">
                 <span class="material-symbols-outlined text-xs">edit_note</span> Fill Code
               </button>
             </div>
 
-            <!-- 6 PIN Inputs for Email -->
-            <div class="flex justify-between gap-1 pt-0.5" onpaste="handleEmailOtpPaste(event)">
-              <input type="text" inputmode="numeric" maxlength="1" id="e-otp-1" oninput="handleEmailOtpInput(1, event)" onkeydown="handleEmailOtpKeydown(1, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
-              <input type="text" inputmode="numeric" maxlength="1" id="e-otp-2" oninput="handleEmailOtpInput(2, event)" onkeydown="handleEmailOtpKeydown(2, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
-              <input type="text" inputmode="numeric" maxlength="1" id="e-otp-3" oninput="handleEmailOtpInput(3, event)" onkeydown="handleEmailOtpKeydown(3, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
-              <input type="text" inputmode="numeric" maxlength="1" id="e-otp-4" oninput="handleEmailOtpInput(4, event)" onkeydown="handleEmailOtpKeydown(4, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
-              <input type="text" inputmode="numeric" maxlength="1" id="e-otp-5" oninput="handleEmailOtpInput(5, event)" onkeydown="handleEmailOtpKeydown(5, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
-              <input type="text" inputmode="numeric" maxlength="1" id="e-otp-6" oninput="handleEmailOtpInput(6, event)" onkeydown="handleEmailOtpKeydown(6, event)" class="w-9 sm:w-10 h-10 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-base rounded-xl text-white outline-none focus:border-brand-primary transition" />
+            <!-- 6 PIN Inputs for Email OTP -->
+            <div class="flex justify-between gap-1.5 pt-1" onpaste="handleEmailOtpPaste(event)">
+              <input type="text" inputmode="numeric" maxlength="1" id="e-otp-1" oninput="handleEmailOtpInput(1, event)" onkeydown="handleEmailOtpKeydown(1, event)" class="w-10 h-11 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-lg rounded-xl text-white outline-none focus:border-brand-primary transition" />
+              <input type="text" inputmode="numeric" maxlength="1" id="e-otp-2" oninput="handleEmailOtpInput(2, event)" onkeydown="handleEmailOtpKeydown(2, event)" class="w-10 h-11 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-lg rounded-xl text-white outline-none focus:border-brand-primary transition" />
+              <input type="text" inputmode="numeric" maxlength="1" id="e-otp-3" oninput="handleEmailOtpInput(3, event)" onkeydown="handleEmailOtpKeydown(3, event)" class="w-10 h-11 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-lg rounded-xl text-white outline-none focus:border-brand-primary transition" />
+              <input type="text" inputmode="numeric" maxlength="1" id="e-otp-4" oninput="handleEmailOtpInput(4, event)" onkeydown="handleEmailOtpKeydown(4, event)" class="w-10 h-11 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-lg rounded-xl text-white outline-none focus:border-brand-primary transition" />
+              <input type="text" inputmode="numeric" maxlength="1" id="e-otp-5" oninput="handleEmailOtpInput(5, event)" onkeydown="handleEmailOtpKeydown(5, event)" class="w-10 h-11 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-lg rounded-xl text-white outline-none focus:border-brand-primary transition" />
+              <input type="text" inputmode="numeric" maxlength="1" id="e-otp-6" oninput="handleEmailOtpInput(6, event)" onkeydown="handleEmailOtpKeydown(6, event)" class="w-10 h-11 bg-brand-surface border border-brand-surfaceBorder text-center font-black text-lg rounded-xl text-white outline-none focus:border-brand-primary transition" />
+            </div>
+
+            <!-- Hidden Phone OTP Elements for backwards-safe script references -->
+            <div class="hidden">
+              <span id="phoneTargetLabel"></span>
+              <span id="phoneOtpLiveCode"></span>
+              <a id="otpWhatsAppSendLink" href="#"></a>
+              <input type="hidden" id="p-otp-1" /><input type="hidden" id="p-otp-2" /><input type="hidden" id="p-otp-3" /><input type="hidden" id="p-otp-4" /><input type="hidden" id="p-otp-5" /><input type="hidden" id="p-otp-6" />
             </div>
           </div>
 
           <!-- Error Alert Banner -->
-          <p id="otpErrorFeedback" class="hidden text-[10.5px] font-bold text-red-400 flex items-center justify-center gap-1">
+          <p id="otpErrorFeedback" class="hidden text-[11px] font-bold text-red-400 flex items-center justify-center gap-1">
             <span class="material-symbols-outlined text-xs">error</span>
-            <span id="otpErrorFeedbackText">Please enter valid verification codes.</span>
+            <span id="otpErrorFeedbackText">Please enter valid verification code.</span>
           </p>
 
           <!-- Resend & Countdown Controls -->
-          <div class="flex items-center justify-between text-[10.5px] px-1">
+          <div class="flex items-center justify-between text-[11px] px-1">
             <span id="otpTimerText" class="text-brand-muted">Resend in <strong class="text-white font-mono" id="otpCountdownNum">00:30</strong></span>
             <button type="button" id="otpResendBtn" onclick="generateAndSendDualOtp(true)" disabled class="text-brand-primaryContainer font-bold opacity-50 cursor-not-allowed hover:underline">
-              Resend Codes
+              Resend Code
             </button>
           </div>
 
           <!-- Verify Action Button -->
-          <button type="button" onclick="verifyDualOtpAndCompleteRegistration()" id="otpVerifyBtn" class="w-full py-3 bg-brand-primary text-white font-extrabold text-xs rounded-xl shadow-lg hover:bg-brand-primaryGlow active:scale-95 transition flex items-center justify-center gap-1.5">
+          <button type="button" onclick="verifyDualOtpAndCompleteRegistration()" id="otpVerifyBtn" class="w-full py-3 bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-extrabold text-xs rounded-xl shadow-lg hover:opacity-95 active:scale-95 transition flex items-center justify-center gap-1.5">
             <span class="material-symbols-outlined text-sm">verified</span>
-            <span id="otpVerifyBtnText">Verify Both & Complete Registration</span>
+            <span id="otpVerifyBtnText">Verify & Continue to Sign In</span>
           </button>
         </div>
       </div>
@@ -2550,8 +2519,8 @@
 
       document.getElementById('otpErrorFeedback')?.classList.add('hidden');
 
-      // Auto-focus first phone input
-      setTimeout(() => { document.getElementById('p-otp-1')?.focus(); }, 150);
+      // Auto-focus first email input
+      setTimeout(() => { document.getElementById('e-otp-1')?.focus(); }, 150);
 
       // Start Countdown
       startOtpCountdown(backendCooldown);
@@ -2560,8 +2529,8 @@
       if ('Notification' in window) {
         if (Notification.permission === 'granted') {
           try {
-            new Notification('Super Inventory Security Codes', {
-              body: `Phone OTP: ${currentRealPhoneOtp} | Email OTP: ${currentRealEmailOtp}`,
+            new Notification('Super Inventory Security Code', {
+              body: `Email Verification OTP: ${currentRealEmailOtp}`,
               icon: 'assets/app_icon_256.png'
             });
           } catch(e) {}
@@ -2571,9 +2540,9 @@
       }
 
       if (isResend) {
-        showAppToast(`✓ New Codes: Phone [${currentRealPhoneOtp}] | Email [${currentRealEmailOtp}]`, 'sms');
+        showAppToast(`✓ New Code Sent: Email [${currentRealEmailOtp}]`, 'mail');
       } else {
-        showAppToast(`📲 Codes Dispatched: Phone [${currentRealPhoneOtp}] | Email [${currentRealEmailOtp}]`, 'sms');
+        showAppToast(`📨 Verification Code Sent to ${email}`, 'mail');
       }
     }
 
@@ -2830,21 +2799,27 @@
         }
 
         saveNewUser(pendingRegistration);
-        isLoggedIn = true;
+        isLoggedIn = false;
 
-        document.getElementById('headerShopName').innerText = pendingRegistration.storeName;
-        document.getElementById('settingsStoreName').innerText = pendingRegistration.storeName;
-        document.getElementById('settingsUserEmail').innerText = pendingRegistration.email;
-        document.getElementById('drawerPhone').innerText = pendingRegistration.phone;
-        document.getElementById('rcptShopName').innerText = pendingRegistration.storeName;
-
-        showAppToast(`✓ Phone & Email Verified! Welcome to Super Inventory, "${pendingRegistration.storeName}".`, 'verified');
+        const regStoreName = pendingRegistration.storeName;
+        const regEmail = pendingRegistration.email;
+        const regPhone = pendingRegistration.phone;
         pendingRegistration = null;
+
         if (verifyBtn) {
           verifyBtn.disabled = false;
-          verifyBtn.innerText = 'Verify & Complete Registration';
+          verifyBtn.innerText = 'Verify & Continue to Sign In';
         }
-        switchScreen('dashboard');
+
+        // Redirect to Sign In mode with registered credentials prefilled
+        currentAuthMode = 'login';
+        updateAuthFormUI();
+        document.getElementById('authEmailInput').value = regEmail;
+        document.getElementById('authPasswordInput').value = '';
+        document.getElementById('authPasswordInput')?.focus();
+
+        showAppToast(`✓ Email verified successfully! Please enter your password to sign in.`, 'verified', true);
+        switchScreen('login');
         return;
       } else if (currentAuthMode === 'forgot' && pendingRegistration) {
         try {
