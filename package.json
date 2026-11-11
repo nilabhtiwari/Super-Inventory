@@ -1,0 +1,14 @@
+{
+  "name": "super-inventory",
+  "version": "1.0.0",
+  "description": "Super Inventory - Smart Retail POS & Inventory Management System",
+  "main": "backend/src/index.js",
+  "scripts": {
+    "start": "node backend/src/index.js",
+    "build": "npm --prefix backend install",
+    "backend": "npm --prefix backend start"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
