@@ -1006,6 +1006,12 @@
       <!-- 3. THERMAL RECEIPT & UPI QR SCREEN WITH PROMOTIONAL AD -->
       <!-- ============================================================ -->
       <div id="screen-receipt" class="hidden space-y-4">
+        <div class="flex items-center justify-between pb-1">
+          <button onclick="switchScreen('history')" class="py-1.5 px-3 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition active:scale-95">
+            <span class="material-symbols-outlined text-sm">arrow_back</span> Back
+          </button>
+          <span class="text-[10.5px] font-black uppercase text-brand-muted tracking-wider">Thermal Tax Invoice</span>
+        </div>
         <div class="p-5 bg-brand-surface border border-brand-surfaceBorder rounded-3xl space-y-3 text-center">
           <h2 class="text-xl font-black tracking-tight text-white" id="rcptShopName">Super Inventory</h2>
           <p class="text-[11px] text-brand-muted" id="rcptShopAddress">Main Branch • City Centre Road</p>
@@ -5306,6 +5312,126 @@
       completeCheckout();
     }
 
+    function renderInvoiceReceipt(inv) {
+      if (!inv) return;
+      
+      const invNo = inv.id || 'INV-UNKNOWN';
+      const grandTotal = Number(inv.total) || 0;
+      const subtotal = inv.subtotal !== undefined ? Number(inv.subtotal) : (grandTotal * 0.82);
+      const totalGst = inv.tax !== undefined ? Number(inv.tax) : (grandTotal - subtotal);
+      const payMode = inv.payMode || 'CASH';
+
+      const invoiceDate = inv.date ? new Date(inv.date) : new Date();
+      const dateFormatted = !isNaN(invoiceDate.getTime()) 
+        ? invoiceDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + (inv.time || invoiceDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
+        : (inv.time || 'Today');
+
+      const invNoEl = document.getElementById('rcptInvoiceNo');
+      if (invNoEl) invNoEl.innerText = invNo;
+
+      const dateEl = document.getElementById('rcptDate');
+      if (dateEl) dateEl.innerText = dateFormatted;
+
+      const subtotalEl = document.getElementById('rcptSubtotal');
+      if (subtotalEl) subtotalEl.innerText = `₹${subtotal.toFixed(2)}`;
+
+      const taxEl = document.getElementById('rcptTax');
+      if (taxEl) taxEl.innerText = `₹${totalGst.toFixed(2)}`;
+
+      const grandTotalEl = document.getElementById('rcptGrandTotal');
+      if (grandTotalEl) grandTotalEl.innerText = `₹${grandTotal.toFixed(2)}`;
+
+      const payModeEl = document.getElementById('rcptPayMode');
+      if (payModeEl) payModeEl.innerText = `PAID VIA ${payMode}`;
+
+      // Render line items with exact breakdown
+      const itemsListEl = document.getElementById('rcptItemsList');
+      if (itemsListEl) {
+        if (inv.itemsList && Array.isArray(inv.itemsList) && inv.itemsList.length > 0) {
+          itemsListEl.innerHTML = `
+            <div class="border-b border-brand-surfaceBorder pb-1 text-[9.5px] font-black uppercase text-brand-muted flex justify-between">
+              <span>Item & Breakdown</span>
+              <span>Item Total</span>
+            </div>
+          ` + inv.itemsList.map((i, idx) => {
+            let normalizedQty = i.quantity;
+            if (i.unit === 'g' || i.unit === 'ml') normalizedQty = i.quantity / 1000;
+            const lineTotal = (Number(i.price) || 0) * (Number(normalizedQty) || 1);
+            const gstRate = Number(i.gst) || 0;
+            const lineTax = (gstRate > 0) ? (lineTotal - (lineTotal / (1 + (gstRate / 100)))) : 0;
+            const lineNet = lineTotal - lineTax;
+
+            return `
+              <div class="py-1.5 border-b border-dashed border-brand-surfaceBorder/70 text-left">
+                <div class="flex justify-between font-bold text-white text-xs">
+                  <span>${idx + 1}. ${i.name}</span>
+                  <span class="font-black text-brand-secondary">₹${lineTotal.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between text-[10px] text-brand-muted mt-0.5">
+                  <span>Qty: <b class="text-white">${i.quantity} ${i.unit || 'pcs'}</b> @ ₹${Number(i.price).toFixed(2)}/${i.unit || 'unit'}</span>
+                  <span>Net: ₹${lineNet.toFixed(2)} + GST ${gstRate}% incl. (₹${lineTax.toFixed(2)})</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          // Clean item presentation for bills generated before itemsList array was tracked
+          itemsListEl.innerHTML = `
+            <div class="border-b border-brand-surfaceBorder pb-1 text-[9.5px] font-black uppercase text-brand-muted flex justify-between">
+              <span>Item & Breakdown</span>
+              <span>Item Total</span>
+            </div>
+            <div class="py-2 border-b border-dashed border-brand-surfaceBorder/70 text-left">
+              <div class="flex justify-between font-bold text-white text-xs">
+                <span>1. Store Purchase</span>
+                <span class="font-black text-brand-secondary">₹${grandTotal.toFixed(2)}</span>
+              </div>
+              <div class="flex justify-between text-[10px] text-brand-muted mt-0.5">
+                <span>Total Items: <b class="text-white">${inv.items || 1}</b></span>
+                <span>GST Included</span>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      // Generate dynamic UPI QR code
+      const qrEl = document.getElementById('qrcodeCanvas');
+      if (qrEl) {
+        qrEl.innerHTML = '';
+        const bankConfig = getStoredBankUpiSettings();
+        const activeVpa = bankConfig.vpa || 'superinventory@upi';
+        const activePayee = encodeURIComponent(bankConfig.payeeName || 'Super Inventory');
+        const upiUrl = `upi://pay?pa=${encodeURIComponent(activeVpa)}&pn=${activePayee}&am=${grandTotal.toFixed(2)}&tn=${encodeURIComponent(invNo)}&cu=INR`;
+        
+        const upiIdEl = document.getElementById('rcptUpiId');
+        if (upiIdEl) upiIdEl.innerText = activeVpa;
+
+        new QRCode(qrEl, {
+          text: upiUrl,
+          width: 140,
+          height: 140,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+
+      lastCompletedInvoiceData = { 
+        items: inv.itemsList || [{ name: 'Store Purchase', price: grandTotal, quantity: 1, unit: 'pcs', gst: 0 }], 
+        total: grandTotal, 
+        id: invNo 
+      };
+    }
+
+    function viewInvoiceReceipt(invoiceId) {
+      const inv = completedInvoices.find(i => i.id === invoiceId);
+      if (inv) {
+        renderInvoiceReceipt(inv);
+        switchScreen('receipt');
+      }
+    }
+
     function completeCheckout() {
       if (cart.length === 0) {
         alert('Please scan products first!');
@@ -5325,73 +5451,28 @@
         subtotal += lineNet;
         totalGst += lineTax;
       });
-      const invNo = `INV-20260901-${String(Math.floor(1000 + Math.random() * 9000))}`;
 
-      document.getElementById('rcptInvoiceNo').innerText = invNo;
-      document.getElementById('rcptSubtotal').innerText = `₹${subtotal.toFixed(2)}`;
-      document.getElementById('rcptTax').innerText = `₹${totalGst.toFixed(2)}`;
-      document.getElementById('rcptGrandTotal').innerText = `₹${grandTotal.toFixed(2)}`;
-      document.getElementById('rcptPayMode').innerText = `PAID VIA ${paymentMode}`;
+      const now = new Date();
+      const dateCode = now.toISOString().slice(0, 10).replace(/-/g, '');
+      const invNo = `INV-${dateCode}-${String(Math.floor(1000 + Math.random() * 9000))}`;
 
-      document.getElementById('rcptItemsList').innerHTML = `
-        <div class="border-b border-brand-surfaceBorder pb-1 text-[9.5px] font-black uppercase text-brand-muted flex justify-between">
-          <span>Item & Breakdown</span>
-          <span>Item Total</span>
-        </div>
-      ` + cart.map((i, idx) => {
-        let normalizedQty = i.quantity;
-        if (i.unit === 'g' || i.unit === 'ml') normalizedQty = i.quantity / 1000;
-
-        const lineTotal = i.price * normalizedQty;
-        const gstRate = i.gst || 0;
-        const lineTax = (gstRate > 0) ? (lineTotal - (lineTotal / (1 + (gstRate / 100)))) : 0;
-        const lineNet = lineTotal - lineTax;
-
-        return `
-          <div class="py-1.5 border-b border-dashed border-brand-surfaceBorder/70 text-left">
-            <div class="flex justify-between font-bold text-white text-xs">
-              <span>${idx + 1}. ${i.name}</span>
-              <span class="font-black text-brand-secondary">₹${lineTotal.toFixed(2)}</span>
-            </div>
-            <div class="flex justify-between text-[10px] text-brand-muted mt-0.5">
-              <span>Qty: <b class="text-white">${i.quantity} ${i.unit || 'pcs'}</b> @ ₹${i.price.toFixed(2)}/${i.unit || 'unit'}</span>
-              <span>Net: ₹${lineNet.toFixed(2)} + GST ${i.gst}% incl. (₹${lineTax.toFixed(2)})</span>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      const qrEl = document.getElementById('qrcodeCanvas');
-      qrEl.innerHTML = '';
-      
-      // Load merchant's linked Bank UPI settings
-      const bankConfig = getStoredBankUpiSettings();
-      const activeVpa = bankConfig.vpa || 'superinventory@upi';
-      const activePayee = encodeURIComponent(bankConfig.payeeName || 'Super Inventory');
-      const upiUrl = `upi://pay?pa=${encodeURIComponent(activeVpa)}&pn=${activePayee}&am=${grandTotal.toFixed(2)}&tn=${encodeURIComponent(invNo)}&cu=INR`;
-      
-      document.getElementById('rcptUpiId').innerText = activeVpa;
-
-      new QRCode(qrEl, {
-        text: upiUrl,
-        width: 140,
-        height: 140,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.M
-      });
-
-      completedInvoices.unshift({
+      const invData = {
         id: invNo,
         total: grandTotal,
+        subtotal: subtotal,
+        tax: totalGst,
         items: cart.reduce((s, i) => s + i.quantity, 0),
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        date: new Date().toISOString(),
+        itemsList: JSON.parse(JSON.stringify(cart)),
+        payMode: paymentMode,
+        time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        date: now.toISOString(),
         status: 'Paid'
-      });
+      };
+
+      completedInvoices.unshift(invData);
       saveCompletedInvoices();
 
-      lastCompletedInvoiceData = { items: JSON.parse(JSON.stringify(cart)), total: grandTotal, id: invNo };
+      renderInvoiceReceipt(invData);
       cart = [];
       renderCart();
       switchScreen('receipt');
@@ -5439,7 +5520,7 @@
               } catch (e) {}
             }
             return `
-            <div onclick="switchScreen('history')" class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-primary transition">
+            <div onclick="viewInvoiceReceipt('${inv.id}')" title="Click to view full bill receipt" class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-primary transition">
               <div class="flex items-center gap-2.5">
                 <div class="w-9 h-9 rounded-xl bg-brand-surfaceElevated flex items-center justify-center text-brand-primaryContainer">
                   <span class="material-symbols-outlined text-lg">receipt_long</span>
@@ -5497,7 +5578,7 @@
           } catch (e) {}
         }
         return `
-        <div class="p-3.5 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between">
+        <div onclick="viewInvoiceReceipt('${inv.id}')" title="Click to view full bill receipt" class="p-3.5 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-primary transition">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-brand-surfaceElevated flex items-center justify-center text-brand-primaryContainer">
               <span class="material-symbols-outlined text-xl">receipt_long</span>
@@ -5512,7 +5593,7 @@
               <p class="text-sm font-black text-white">₹${(Number(inv.total) || 0).toFixed(2)}</p>
               <span class="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Paid</span>
             </div>
-            <button onclick="simulateWhatsApp()" title="Share Receipt" class="w-8 h-8 rounded-full bg-[#25D366]/20 text-[#25D366] flex items-center justify-center hover:bg-[#25D366] hover:text-white transition">
+            <button onclick="event.stopPropagation(); simulateWhatsApp('${inv.id}')" title="Share Receipt" class="w-8 h-8 rounded-full bg-[#25D366]/20 text-[#25D366] flex items-center justify-center hover:bg-[#25D366] hover:text-white transition">
               <span class="material-symbols-outlined text-sm">share</span>
             </button>
           </div>
@@ -6347,7 +6428,13 @@ ${itemsListText}
       }
     }
 
-    function simulateWhatsApp() {
+    function simulateWhatsApp(invId) {
+      if (invId) {
+        const inv = completedInvoices.find(i => i.id === invId);
+        if (inv) {
+          renderInvoiceReceipt(inv);
+        }
+      }
       openWhatsAppModal();
     }
 
