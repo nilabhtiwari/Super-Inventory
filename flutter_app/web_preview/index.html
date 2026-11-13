@@ -1976,11 +1976,11 @@
             </div>
           </div>
 
-                    <!-- Quick Test / Demo Credentials Chip -->
-          <div class="hidden flex items-center justify-between px-1 pt-1 pb-0.5" id="demoAccountChipRow">
-            <span class="text-[9.5px] text-brand-muted">Quick Testing?</span>
-            <button type="button" onclick="fillDemoMerchantCredentials()" class="text-[10px] font-bold text-amber-300 hover:text-amber-200 flex items-center gap-1 bg-amber-400/10 px-2 py-0.5 rounded-lg border border-amber-400/20">
-              <span class="material-symbols-outlined text-xs">vpn_key</span> Fill Demo Account
+          <!-- Quick Test / Demo Credentials Chip -->
+          <div class="flex items-center justify-between px-1 pt-1 pb-0.5" id="demoAccountChipRow">
+            <span class="text-[9.5px] text-brand-muted">Temporary Access:</span>
+            <button type="button" onclick="fillDemoMerchantCredentials()" class="text-[10px] font-bold text-amber-300 hover:text-amber-200 flex items-center gap-1 bg-amber-400/10 px-2 py-0.5 rounded-lg border border-amber-400/20 active:scale-95 transition">
+              <span class="material-symbols-outlined text-xs">vpn_key</span> Demo Account (Open App)
             </button>
           </div>
 
@@ -2870,10 +2870,33 @@
 
     let currentAuthMode = 'login'; // 'login', 'signup', 'forgot'
 
-        function fillDemoMerchantCredentials() {
-      document.getElementById('authEmailInput').value = 'merchant@gmail.com';
-      document.getElementById('authPasswordInput').value = 'Merchant@1234';
-      showAppToast('✓ Demo credentials loaded: merchant@gmail.com', 'info');
+    function fillDemoMerchantCredentials() {
+      const emailInput = document.getElementById('authEmailInput');
+      const pwInput = document.getElementById('authPasswordInput');
+      if (emailInput) emailInput.value = 'merchant@gmail.com';
+      if (pwInput) pwInput.value = 'Merchant@1234';
+
+      showAppToast('✓ Demo account verified! Opening Super Inventory...', 'verified');
+
+      // Grant authenticated session
+      isLoggedIn = true;
+      const demoSeller = {
+        id: 1,
+        uuid: 'seller-demo-uuid',
+        name: 'Super Inventory Store',
+        store_name: 'Super Inventory Store',
+        email: 'merchant@gmail.com',
+        role: 'seller'
+      };
+      try {
+        localStorage.setItem('super_inventory_token', 'demo-token-' + Date.now());
+        localStorage.setItem('super_inventory_seller', JSON.stringify(demoSeller));
+      } catch (e) {}
+
+      // Open the app home screen / dashboard immediately
+      setTimeout(() => {
+        switchScreen('dashboard');
+      }, 250);
     }
 
     function setAuthView(mode) {
