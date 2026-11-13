@@ -2453,8 +2453,8 @@
             <span class="material-symbols-outlined text-xl">barcode_scanner</span>
           </div>
           <div>
-            <h3 class="text-sm font-black text-white tracking-wide">Add Product to Inventory</h3>
-            <p class="text-[10px] text-brand-muted font-medium">Scan barcode or enter name & price</p>
+            <h3 class="text-sm font-black text-white tracking-wide" id="addProductModalTitle">Add Product to Inventory</h3>
+            <p class="text-[10px] text-brand-muted font-medium" id="addProductModalSubtitle">Scan barcode or enter name & price</p>
           </div>
         </div>
         <button type="button" onclick="closeAddProductModal()" class="w-8 h-8 rounded-full bg-brand-surfaceElevated border border-brand-surfaceBorder hover:bg-brand-surface text-slate-300 hover:text-white transition flex items-center justify-center active:scale-95">
@@ -2564,13 +2564,46 @@
           </div>
         </div>
 
+        <!-- SECTION 4: STOCK QUANTITY & MEASUREMENT UNIT -->
+        <div class="grid grid-cols-2 gap-2 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
+          <div class="space-y-1">
+            <label class="text-[10px] font-black uppercase tracking-wider text-slate-300 flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm text-brand-secondary">inventory_2</span>
+              <span>4. Stock Qty</span>
+            </label>
+            <input type="number" id="addProdQty" step="1" min="0" value="100" 
+                   class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition font-mono" />
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-black uppercase tracking-wider text-slate-300 flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm text-brand-secondary">straighten</span>
+              <span>5. Unit</span>
+            </label>
+            <select id="addProdUnit" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2.5 py-2 text-xs font-bold text-white outline-none focus:border-brand-primary transition">
+              <option value="pcs" class="bg-slate-900 text-white">pcs (Pieces)</option>
+              <option value="kg" class="bg-slate-900 text-white">kg (Kilogram)</option>
+              <option value="g" class="bg-slate-900 text-white">g (Gram)</option>
+              <option value="litre" class="bg-slate-900 text-white">litre (Litre)</option>
+              <option value="ml" class="bg-slate-900 text-white">ml (Millilitre)</option>
+              <option value="pack" class="bg-slate-900 text-white">pack (Pack)</option>
+              <option value="box" class="bg-slate-900 text-white">box (Box)</option>
+              <option value="can" class="bg-slate-900 text-white">can (Can)</option>
+              <option value="bottle" class="bg-slate-900 text-white">bottle (Bottle)</option>
+            </select>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Action Button: Just ONE clean button saying ADD TO INVENTORY -->
-      <div class="pt-1">
-        <button type="button" onclick="saveProductToInventory(false)" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 active:scale-95 transition flex items-center justify-center gap-1.5">
-          <span class="material-symbols-outlined text-sm font-bold">check_circle</span>
-          <span>ADD TO INVENTORY</span>
+      <!-- Action Buttons: Save & Optional Delete Button -->
+      <div class="pt-1 flex items-center gap-2">
+        <button type="button" onclick="saveProductToInventory(false)" id="saveProdModalBtn" class="flex-1 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 active:scale-95 transition flex items-center justify-center gap-1.5 uppercase tracking-wider">
+          <span class="material-symbols-outlined text-sm font-bold" id="saveProdModalBtnIcon">check_circle</span>
+          <span id="saveProdModalBtnText">ADD TO INVENTORY</span>
+        </button>
+        <button type="button" id="deleteProdModalBtn" onclick="handleDeleteFromModal()" class="hidden py-3 px-3.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 font-black text-xs rounded-xl transition active:scale-95 flex items-center justify-center gap-1 uppercase tracking-wider" title="Delete Product from Inventory">
+          <span class="material-symbols-outlined text-sm text-rose-400">delete</span>
+          <span>DELETE</span>
         </button>
       </div>
 
@@ -5530,20 +5563,39 @@
     }
 
 
-    // --- PROFESSIONAL ADD PRODUCT TO INVENTORY CONTROLLER ---
+    // --- PROFESSIONAL ADD / EDIT PRODUCT CONTROLLER ---
     let pendingAutoFillData = null;
+    let editingProductOriginalBarcode = null;
 
     function openAddProductModal(prefillQueryOrBarcode) {
+      editingProductOriginalBarcode = null;
+
       const modal = document.getElementById('addProductModal');
       if (!modal) return;
+
+      const titleEl = document.getElementById('addProductModalTitle');
+      const subEl = document.getElementById('addProductModalSubtitle');
+      const saveBtnText = document.getElementById('saveProdModalBtnText');
+      const saveBtnIcon = document.getElementById('saveProdModalBtnIcon');
+      const deleteBtn = document.getElementById('deleteProdModalBtn');
+
+      if (titleEl) titleEl.innerText = 'Add Product to Inventory';
+      if (subEl) subEl.innerText = 'Scan barcode or enter name & price';
+      if (saveBtnText) saveBtnText.innerText = 'ADD TO INVENTORY';
+      if (saveBtnIcon) saveBtnIcon.innerText = 'check_circle';
+      if (deleteBtn) deleteBtn.classList.add('hidden');
 
       const barcodeInput = document.getElementById('addProdBarcode');
       const nameInput = document.getElementById('addProdName');
       const priceInput = document.getElementById('addProdPrice');
+      const qtyInput = document.getElementById('addProdQty');
+      const unitSelect = document.getElementById('addProdUnit');
 
       if (barcodeInput) barcodeInput.value = '';
       if (nameInput) nameInput.value = '';
       if (priceInput) priceInput.value = '';
+      if (qtyInput) qtyInput.value = '100';
+      if (unitSelect) unitSelect.value = 'pcs';
 
       const hintEl = document.getElementById('addProdBarcodeMatchHint');
       if (hintEl) hintEl.classList.add('hidden');
@@ -5576,13 +5628,70 @@
       }, 150);
     }
 
+    function openEditProductModal(barcode) {
+      const prod = sampleProducts.find(p => p.barcode === barcode);
+      if (!prod) return;
+
+      editingProductOriginalBarcode = barcode;
+
+      const modal = document.getElementById('addProductModal');
+      if (!modal) return;
+
+      const titleEl = document.getElementById('addProductModalTitle');
+      const subEl = document.getElementById('addProductModalSubtitle');
+      const saveBtnText = document.getElementById('saveProdModalBtnText');
+      const saveBtnIcon = document.getElementById('saveProdModalBtnIcon');
+      const deleteBtn = document.getElementById('deleteProdModalBtn');
+
+      if (titleEl) titleEl.innerText = 'Edit Product Details';
+      if (subEl) subEl.innerText = 'Update name, price, stock, or barcode';
+      if (saveBtnText) saveBtnText.innerText = 'SAVE CHANGES';
+      if (saveBtnIcon) saveBtnIcon.innerText = 'save';
+      if (deleteBtn) deleteBtn.classList.remove('hidden');
+
+      const barcodeInput = document.getElementById('addProdBarcode');
+      const nameInput = document.getElementById('addProdName');
+      const priceInput = document.getElementById('addProdPrice');
+      const qtyInput = document.getElementById('addProdQty');
+      const unitSelect = document.getElementById('addProdUnit');
+
+      if (barcodeInput) barcodeInput.value = prod.barcode || '';
+      if (nameInput) nameInput.value = prod.name || '';
+      if (priceInput) priceInput.value = prod.price !== undefined ? prod.price : '';
+      if (qtyInput) qtyInput.value = prod.qty !== undefined ? prod.qty : 100;
+      if (unitSelect) unitSelect.value = prod.unit || 'pcs';
+
+      const hintEl = document.getElementById('addProdBarcodeMatchHint');
+      if (hintEl) hintEl.classList.add('hidden');
+
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+
+      // Keep camera off during edit so user can view/edit fields cleanly
+      stopModalLiveCamera();
+
+      setTimeout(() => {
+        nameInput?.focus();
+      }, 100);
+    }
+
     function closeAddProductModal() {
       stopModalLiveCamera();
+      editingProductOriginalBarcode = null;
       const modal = document.getElementById('addProductModal');
       if (modal) {
         modal.classList.add('hidden');
         modal.style.display = 'none';
       }
+    }
+
+    function handleDeleteFromModal() {
+      const barcode = editingProductOriginalBarcode || (document.getElementById('addProdBarcode')?.value || '').trim();
+      if (!barcode) return;
+      closeAddProductModal();
+      setTimeout(() => {
+        promptDeleteProductFromInventory(barcode);
+      }, 50);
     }
 
     // --- LIVE CAMERA SCANNER CONTROLLER FOR ADD PRODUCT MODAL ---
@@ -5822,8 +5931,9 @@
       const barcode = (document.getElementById('addProdBarcode')?.value || '').trim();
       const name = (document.getElementById('addProdName')?.value || '').trim();
       const price = parseFloat(document.getElementById('addProdPrice')?.value || '0');
-      const qty = 100;
-      const unit = 'pcs';
+      const qtyInputVal = parseFloat(document.getElementById('addProdQty')?.value || '100');
+      const qty = isNaN(qtyInputVal) ? 100 : qtyInputVal;
+      const unit = document.getElementById('addProdUnit')?.value || 'pcs';
       const gst = 5.0;
       const hsn = '1905';
 
@@ -5843,16 +5953,36 @@
         return;
       }
 
-      const existingIdx = sampleProducts.findIndex(p => p.barcode === barcode);
+      let existingIdx = -1;
+      if (editingProductOriginalBarcode) {
+        existingIdx = sampleProducts.findIndex(p => p.barcode === editingProductOriginalBarcode);
+      }
+      if (existingIdx === -1) {
+        existingIdx = sampleProducts.findIndex(p => p.barcode === barcode);
+      }
+
       if (existingIdx >= 0) {
-        sampleProducts[existingIdx].name = name;
-        sampleProducts[existingIdx].price = price;
-        sampleProducts[existingIdx].qty = qty;
-        sampleProducts[existingIdx].unit = unit;
-        sampleProducts[existingIdx].gst = gst;
-        sampleProducts[existingIdx].hsn = hsn;
+        const prod = sampleProducts[existingIdx];
+        prod.barcode = barcode;
+        prod.name = name;
+        prod.price = price;
+        prod.qty = qty;
+        prod.unit = unit;
+        prod.gst = gst;
+        prod.hsn = hsn;
         saveMerchantProducts();
         showAppToast(`✓ Updated "${name}" in inventory!`, 'check_circle');
+
+        // Optional backend update sync
+        try {
+          if (prod.id && typeof fetch === 'function' && window.AUTH_TOKEN) {
+            fetch(`/api/products/${prod.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.AUTH_TOKEN}` },
+              body: JSON.stringify({ name, barcode, price, stock_qty: qty, unit })
+            }).catch(() => {});
+          }
+        } catch (e) {}
       } else {
         const newProd = {
           id: Date.now(),
@@ -5867,8 +5997,20 @@
         sampleProducts.unshift(newProd);
         saveMerchantProducts();
         showAppToast(`✓ Added "${name}" to inventory!`, 'check_circle');
+
+        // Optional backend create sync
+        try {
+          if (typeof fetch === 'function' && window.AUTH_TOKEN) {
+            fetch('/api/products', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.AUTH_TOKEN}` },
+              body: JSON.stringify({ name, barcode, price, stock_qty: qty, unit })
+            }).catch(() => {});
+          }
+        } catch (e) {}
       }
 
+      editingProductOriginalBarcode = null;
       renderProducts();
       closeAddProductModal();
 
@@ -5876,6 +6018,34 @@
         scanProduct(barcode);
         switchScreen('billing');
       }
+    }
+
+    function promptDeleteProductFromInventory(barcode) {
+      const product = sampleProducts.find(p => p.barcode === barcode);
+      if (!product) return;
+
+      showAppConfirm({
+        title: 'Delete Product?',
+        message: `Are you sure you want to permanently delete "${product.name}" (${product.barcode}) from your store inventory?`,
+        confirmText: 'Delete Item',
+        isDestructive: true,
+        onConfirm: () => {
+          sampleProducts = sampleProducts.filter(p => p.barcode !== barcode);
+          saveMerchantProducts();
+          renderProducts();
+          showAppToast(`✓ Deleted "${product.name}" from inventory`, 'delete');
+
+          // Optional backend delete sync
+          try {
+            if (product.id && typeof fetch === 'function' && window.AUTH_TOKEN) {
+              fetch(`/api/products/${product.id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${window.AUTH_TOKEN}` }
+              }).catch(() => {});
+            }
+          } catch (e) {}
+        }
+      });
     }
 
     function promptCustomScan() {
@@ -6599,29 +6769,44 @@
         return;
       }
 
-      container.innerHTML = list.map(p => `
-        <div class="p-3 bg-white border border-slate-200 rounded-2xl flex items-center justify-between shadow-xs hover:border-emerald-300 transition">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
+      container.innerHTML = list.map(p => {
+        const escapedBarcode = (p.barcode || '').replace(/'/g, "\\'");
+        return `
+        <div class="p-3 bg-white border border-slate-200 rounded-2xl flex items-center justify-between shadow-xs hover:border-emerald-300 transition group">
+          <div class="flex items-center gap-3 cursor-pointer flex-1 min-w-0 pr-2" onclick="openEditProductModal('${escapedBarcode}')" title="Click to edit details">
+            <div class="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-emerald-50 text-slate-700 group-hover:text-emerald-700 flex items-center justify-center shrink-0 transition">
               <span class="material-symbols-outlined text-xl">inventory_2</span>
             </div>
-            <div>
-              <p class="text-xs font-bold text-slate-800 leading-tight">${p.name}</p>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-bold text-slate-800 leading-tight truncate group-hover:text-emerald-700 transition">${p.name}</p>
               <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
                 <span class="text-[9.5px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                   ${p.barcode}
                 </span>
+                <span class="text-[9.5px] font-medium text-slate-500">
+                  Stock: <b class="text-slate-700 font-bold">${p.qty !== undefined ? p.qty : 100} ${p.unit || 'pcs'}</b>
+                </span>
               </div>
             </div>
           </div>
-          <div class="text-right flex flex-col items-end gap-1.5">
+          <div class="text-right flex flex-col items-end gap-1.5 shrink-0">
             <p class="text-xs font-black text-slate-900">₹${p.price.toFixed(2)}</p>
-            <button onclick="switchScreen('billing'); processScannedBarcode('${p.barcode}');" class="btn-scan px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg text-[10px] font-black flex items-center gap-1 transition active:scale-95 shadow-xs" style="color: #0F172A !important;">
-              <span class="material-symbols-outlined text-xs text-emerald-700" style="color: #047857 !important;">bolt</span> <span style="color: #0F172A !important;">Scan</span>
-            </button>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="openEditProductModal('${escapedBarcode}')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700 flex items-center gap-0.5 transition active:scale-95 shadow-xs" title="Edit product details">
+                <span class="material-symbols-outlined text-xs">edit</span>
+                <span>Edit</span>
+              </button>
+              <button type="button" onclick="promptDeleteProductFromInventory('${escapedBarcode}')" class="p-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 rounded-lg text-xs font-bold flex items-center justify-center transition active:scale-95 shadow-xs" title="Delete product from inventory">
+                <span class="material-symbols-outlined text-xs text-rose-600">delete</span>
+              </button>
+              <button type="button" onclick="switchScreen('billing'); processScannedBarcode('${escapedBarcode}');" class="btn-scan px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg text-[10px] font-black flex items-center gap-1 transition active:scale-95 shadow-xs" style="color: #0F172A !important;">
+                <span class="material-symbols-outlined text-xs text-emerald-700" style="color: #047857 !important;">bolt</span> <span style="color: #0F172A !important;">Scan</span>
+              </button>
+            </div>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function handleInventorySearch(val) {
