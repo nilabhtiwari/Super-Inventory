@@ -831,20 +831,20 @@
 
         <!-- TODAY'S LIVE OVERVIEW -->
         <div>
-          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Today's Quick Stats</h3>
+          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Today's Live Overview</h3>
           <div class="grid grid-cols-2 gap-3">
             <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl">
-              <span class="text-xs text-brand-muted font-medium">Total Sales</span>
+              <span class="text-xs text-brand-muted font-bold tracking-wider uppercase">TODAYS SALE</span>
               <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-xl font-black text-brand-primaryContainer" id="dashTotalSales">₹14,280.00</span>
-                <span class="text-[10px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">+12%</span>
+                <span class="text-xl font-black text-brand-primaryContainer" id="dashTotalSales">₹0.00</span>
+                <span class="text-[9.5px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">Live</span>
               </div>
             </div>
             <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl">
-              <span class="text-xs text-brand-muted font-medium">Bills Generated</span>
+              <span class="text-xs text-brand-muted font-bold tracking-wider uppercase">BILLS GENERATED TODAY</span>
               <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-xl font-black text-white" id="dashTotalBills">14</span>
-                <span class="text-[10px] text-brand-muted">invoices</span>
+                <span class="text-xl font-black text-white" id="dashTotalBills">0</span>
+                <span class="text-[10px] text-brand-muted">bills</span>
               </div>
             </div>
           </div>
@@ -2800,11 +2800,27 @@
 
     let cart = [];
     let paymentMode = 'CASH';
-    let completedInvoices = [
-      { id: 'INV-20260901-0014', total: 842.0, items: 3, time: '10 mins ago', status: 'Paid' },
-      { id: 'INV-20260901-0013', total: 2150.0, items: 6, time: '25 mins ago', status: 'Paid' },
-      { id: 'INV-20260901-0012', total: 45.0, items: 1, time: '40 mins ago', status: 'Paid' },
-    ];
+    const COMPLETED_INVOICES_KEY = 'super_inventory_completed_invoices';
+
+    function getStoredCompletedInvoices() {
+      try {
+        const stored = localStorage.getItem(COMPLETED_INVOICES_KEY);
+        if (stored) return JSON.parse(stored);
+      } catch (e) {
+        console.error('Error reading stored invoices:', e);
+      }
+      return [];
+    }
+
+    function saveCompletedInvoices() {
+      try {
+        localStorage.setItem(COMPLETED_INVOICES_KEY, JSON.stringify(completedInvoices));
+      } catch (e) {
+        console.error('Error saving invoices:', e);
+      }
+    }
+
+    let completedInvoices = getStoredCompletedInvoices();
 
         // ============================================================
     // PERMANENT USER DATABASE & MATCHING AUTHENTICATION ENGINE
@@ -5410,9 +5426,11 @@
         id: invNo,
         total: grandTotal,
         items: cart.reduce((s, i) => s + i.quantity, 0),
-        time: 'Just now',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        date: new Date().toISOString(),
         status: 'Paid'
       });
+      saveCompletedInvoices();
 
       lastCompletedInvoiceData = { items: JSON.parse(JSON.stringify(cart)), total: grandTotal, id: invNo };
       cart = [];
@@ -5421,43 +5439,85 @@
     }
 
     function renderDashboard() {
+      // Calculate Real Today's Sales and Bills from real store transactions
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayInvoices = completedInvoices.filter(inv => {
+        const invDate = (inv.date || inv.createdAt || '').slice(0, 10);
+        return invDate === todayStr;
+      });
+
+      const todayTotal = todayInvoices.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
+      const todayBills = todayInvoices.length;
+
+      const salesEl = document.getElementById('dashTotalSales');
+      if (salesEl) {
+        salesEl.innerText = `₹${todayTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
+      const billsEl = document.getElementById('dashTotalBills');
+      if (billsEl) {
+        billsEl.innerText = `${todayBills}`;
+      }
+
       const container = document.getElementById('dashRecentList');
-      container.innerHTML = completedInvoices.slice(0, 3).map(inv => `
-        <div onclick="switchScreen('history')" class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-primary transition">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-xl bg-brand-surfaceElevated flex items-center justify-center text-brand-primaryContainer">
-              <span class="material-symbols-outlined text-lg">receipt_long</span>
+      if (container) {
+        if (completedInvoices.length === 0) {
+          container.innerHTML = `
+            <div class="p-6 text-center text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+              <span class="material-symbols-outlined text-2xl mb-1 text-slate-400">receipt_long</span>
+              <p class="text-xs font-bold text-slate-600">No sales recorded yet today</p>
+              <p class="text-[10px] text-slate-400">Bills created with Express Billing will appear here in real time</p>
             </div>
-            <div>
-              <p class="text-xs font-bold text-white">${inv.id}</p>
-              <p class="text-[10px] text-brand-muted">${inv.time} • ${inv.items} Items</p>
+          `;
+        } else {
+          container.innerHTML = completedInvoices.slice(0, 5).map(inv => `
+            <div onclick="switchScreen('history')" class="p-3 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-primary transition">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-brand-surfaceElevated flex items-center justify-center text-brand-primaryContainer">
+                  <span class="material-symbols-outlined text-lg">receipt_long</span>
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-white">${inv.id}</p>
+                  <p class="text-[10px] text-brand-muted">${inv.time || 'Today'} • ${inv.items || 1} Items</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="text-xs font-black text-brand-primaryContainer">₹${(Number(inv.total) || 0).toFixed(2)}</p>
+                <span class="text-[9px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">Paid</span>
+              </div>
             </div>
-          </div>
-          <div class="text-right">
-            <p class="text-xs font-black text-brand-primaryContainer">₹${inv.total.toFixed(2)}</p>
-            <span class="text-[9px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">Paid</span>
-          </div>
-        </div>
-      `).join('');
+          `).join('');
+        }
+      }
     }
 
     function renderHistory() {
       const container = document.getElementById('fullHistoryList');
+      if (!container) return;
+      if (completedInvoices.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+            <span class="material-symbols-outlined text-3xl mb-1 text-slate-400">history</span>
+            <p class="text-xs font-bold text-slate-600">No transaction history yet</p>
+            <p class="text-[10px] text-slate-400">All completed store sales will be tracked here in real time</p>
+          </div>
+        `;
+        return;
+      }
       container.innerHTML = completedInvoices.map(inv => `
         <div class="p-3.5 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-brand-surfaceElevated flex items-center justify-center text-brand-primaryContainer">
-              <span class="material-symbols-outlined text-xl">person</span>
+              <span class="material-symbols-outlined text-xl">receipt_long</span>
             </div>
             <div>
               <p class="text-xs font-bold text-white">${inv.id}</p>
-              <p class="text-[10px] text-brand-muted">${inv.time} • ${inv.items} Items</p>
-              <p class="text-[10px] font-bold text-brand-tertiary">Profit: +₹${(inv.total * 0.25).toFixed(2)}</p>
+              <p class="text-[10px] text-brand-muted">${inv.time || 'Today'} • ${inv.items || 1} Items</p>
+              <p class="text-[10px] font-bold text-brand-tertiary">Profit: +₹${((Number(inv.total) || 0) * 0.25).toFixed(2)}</p>
             </div>
           </div>
           <div class="text-right flex items-center gap-3">
             <div>
-              <p class="text-sm font-black text-white">₹${inv.total.toFixed(2)}</p>
+              <p class="text-sm font-black text-white">₹${(Number(inv.total) || 0).toFixed(2)}</p>
               <span class="text-[9px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">Paid</span>
             </div>
             <button onclick="simulateWhatsApp()" class="w-8 h-8 rounded-full bg-[#25D366]/20 text-[#25D366] flex items-center justify-center hover:bg-[#25D366] hover:text-white transition">
