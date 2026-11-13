@@ -2483,7 +2483,7 @@
             <div id="modalLiveScannerContainer" class="w-full h-full object-cover"></div>
             
             <!-- Viewfinder Overlay & Laser Beam -->
-            <div class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-3">
+            <div id="modalScannerLaser" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-3">
               <div class="w-3/4 h-24 border-2 border-emerald-400/80 rounded-xl relative shadow-[0_0_15px_rgba(52,211,153,0.3)]">
                 <!-- Laser line -->
                 <div class="absolute inset-x-0 h-0.5 bg-emerald-400 shadow-[0_0_8px_#34d399] animate-bounce top-1/2"></div>
@@ -2496,14 +2496,14 @@
               <p class="text-[10px] font-bold text-white/90 drop-shadow mt-2">Center product barcode in box</p>
             </div>
 
-            <!-- Top Camera Controls Bar -->
-            <div class="absolute top-2 inset-x-2 flex items-center justify-between z-10">
-              <span class="px-2 py-0.5 bg-black/60 backdrop-blur-md rounded-md text-[9.5px] font-bold text-emerald-300 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Camera Stream</span>
+            <!-- Top Camera Controls: Single Dynamic Camera Toggle Button (Same as Create Bill) -->
+            <div id="modalCameraControlsRow" class="absolute top-2.5 left-3 right-3 flex items-center justify-between z-20 pointer-events-auto">
+              <span id="modalCamStatusPill" class="camera-ui-text text-[10px] font-bold bg-slate-900/90 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-white flex items-center gap-1.5 shadow-lg" style="color: #FFFFFF !important;">
+                <span id="modalCamStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span id="modalCamStatusText" style="color: #FFFFFF !important;">Camera Active</span>
               </span>
-              <button type="button" onclick="toggleModalLiveCamera()" id="modalCamToggleBtn" class="px-2 py-0.5 bg-black/60 hover:bg-black/80 backdrop-blur-md text-slate-200 hover:text-white rounded-md text-[9.5px] font-bold transition">
-                Pause Camera
+              <button type="button" onclick="toggleModalLiveCamera()" id="modalCamToggleBtn" class="p-2 bg-slate-900/90 hover:bg-slate-900 backdrop-blur-md border border-white/20 rounded-xl text-white transition active:scale-95 shadow flex items-center justify-center" style="color: #FFFFFF !important;" title="Toggle Camera On / Off">
+                <span class="material-symbols-outlined text-base" id="modalCamToggleIcon" style="color: #FFFFFF !important;">photo_camera</span>
               </button>
             </div>
           </div>
@@ -2518,18 +2518,14 @@
           </div>
 
           <!-- Action Buttons for Barcode -->
-          <div class="flex items-center gap-1.5 pt-0.5">
-            <button type="button" onclick="startModalLiveCamera()" class="flex-1 py-1.5 px-2 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 rounded-lg text-[10.5px] font-black flex items-center justify-center gap-1 transition active:scale-95">
-              <span class="material-symbols-outlined text-sm">photo_camera</span>
-              <span>Re-open Camera</span>
-            </button>
+          <div class="flex items-center gap-2 pt-0.5">
             <input type="file" id="modalBarcodeSnapFile" accept="image/*" capture="environment" class="hidden" onchange="handleModalSnapPhoto(event)">
-            <button type="button" onclick="document.getElementById('modalBarcodeSnapFile')?.click()" class="py-1.5 px-2.5 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white rounded-lg text-[10.5px] font-bold flex items-center justify-center gap-1 transition active:scale-95">
-              <span class="material-symbols-outlined text-xs">camera_alt</span>
+            <button type="button" onclick="document.getElementById('modalBarcodeSnapFile')?.click()" class="flex-1 py-1.5 px-3 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
+              <span class="material-symbols-outlined text-sm text-brand-primary">camera_alt</span>
               <span>Snap Photo</span>
             </button>
-            <button type="button" onclick="generateRandomBarcodeForAdd()" class="py-1.5 px-2.5 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white rounded-lg text-[10.5px] font-bold flex items-center justify-center gap-1 transition active:scale-95">
-              <span class="material-symbols-outlined text-xs">bolt</span>
+            <button type="button" onclick="generateRandomBarcodeForAdd()" class="flex-1 py-1.5 px-3 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
+              <span class="material-symbols-outlined text-sm text-amber-400">bolt</span>
               <span>Auto-Code</span>
             </button>
           </div>
@@ -5608,8 +5604,11 @@
 
     async function startModalLiveCamera() {
       const box = document.getElementById('modalBarcodeCameraBox');
-      const badge = document.getElementById('modalCamStatusBadge');
-      const toggleBtn = document.getElementById('modalCamToggleBtn');
+      const text = document.getElementById('modalCamStatusText');
+      const dot = document.getElementById('modalCamStatusDot');
+      const icon = document.getElementById('modalCamToggleIcon');
+      const btn = document.getElementById('modalCamToggleBtn');
+      const laser = document.getElementById('modalScannerLaser');
       if (box) box.classList.remove('hidden');
 
       if (isModalCameraActive) return;
@@ -5651,11 +5650,11 @@
         }
 
         isModalCameraActive = true;
-        if (badge) {
-          badge.innerText = '● Live Scanner Active';
-          badge.className = 'text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20';
-        }
-        if (toggleBtn) toggleBtn.innerText = 'Pause Camera';
+        if (text) text.innerText = 'Camera Active';
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
+        if (icon) icon.innerText = 'photo_camera';
+        if (btn) btn.title = 'Turn Camera Off';
+        if (laser) laser.classList.remove('hidden');
       } catch (err) {
         console.warn('Modal camera start note:', err);
         isModalCameraActive = false;
@@ -5669,18 +5668,18 @@
             window.location.href = window.location.href.replace('http:', 'https:');
           }
         } else if (errStr.includes('NotAllowedError') || errStr.includes('Permission') || errStr.includes('denied')) {
-          badgeMsg = '🔒 Camera Blocked in Browser';
-          showAppToast('Camera permission denied! Tap the 🔒 lock icon in your browser address bar and set Camera to "Allow", then click Resume Camera.', 'lock', true);
+          badgeMsg = '🔒 Camera Blocked';
+          showAppToast('Camera is blocked! Tap the 🔒 lock icon in your browser address bar and set Camera to "Allow", then tap the Camera icon.', 'lock', true);
         } else if (errStr.includes('NotFoundError') || errStr.includes('DevicesNotFoundError')) {
-          badgeMsg = 'No Camera Device Found';
+          badgeMsg = 'No Camera Device';
           showAppToast('No physical camera detected. You can type the barcode or snap a photo.', 'warning', true);
         }
 
-        if (badge) {
-          badge.innerText = badgeMsg;
-          badge.className = 'text-[9px] font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20';
-        }
-        if (toggleBtn) toggleBtn.innerText = 'Allow Camera / Retry';
+        if (text) text.innerText = badgeMsg;
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+        if (icon) icon.innerText = 'no_photography';
+        if (btn) btn.title = 'Allow Camera / Retry';
+        if (laser) laser.classList.add('hidden');
       }
     }
 
@@ -5692,20 +5691,25 @@
         } catch (e) {}
       }
       isModalCameraActive = false;
-      const badge = document.getElementById('modalCamStatusBadge');
-      const toggleBtn = document.getElementById('modalCamToggleBtn');
-      if (badge) {
-        badge.innerText = 'Camera Paused';
-        badge.className = 'text-[9px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full';
-      }
-      if (toggleBtn) toggleBtn.innerText = 'Resume Camera';
+      const text = document.getElementById('modalCamStatusText');
+      const dot = document.getElementById('modalCamStatusDot');
+      const icon = document.getElementById('modalCamToggleIcon');
+      const btn = document.getElementById('modalCamToggleBtn');
+      const laser = document.getElementById('modalScannerLaser');
+      if (text) text.innerText = 'Camera Paused';
+      if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+      if (icon) icon.innerText = 'no_photography';
+      if (btn) btn.title = 'Turn Camera On';
+      if (laser) laser.classList.add('hidden');
     }
 
     function toggleModalLiveCamera() {
       if (isModalCameraActive) {
         stopModalLiveCamera();
+        showAppToast('Camera Switched Off', 'no_photography');
       } else {
         startModalLiveCamera();
+        showAppToast('Camera Switched On', 'photo_camera');
       }
     }
 
