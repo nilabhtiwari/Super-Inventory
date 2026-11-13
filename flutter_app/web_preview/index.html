@@ -1112,14 +1112,43 @@
         <div class="p-4 rounded-3xl bg-gradient-to-r from-brand-primary to-brand-tertiary flex justify-between items-center shadow-lg">
           <div>
             <p class="text-[10px] font-bold text-white/80 uppercase">Total Stock Value</p>
-            <p class="text-xl font-black text-white">₹2,48,500.00</p>
+            <p class="text-xl font-black text-white" id="totalStockValue">₹2,48,500.00</p>
           </div>
-          <button onclick="promptCustomScan()" class="px-3 py-1.5 bg-white text-black font-extrabold text-xs rounded-xl shadow">
+          <button onclick="promptCustomScan()" class="px-3 py-1.5 bg-white text-black font-extrabold text-xs rounded-xl shadow hover:bg-slate-100 transition active:scale-95">
             + Add Product
           </button>
         </div>
 
-        <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider pt-1">Product Catalog</h3>
+        <!-- 🔍 SEARCH IN INVENTORY -->
+        <div class="bg-brand-surface border border-brand-surfaceBorder rounded-2xl p-2.5 shadow-sm space-y-2">
+          <div class="flex items-center gap-2">
+            <div class="flex-1 flex items-center gap-2 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 focus-within:border-brand-primary transition">
+              <span class="material-symbols-outlined text-brand-muted text-base">search</span>
+              <input type="text" id="inventorySearchInput" 
+                     placeholder="Search product name or barcode..." 
+                     class="w-full bg-transparent text-xs text-white placeholder:text-brand-muted outline-none font-medium"
+                     oninput="handleInventorySearch(this.value)"
+                     onkeydown="if(event.key === 'Enter'){ handleInventorySearch(this.value); }">
+              <button type="button" id="inventorySearchClearBtn" onclick="clearInventorySearch()" class="hidden text-brand-muted hover:text-white p-0.5">
+                <span class="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+            <button type="button" onclick="const q = document.getElementById('inventorySearchInput')?.value || ''; handleInventorySearch(q);" 
+                    class="px-3 py-2 bg-brand-primary hover:bg-brand-primaryGlow text-white text-[11px] font-black rounded-xl shadow transition active:scale-95 flex items-center gap-1 shrink-0 whitespace-nowrap">
+              <span class="material-symbols-outlined text-sm">search</span>
+              <span>SEARCH IN INVENTORY</span>
+            </button>
+          </div>
+          <div id="inventorySearchResultsStats" class="hidden text-[10.5px] font-bold text-brand-muted px-1 flex items-center justify-between">
+            <span id="inventorySearchCountText"></span>
+            <button onclick="clearInventorySearch()" class="text-brand-primaryContainer hover:underline text-[10px]">Show All Products</button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider" id="inventoryListHeading">Product Catalog</h3>
+          <span class="text-[10px] text-brand-muted font-bold" id="inventoryTotalItemsCount"></span>
+        </div>
         <div class="space-y-2" id="productsCatalogList"></div>
       </div>
 
@@ -5759,10 +5788,76 @@
       }).join('');
     }
 
-    function renderProducts() {
+    function renderProducts(filterQuery) {
       const container = document.getElementById('productsCatalogList');
       if (!container) return;
-      container.innerHTML = sampleProducts.map(p => `
+
+      const input = document.getElementById('inventorySearchInput');
+      const q = (filterQuery !== undefined ? filterQuery : (input?.value || '')).trim().toLowerCase();
+
+      // Recalculate dynamic stock value
+      const totalStockValEl = document.getElementById('totalStockValue');
+      if (totalStockValEl) {
+        const totalVal = sampleProducts.reduce((sum, p) => sum + ((p.price || 0) * (p.qty || 1)), 0);
+        totalStockValEl.innerText = `₹${totalVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
+
+      let list = sampleProducts;
+      if (q) {
+        list = sampleProducts.filter(p => 
+          (p.name && p.name.toLowerCase().includes(q)) || 
+          (p.barcode && p.barcode.toLowerCase().includes(q)) ||
+          (p.hsn && String(p.hsn).toLowerCase().includes(q))
+        );
+      }
+
+      // Update total items / search stats
+      const statsEl = document.getElementById('inventorySearchResultsStats');
+      const countTextEl = document.getElementById('inventorySearchCountText');
+      const clearBtn = document.getElementById('inventorySearchClearBtn');
+      const totalCountBadge = document.getElementById('inventoryTotalItemsCount');
+
+      if (totalCountBadge) {
+        totalCountBadge.innerText = `${list.length} item${list.length === 1 ? '' : 's'}`;
+      }
+
+      if (q) {
+        if (clearBtn) clearBtn.classList.remove('hidden');
+        if (statsEl) statsEl.classList.remove('hidden');
+        if (countTextEl) {
+          countTextEl.innerHTML = list.length > 0 
+            ? `✓ Found <b class="text-emerald-400">${list.length}</b> product${list.length === 1 ? '' : 's'} matching "<span class="text-white">${q}</span>"`
+            : `❌ <b class="text-rose-400">NOT PRESENT IN INVENTORY</b>: No product matching "<span class="text-white">${q}</span>"`;
+        }
+      } else {
+        if (clearBtn) clearBtn.classList.add('hidden');
+        if (statsEl) statsEl.classList.add('hidden');
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="p-6 bg-brand-surface border border-brand-surfaceBorder rounded-2xl text-center space-y-3 shadow-sm">
+            <div class="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto">
+              <span class="material-symbols-outlined text-2xl">search_off</span>
+            </div>
+            <div>
+              <p class="text-xs font-black text-white">Product Not Present in Inventory</p>
+              <p class="text-[10.5px] text-brand-muted mt-0.5">"${q}" is not in the store catalog. You can add it directly to stock.</p>
+            </div>
+            <div class="flex items-center justify-center gap-2 pt-1">
+              <button onclick="promptCustomScan();" class="px-3.5 py-1.5 bg-brand-primary text-white text-xs font-black rounded-xl shadow hover:bg-brand-primaryGlow transition">
+                + Add New Product
+              </button>
+              <button onclick="clearInventorySearch();" class="px-3 py-1.5 bg-brand-surfaceElevated border border-brand-surfaceBorder text-slate-300 text-xs font-bold rounded-xl hover:text-white transition">
+                Show All Products
+              </button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(p => `
         <div class="p-3 bg-white border border-slate-200 rounded-2xl flex items-center justify-between shadow-xs hover:border-emerald-300 transition">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
@@ -5789,6 +5884,16 @@
           </div>
         </div>
       `).join('');
+    }
+
+    function handleInventorySearch(val) {
+      renderProducts(val);
+    }
+
+    function clearInventorySearch() {
+      const input = document.getElementById('inventorySearchInput');
+      if (input) input.value = '';
+      renderProducts('');
     }
 
     // ============================================================
