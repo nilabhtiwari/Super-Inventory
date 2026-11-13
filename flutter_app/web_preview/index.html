@@ -1769,47 +1769,56 @@
           </div>
 
           <!-- Security Lock Banner (Shown by default when locked) -->
-          <div id="upiLockedBanner" class="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
-                <span class="material-symbols-outlined text-base">security</span>
+          <div id="upiLockedBanner" class="p-3.5 bg-gradient-to-r from-amber-500/10 via-amber-500/[0.04] to-transparent border border-amber-500/25 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0 shadow-inner">
+                <span class="material-symbols-outlined text-xl">security</span>
               </div>
-              <div>
-                <p class="text-xs font-bold text-slate-900">Settlement Account Locked</p>
-                <p class="text-[9.5px] text-slate-500">Requires Owner Password or Security PIN to edit</p>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <p class="text-xs font-black text-white tracking-wide">Settlement Account Locked</p>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">LOCKED</span>
+                </div>
+                <p class="text-[10px] text-amber-200/70 font-medium mt-0.5 leading-snug">Requires Owner Password or Security PIN to edit</p>
               </div>
             </div>
-            <button type="button" onclick="openUpiBankModal()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-[11px] rounded-xl shadow transition flex items-center gap-1 active:scale-95">
-              <span class="material-symbols-outlined text-xs font-bold">lock_open</span>
-              <span>Unlock to Edit</span>
+            <button type="button" onclick="openUpiBankModal()" class="shrink-0 self-start sm:self-center px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md shadow-amber-500/20 border border-amber-300/60 transition-all flex items-center justify-center gap-1.5 active:scale-95 group">
+              <span class="material-symbols-outlined text-base font-black transition-transform group-hover:scale-110">lock_open</span>
+              <span class="tracking-wide">Unlock to Edit</span>
             </button>
           </div>
 
           <!-- Unlocked Notice (Shown once owner authenticates) -->
-          <div id="upiUnlockedBanner" class="hidden p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-emerald-600 text-sm">verified_user</span>
-              <p class="text-[10px] text-emerald-800 font-bold">Owner Verified • Editing Enabled</p>
+          <div id="upiUnlockedBanner" class="hidden p-3.5 bg-gradient-to-r from-emerald-500/15 via-emerald-500/[0.05] to-transparent border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 shadow-inner">
+                <span class="material-symbols-outlined text-xl">verified_user</span>
+              </div>
+              <div>
+                <p class="text-xs font-black text-white tracking-wide">Owner Verified & Unlocked</p>
+                <p class="text-[10px] text-emerald-300/80 font-medium mt-0.5">Editing enabled • Remember to re-lock after saving</p>
+              </div>
             </div>
-            <button type="button" onclick="lockUpiSettings()" class="text-[10px] text-slate-500 hover:text-slate-800 underline font-bold">
-              Lock Now
+            <button type="button" onclick="lockUpiSettings()" class="shrink-0 self-start sm:self-center px-3.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white font-bold text-xs rounded-xl transition flex items-center gap-1 active:scale-95">
+              <span class="material-symbols-outlined text-sm">lock</span>
+              <span>Lock Now</span>
             </button>
           </div>
 
           <!-- Direct Input for UPI ID -->
           <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-600 block">Bank UPI ID (VPA) *</label>
+            <label class="text-[10px] font-bold text-brand-muted block">Bank UPI ID (VPA) *</label>
             <div class="relative">
-              <span class="material-symbols-outlined absolute left-3 top-2 text-emerald-600 text-base">alternate_email</span>
-              <input type="text" id="profileDirectUpiInput" value="superinventory@upi" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 outline-none focus:border-emerald-500 font-mono disabled:opacity-50 disabled:cursor-not-allowed" placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm" />
+              <span class="material-symbols-outlined absolute left-3 top-2 text-emerald-400 text-base">alternate_email</span>
+              <input type="text" id="profileDirectUpiInput" value="superinventory@upi" disabled class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl pl-9 pr-3 py-2 text-xs text-white outline-none focus:border-emerald-500 font-mono disabled:opacity-50 disabled:cursor-not-allowed transition" placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm" />
             </div>
-            <p class="text-[9.5px] text-slate-400">Compatible with PhonePe, Google Pay, Paytm, BHIM, Cred & all banking apps.</p>
+            <p class="text-[9.5px] text-brand-muted">Compatible with PhonePe, Google Pay, Paytm, BHIM, Cred & all banking apps.</p>
           </div>
 
           <!-- Direct Input for Payee Name -->
           <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-600 block">Store / Account Display Name</label>
-            <input type="text" id="profileDirectPayeeInput" value="Super Inventory Store" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:border-brand-primary disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Store or Merchant Name" />
+            <label class="text-[10px] font-bold text-brand-muted block">Store / Account Display Name</label>
+            <input type="text" id="profileDirectPayeeInput" value="Super Inventory Store" disabled class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary disabled:opacity-50 disabled:cursor-not-allowed transition" placeholder="Store or Merchant Name" />
           </div>
 
           <div class="pt-1">
@@ -3812,13 +3821,13 @@
 
       if (upiInput) {
         upiInput.disabled = false;
-        upiInput.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed', 'bg-slate-100', 'bg-[#12131C]');
-        upiInput.classList.add('bg-white', 'border-emerald-500');
+        upiInput.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed');
+        upiInput.classList.add('border-emerald-500', 'ring-1', 'ring-emerald-500/40');
       }
       if (payeeInput) {
         payeeInput.disabled = false;
-        payeeInput.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed', 'bg-slate-100', 'bg-[#12131C]');
-        payeeInput.classList.add('bg-white', 'border-brand-primary');
+        payeeInput.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed');
+        payeeInput.classList.add('border-brand-primary', 'ring-1', 'ring-brand-primary/40');
       }
       if (saveBtn) {
         saveBtn.disabled = false;
@@ -3827,7 +3836,7 @@
       if (lockedBanner) lockedBanner.classList.add('hidden');
       if (unlockedBanner) unlockedBanner.classList.remove('hidden');
       if (badge) {
-        badge.className = 'text-[9px] text-emerald-600 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1';
+        badge.className = 'text-[9px] text-emerald-400 font-bold bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full flex items-center gap-1';
         badge.innerHTML = '<span class="material-symbols-outlined text-xs">verified_user</span> Owner Verified';
       }
     }
@@ -3842,13 +3851,13 @@
 
       if (upiInput) {
         upiInput.disabled = true;
-        upiInput.classList.add('disabled:opacity-50', 'disabled:cursor-not-allowed', 'bg-slate-100');
-        upiInput.classList.remove('bg-white', 'border-emerald-500');
+        upiInput.classList.add('disabled:opacity-50', 'disabled:cursor-not-allowed');
+        upiInput.classList.remove('border-emerald-500', 'ring-1', 'ring-emerald-500/40');
       }
       if (payeeInput) {
         payeeInput.disabled = true;
-        payeeInput.classList.add('disabled:opacity-50', 'disabled:cursor-not-allowed', 'bg-slate-100');
-        payeeInput.classList.remove('bg-white', 'border-brand-primary');
+        payeeInput.classList.add('disabled:opacity-50', 'disabled:cursor-not-allowed');
+        payeeInput.classList.remove('border-brand-primary', 'ring-1', 'ring-brand-primary/40');
       }
       if (saveBtn) {
         saveBtn.disabled = true;
@@ -3857,7 +3866,7 @@
       if (lockedBanner) lockedBanner.classList.remove('hidden');
       if (unlockedBanner) unlockedBanner.classList.add('hidden');
       if (badge) {
-        badge.className = 'text-[9px] text-amber-400 font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full flex items-center gap-1';
+        badge.className = 'text-[9px] text-amber-400 font-bold bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full flex items-center gap-1';
         badge.innerHTML = '<span class="material-symbols-outlined text-xs">lock</span> Fraud Protected';
       }
     }
