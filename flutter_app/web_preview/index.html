@@ -210,10 +210,16 @@
       border-top: 1px solid var(--border-surface) !important;
       z-index: 50 !important;
       box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25) !important;
-      display: grid !important;
+      display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
       align-items: center !important;
       box-sizing: border-box !important;
+    }
+
+    #bottomNav.hidden,
+    #bottomNav[style*="display: none"],
+    #bottomNav[style*="display:none"] {
+      display: none !important;
     }
 
     #bottomNav button.nav-item {
@@ -2203,7 +2209,7 @@
         </div><!-- END #screenContainer -->
 
 <!-- STANDARD PLAY STORE 5-TAB BOTTOM APP NAVIGATION -->
-    <nav id="bottomNav" class="shrink-0 w-full bg-brand-surface border-t border-brand-surfaceBorder px-1 py-1.5 grid grid-cols-5 items-center justify-items-center z-30 shadow-lg" style="flex-shrink:0; display: none;">
+    <nav id="bottomNav" class="hidden shrink-0 w-full bg-brand-surface border-t border-brand-surfaceBorder px-1 py-1.5 grid-cols-5 items-center justify-items-center z-30 shadow-lg" style="flex-shrink:0; display: none !important;">
       <button onclick="switchScreen('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-2xl text-brand-primaryContainer transition active:scale-95 w-full">
         <div class="nav-icon-pill p-1 rounded-xl flex items-center justify-center bg-brand-primary/15">
           <span class="material-symbols-outlined text-xl">grid_view</span>
@@ -4692,11 +4698,24 @@
       const phoneTopAppBar = document.getElementById('phoneTopAppBar');
 
       if (screenId === 'login' || screenId === 'splash' || !isLoggedIn) {
-        if (bottomNav) bottomNav.style.setProperty('display', 'none', 'important');
-        if (phoneTopAppBar) phoneTopAppBar.classList.add('hidden');
+        if (bottomNav) {
+          bottomNav.classList.add('hidden');
+          bottomNav.style.setProperty('display', 'none', 'important');
+        }
+        if (phoneTopAppBar) {
+          phoneTopAppBar.classList.add('hidden');
+          phoneTopAppBar.style.setProperty('display', 'none', 'important');
+        }
       } else {
-        if (bottomNav) bottomNav.style.removeProperty('display');
-        if (phoneTopAppBar) phoneTopAppBar.classList.remove('hidden');
+        if (bottomNav) {
+          bottomNav.classList.remove('hidden');
+          bottomNav.style.removeProperty('display');
+          bottomNav.style.display = 'grid';
+        }
+        if (phoneTopAppBar) {
+          phoneTopAppBar.classList.remove('hidden');
+          phoneTopAppBar.style.removeProperty('display');
+        }
       }
 
       // Reset scroll position to top of mobile container
@@ -7439,25 +7458,27 @@ ${itemsListText}
       if (splashScreen) {
         splashScreen.classList.add('hidden');
       }
-      // Always open Sign In / Sign Up page first
-      if (!isLoggedIn) {
-        switchScreen('login');
-      } else {
-        switchScreen('dashboard');
-      }
+      // Always open Sign In / Sign Up page after starting and opening
+      switchScreen('login');
     }
 
     function launchAppWithSplashScreen() {
       const splashScreen = document.getElementById('screen-splash');
       if (splashScreen) {
         splashScreen.classList.remove('hidden');
-        // Hide other app bars during splash
-        const bottomNav = document.getElementById('bottomNav');
-        const phoneTopAppBar = document.getElementById('phoneTopAppBar');
-        if (bottomNav) bottomNav.classList.add('hidden');
-        if (phoneTopAppBar) phoneTopAppBar.classList.add('hidden');
-        runSplashLaunchSequence();
       }
+      // Hide bottom nav and phone top bar completely during splash loading
+      const bottomNav = document.getElementById('bottomNav');
+      const phoneTopAppBar = document.getElementById('phoneTopAppBar');
+      if (bottomNav) {
+        bottomNav.classList.add('hidden');
+        bottomNav.style.setProperty('display', 'none', 'important');
+      }
+      if (phoneTopAppBar) {
+        phoneTopAppBar.classList.add('hidden');
+        phoneTopAppBar.style.setProperty('display', 'none', 'important');
+      }
+      runSplashLaunchSequence();
     }
 
     // Browser navigation guard on reload / tab close when in Profile & Ads
