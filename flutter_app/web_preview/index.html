@@ -1985,9 +1985,8 @@
           </div>
 
           <!-- Submit Button -->
-          <button onclick="handlePrimaryAuthSubmit()" id="authSubmitBtn" class="w-full py-2.5 bg-brand-primary text-white font-extrabold text-xs rounded-xl shadow-lg hover:bg-brand-primaryGlow active:scale-95 transition flex items-center justify-center gap-1.5">
-            <span class="material-symbols-outlined text-sm">login</span>
-            <span id="authSubmitBtnText">Sign In to Super Inventory</span>
+          <button onclick="handlePrimaryAuthSubmit()" id="authSubmitBtn" class="w-full py-3 bg-brand-primary text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg hover:bg-brand-primaryGlow active:scale-95 transition flex items-center justify-center">
+            <span id="authSubmitBtnText">SIGN IN</span>
           </button>
 
 
@@ -2913,7 +2912,7 @@
         if (demoRow) demoRow.classList.remove('hidden');
         label.innerText = 'Registered Email Address';
         emailInput.placeholder = 'Enter Registered Email Address';
-        submitText.innerText = 'Sign In (Instant Password Verification)';
+        submitText.innerText = 'SIGN IN';
       } else if (mode === 'signup') {
         tabHeader.classList.remove('hidden');
         forgotBanner.classList.add('hidden');
@@ -2974,7 +2973,7 @@
 
         const submitBtn = document.getElementById('authSubmitBtn');
         const submitText = document.getElementById('authSubmitBtnText');
-        const originalText = submitText ? submitText.innerText : 'Sign In to Super Inventory';
+        const originalText = submitText ? submitText.innerText : 'SIGN IN';
         if (submitBtn) submitBtn.disabled = true;
         if (submitText) submitText.innerText = 'Verifying credentials...';
 
