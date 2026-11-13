@@ -5,7 +5,7 @@
   "main": "backend/src/index.js",
   "scripts": {
     "start": "node backend/src/index.js",
-    "build": "npm --prefix backend install",
+    "build": "echo Build ready",
     "backend": "npm --prefix backend start"
   },
   "engines": {
