@@ -872,7 +872,7 @@
         <!-- Clean Edge-to-Edge POS Barcode Scanner Viewfinder -->
         <div class="w-full bg-[#0D0E15] border border-brand-surfaceBorder rounded-3xl relative overflow-hidden flex flex-col items-center justify-center shadow-lg">
           <!-- Video / Scanner Area: clean full view with no black cutoffs, no square box -->
-          <div class="w-full h-56 relative flex items-center justify-center bg-[#0D0E15] overflow-hidden">
+          <div onclick="if(!isCameraScanningActive) toggleCameraScanning()" class="w-full h-56 relative flex items-center justify-center bg-[#0D0E15] overflow-hidden cursor-pointer" title="Tap to switch camera on">
             <!-- Camera Video Feed Container (Full Bleed Edge-to-Edge) -->
             <div id="liveBarcodeCameraScanner" class="w-full h-full absolute inset-0"></div>
             
@@ -885,16 +885,24 @@
               </p>
             </div>
 
-
-            <!-- Top Camera Controls: Single Dynamic Camera Toggle Button -->
+            <!-- Top Camera Controls: Dynamic Camera Status, Capture Image from Phone Camera, and Live Scanner Toggle -->
             <div id="cameraControlsRow" class="absolute top-2.5 left-3 right-3 flex items-center justify-between z-20 pointer-events-auto">
               <span id="cameraStatusPill" class="camera-ui-text text-[10px] font-bold bg-slate-900/90 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-white flex items-center gap-1.5 shadow-lg" style="color: #FFFFFF !important;">
                 <span id="cameraStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                 <span id="cameraStatusText" style="color: #FFFFFF !important;">Camera Active</span>
               </span>
-              <button type="button" onclick="toggleCameraScanning()" id="cameraToggleBtn" class="p-2 bg-slate-900/90 hover:bg-slate-900 backdrop-blur-md border border-white/20 rounded-xl text-white transition active:scale-95 shadow flex items-center justify-center" style="color: #FFFFFF !important;" title="Toggle Camera On / Off">
-                <span class="material-symbols-outlined text-base" id="cameraToggleIcon" style="color: #FFFFFF !important;">photo_camera</span>
-              </button>
+              <div class="flex items-center gap-1.5">
+                <!-- Open Phone Camera to Capture Image -->
+                <label for="billingCameraCaptureInput" onclick="event.stopPropagation();" class="cursor-pointer px-2.5 py-1.5 bg-slate-900/90 hover:bg-slate-800 active:scale-95 backdrop-blur-md border border-white/20 rounded-xl text-white text-xs font-semibold transition shadow flex items-center gap-1.5" style="color: #FFFFFF !important;" title="Open Phone Camera to Capture Image">
+                  <span class="material-symbols-outlined text-sm text-emerald-400">camera_alt</span>
+                  <span class="text-[11px] font-bold">Capture Image</span>
+                  <input type="file" id="billingCameraCaptureInput" accept="image/*" capture="environment" class="hidden" onchange="handleBarcodeImageUpload(event)" />
+                </label>
+                <!-- Live Video Scanner Toggle Button -->
+                <button type="button" onclick="event.stopPropagation(); toggleCameraScanning();" id="cameraToggleBtn" class="p-2 bg-slate-900/90 hover:bg-slate-800 backdrop-blur-md border border-white/20 rounded-xl text-white transition active:scale-95 shadow flex items-center justify-center" style="color: #FFFFFF !important;" title="Toggle Camera On / Off">
+                  <span class="material-symbols-outlined text-base" id="cameraToggleIcon" style="color: #FFFFFF !important;">photo_camera</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -5453,7 +5461,22 @@
         stopCameraBarcodeScanner();
         showAppToast('Camera Switched Off', 'no_photography');
       } else {
-        startCameraBarcodeScanner();
+        // Direct synchronous getUserMedia call within user gesture event loop:
+        // This causes the mobile browser to display its native permission popup:
+        // "Allow https://... to access your camera [Allow] [Block]"
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+              stream.getTracks().forEach(t => t.stop());
+              startCameraBarcodeScanner();
+            })
+            .catch(err => {
+              console.warn('Native permission prompt catch:', err);
+              startCameraBarcodeScanner();
+            });
+        } else {
+          startCameraBarcodeScanner();
+        }
         showAppToast('Camera Switched On', 'photo_camera');
       }
     }
