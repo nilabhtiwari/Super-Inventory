@@ -814,7 +814,7 @@
           <div class="flex justify-between items-center z-10">
             <span class="bg-black/30 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider text-white flex items-center gap-1" style="color: #FFFFFF !important;">
               <span class="material-symbols-outlined text-xs text-yellow-300">bolt</span>
-              <span style="color: #FFFFFF !important;">1-TAP EXPRESS BILLING</span>
+              <span style="color: #FFFFFF !important;">EXPRESS POS BILLING</span>
             </span>
           </div>
           <div class="z-10">
@@ -935,7 +935,7 @@
         <div class="bg-white border border-slate-200 p-3 rounded-2xl shadow-xs">
           <div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
             <span class="flex items-center gap-1">
-              <span class="material-symbols-outlined text-sm text-emerald-600">qr_code_2</span> 1-Tap Barcode Shelf
+              <span class="material-symbols-outlined text-sm text-emerald-600">qr_code_2</span> Quick Barcode Shelf
             </span>
             <span class="text-emerald-700 font-bold text-[9.5px] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">3-Tier Lookup Active</span>
           </div>
@@ -1251,7 +1251,7 @@
               <div class="p-4 text-center text-xs text-brand-muted">
                 <span class="material-symbols-outlined text-2xl text-brand-muted/60 mb-1">bluetooth_searching</span>
                 <p>No printers paired yet.</p>
-                <p class="text-[10px] text-white/50 mt-0.5">Switch ON phone Bluetooth and tap Search above.</p>
+                <p class="text-[10px] text-white/50 mt-0.5">Switch ON phone Bluetooth and select Search above.</p>
               </div>
             </div>
           </div>
@@ -1332,7 +1332,7 @@
               <div class="p-4 text-center text-xs text-brand-muted">
                 <span class="material-symbols-outlined text-2xl text-brand-muted/60 mb-1">bluetooth_searching</span>
                 <p>No barcode scanners paired yet.</p>
-                <p class="text-[10px] text-white/50 mt-0.5">Switch ON phone Bluetooth and tap Search above.</p>
+                <p class="text-[10px] text-white/50 mt-0.5">Switch ON phone Bluetooth and select Search above.</p>
               </div>
             </div>
           </div>
@@ -2329,7 +2329,7 @@
       <!-- 3. Card POS Swipe -->
       <div id="panel-pay-card" class="hidden p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-center">
         <span class="material-symbols-outlined text-2xl text-emerald-600">contactless</span>
-        <p class="text-[11px] font-bold text-slate-800">Tap / Insert Customer Card</p>
+        <p class="text-[11px] font-bold text-slate-800">Insert / Swipe Customer Card</p>
         <input type="text" id="cardAuthRef" placeholder="Optional Transaction / Approval Code" value="TXN-APP-8842" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 outline-none" />
       </div>
 
@@ -2660,7 +2660,7 @@
           </li>
           <li class="flex items-start gap-2">
             <span class="w-4 h-4 rounded-full bg-blue-600 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">4</span>
-            <span>Tap button below to scan & select device.</span>
+            <span>Click button below to scan & select device.</span>
           </li>
         </ul>
       </div>
@@ -5383,7 +5383,7 @@
       } catch (err) {
         console.warn('Camera initiation notice:', err);
         isCameraScanningActive = false;
-        updateCameraStatusUI(false, 'Tap 📷 to start');
+        updateCameraStatusUI(false, 'Camera Off');
       }
     }
 
@@ -7100,7 +7100,7 @@
         alert(
           '⚠️ Web Bluetooth is not supported in this browser environment.\n\n' +
           '• If on Android: Please open this page in Google Chrome with Bluetooth turned ON.\n' +
-          '• Alternatively, tap "Pair Virtual Demo Device" to test instant printing and scanning!'
+          '• Alternatively, select "Pair Virtual Demo Device" to test instant printing and scanning!'
         );
         return;
       }
@@ -7287,7 +7287,7 @@
           'No device was selected or Bluetooth is turned OFF on your phone.\n\n' +
           '1. Please pull down your phone notification shade and check that Bluetooth is turned ON.\n' +
           '2. Make sure your ' + deviceType + ' is powered on with blue LED blinking.\n' +
-          '3. Tap "Search Nearby Bluetooth ' + (deviceType === 'Thermal Printer' ? 'Printers' : 'Scanners') + '" again.'
+          '3. Click "Search Nearby Bluetooth ' + (deviceType === 'Thermal Printer' ? 'Printers' : 'Scanners') + '" again.'
         );
       } else {
         alert('⚠️ Bluetooth Connection Notice: ' + (err.message || 'Could not connect to device.'));
