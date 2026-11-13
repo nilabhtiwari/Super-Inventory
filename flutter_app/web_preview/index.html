@@ -613,28 +613,15 @@
 
     <!-- TOP APP BAR -->
     <header id="phoneTopAppBar" class="hidden shrink-0 p-3.5 border-b border-brand-surfaceBorder flex items-center justify-between bg-brand-surface sticky top-0 z-30 shadow-sm" style="flex-shrink:0;">
-      <!-- Top Left Store Icon (Clickable Side Dropdown/Drawer) -->
-      <div onclick="toggleStoreDrawer()" title="Open Store Profile & Menu" class="flex items-center gap-2.5 cursor-pointer p-1.5 rounded-xl hover:bg-brand-surfaceElevated transition active:scale-95 group">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-primary to-brand-secondary flex items-center justify-center text-white shadow-md shadow-brand-primary/20 group-hover:scale-105 transition">
-          <span class="material-symbols-outlined text-xl">storefront</span>
-        </div>
-        <div class="text-left">
-          <div class="flex items-center gap-1">
-            <span class="text-xs font-black text-white" id="headerShopName">Super Inventory</span>
-            <span class="material-symbols-outlined text-brand-secondary text-sm">expand_more</span>
-          </div>
-          <span class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
-            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-            <span id="headerStoreStatus">OPEN • 8:00 AM - 10:30 PM</span>
-          </span>
-        </div>
+      <!-- Top Left Store Title (Clickable Side Dropdown/Drawer) -->
+      <div onclick="toggleStoreDrawer()" title="Store Menu" class="flex items-center gap-1.5 cursor-pointer p-1.5 rounded-xl hover:bg-brand-surfaceElevated transition active:scale-95 group">
+        <span class="text-xs font-black text-white" id="headerShopName">Super Inventory</span>
+        <span class="material-symbols-outlined text-brand-secondary text-sm">expand_more</span>
+        <span id="headerStoreStatus" class="hidden"></span>
       </div>
 
       <!-- Right Header Actions -->
       <div class="flex items-center gap-1.5">
-        <button onclick="switchScreen('edit-profile')" title="Edit Profile & Store Details" class="w-8 h-8 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder flex items-center justify-center text-brand-muted hover:text-white hover:border-brand-primary transition">
-          <span class="material-symbols-outlined text-base">person</span>
-        </button>
         <button onclick="switchScreen('settings')" title="App Settings" class="w-8 h-8 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder flex items-center justify-center text-brand-muted hover:text-white transition">
           <span class="material-symbols-outlined text-base">settings</span>
         </button>
@@ -695,8 +682,7 @@
 
         <!-- Drawer Navigation Links -->
         <div class="space-y-1.5 pt-2">
-          <button onclick="toggleStoreDrawer(); switchScreen('edit-profile');" class="w-full py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl flex items-center gap-2.5 hover:border-brand-primary transition">
-            <span class="material-symbols-outlined text-brand-primary text-base">edit_square</span>
+          <button onclick="toggleStoreDrawer(); switchScreen('edit-profile');" class="w-full py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl flex items-center hover:border-brand-primary transition">
             Edit Profile & Ads
           </button>
           <button onclick="toggleStoreDrawer(); switchScreen('finance');" class="w-full py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl flex items-center gap-2.5 hover:border-brand-secondary transition">
@@ -794,7 +780,8 @@
       <!-- 1. DASHBOARD SCREEN -->
       <!-- ============================================================ -->
       <div id="screen-dashboard" class="hidden space-y-4">
-        <!-- Low Stock Alert Banner -->
+        <!-- Low Stock Alert Banner (Preserved for future use) -->
+        <!--
         <div onclick="switchScreen('inventory')" class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-amber-500/15 transition">
           <div class="flex items-center gap-2.5">
             <span class="material-symbols-outlined text-amber-400 text-xl">warning</span>
@@ -805,6 +792,7 @@
           </div>
           <span class="material-symbols-outlined text-amber-400 text-sm">chevron_right</span>
         </div>
+        -->
 
         <!-- HERO "CREATE BILL" BUTTON -->
         <div onclick="switchScreen('billing')" class="w-full h-44 rounded-3xl bg-gradient-to-br from-brand-primary via-brand-primaryGlow to-brand-tertiary p-5 flex flex-col justify-between cursor-pointer hero-glow hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden group">
@@ -4006,7 +3994,7 @@
 
       // Update Header & Side Drawer
       document.getElementById('headerShopName').innerText = name || 'Super Inventory';
-      document.getElementById('headerStoreStatus').innerText = `OPEN • ${timings}`;
+      if (document.getElementById('headerStoreStatus')) document.getElementById('headerStoreStatus').innerText = '';
       document.getElementById('drawerShopName').innerText = name || 'Super Inventory';
       document.getElementById('drawerTimings').innerText = timings;
       document.getElementById('drawerPhone').innerText = phone;
