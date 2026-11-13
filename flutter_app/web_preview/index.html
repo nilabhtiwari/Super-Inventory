@@ -880,24 +880,15 @@
               </p>
             </div>
 
-            <!-- Top Camera Controls -->
+            <!-- Top Camera Controls: Single Dynamic Camera Toggle Button -->
             <div id="cameraControlsRow" class="absolute top-2.5 left-3 right-3 flex items-center justify-between z-20 pointer-events-auto">
               <span id="cameraStatusPill" class="camera-ui-text text-[10px] font-bold bg-slate-900/90 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-white flex items-center gap-1.5 shadow-lg" style="color: #FFFFFF !important;">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span id="cameraStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                 <span id="cameraStatusText" style="color: #FFFFFF !important;">Camera Active</span>
               </span>
-              <div class="flex items-center gap-1.5">
-                <label for="barcodeImageUploadInput" class="p-2 bg-slate-900/90 hover:bg-slate-900 backdrop-blur-md border border-white/20 rounded-xl text-white transition active:scale-95 shadow cursor-pointer flex items-center justify-center" style="color: #FFFFFF !important;" title="Snap / Upload Barcode Image">
-                  <span class="material-symbols-outlined text-sm" style="color: #FFFFFF !important;">photo_camera</span>
-                  <input type="file" id="barcodeImageUploadInput" accept="image/*" capture="environment" class="hidden" onchange="handleBarcodeImageUpload(event)" />
-                </label>
-                <button type="button" onclick="switchCameraFacing()" class="p-2 bg-slate-900/90 hover:bg-slate-900 backdrop-blur-md border border-white/20 rounded-xl text-white transition active:scale-95 shadow flex items-center justify-center" style="color: #FFFFFF !important;" title="Flip Camera">
-                  <span class="material-symbols-outlined text-sm" style="color: #FFFFFF !important;">flip_camera_ios</span>
-                </button>
-                <button type="button" onclick="toggleCameraScanning()" id="cameraToggleBtn" class="p-2 bg-slate-900/90 hover:bg-slate-900 backdrop-blur-md border border-white/20 rounded-xl text-white transition active:scale-95 shadow flex items-center justify-center" style="color: #FFFFFF !important;" title="Toggle Camera">
-                  <span class="material-symbols-outlined text-sm" id="cameraToggleIcon" style="color: #FFFFFF !important;">videocam</span>
-                </button>
-              </div>
+              <button type="button" onclick="toggleCameraScanning()" id="cameraToggleBtn" class="p-2 bg-slate-900/90 hover:bg-slate-900 backdrop-blur-md border border-white/20 rounded-xl text-white transition active:scale-95 shadow flex items-center justify-center" style="color: #FFFFFF !important;" title="Toggle Camera On / Off">
+                <span class="material-symbols-outlined text-base" id="cameraToggleIcon" style="color: #FFFFFF !important;">videocam</span>
+              </button>
             </div>
           </div>
         </div>
@@ -4776,30 +4767,41 @@
     function toggleCameraScanning() {
       if (isCameraScanningActive) {
         stopCameraBarcodeScanner();
+        showAppToast('Camera Switched Off', 'videocam_off');
       } else {
         startCameraBarcodeScanner();
-      }
-    }
-
-    async function switchCameraFacing() {
-      currentCameraFacingMode = (currentCameraFacingMode === "environment") ? "user" : "environment";
-      showAppToast(`Switched to ${currentCameraFacingMode === 'environment' ? 'Rear' : 'Front'} Camera`, 'flip_camera_ios');
-      if (isCameraScanningActive) {
-        await startCameraBarcodeScanner();
+        showAppToast('Camera Switched On', 'videocam');
       }
     }
 
     function updateCameraStatusUI(isActive, message) {
-      const pill = document.getElementById('cameraStatusPill');
+      const dot = document.getElementById('cameraStatusDot');
       const text = document.getElementById('cameraStatusText');
       const icon = document.getElementById('cameraToggleIcon');
+      const btn = document.getElementById('cameraToggleBtn');
       const laser = document.getElementById('scannerLaserBeam');
 
-      if (text) text.innerText = message;
-      if (icon) icon.innerText = isActive ? 'videocam' : 'videocam_off';
+      if (text) text.innerText = message || (isActive ? 'Camera Active' : 'Camera Off');
+      if (icon) {
+        // Dynamic icon: 'videocam' when on, 'videocam_off' (with diagonal strike-through line) when switched off
+        icon.innerText = isActive ? 'videocam' : 'videocam_off';
+      }
+      if (dot) {
+        dot.className = isActive ? 'w-2 h-2 rounded-full bg-emerald-400 animate-ping' : 'w-2 h-2 rounded-full bg-rose-500';
+      }
+      if (btn) {
+        btn.title = isActive ? 'Turn Camera Off' : 'Turn Camera On';
+        if (isActive) {
+          btn.classList.remove('text-rose-400', 'border-rose-500/40');
+          btn.classList.add('text-white', 'border-white/20');
+        } else {
+          btn.classList.add('text-rose-400', 'border-rose-500/40');
+          btn.classList.remove('text-white', 'border-white/20');
+        }
+      }
       if (laser) {
-        if (isActive) laser.classList.remove('opacity-20');
-        else laser.classList.add('opacity-20');
+        if (isActive) laser.classList.remove('opacity-0');
+        else laser.classList.add('opacity-0');
       }
     }
 
