@@ -2437,18 +2437,18 @@
   <!-- ============================================================ -->
   <!-- PROFESSIONAL ADD PRODUCT TO INVENTORY MODAL -->
   <!-- ============================================================ -->
-  <div id="addProductModal" style="display: none;" onclick="if(event.target === this) closeAddProductModal();" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[200] flex items-center justify-center p-3.5 transition-all overflow-y-auto custom-scroll">
+  <div id="addProductModal" style="display: none;" onclick="if(event.target === this) closeAddProductModal();" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-md z-[110] flex items-center justify-center p-3.5 transition-all overflow-y-auto custom-scroll">
     <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[365px] shadow-2xl text-left space-y-3.5 my-auto relative animate-in fade-in zoom-in-95 duration-150">
       
       <!-- Modal Header -->
       <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-2.5">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 rounded-xl bg-brand-primary/20 border border-brand-primary/40 flex items-center justify-center text-brand-primaryContainer shadow-inner">
-            <span class="material-symbols-outlined text-xl">add_box</span>
+            <span class="material-symbols-outlined text-xl">barcode_scanner</span>
           </div>
           <div>
             <h3 class="text-sm font-black text-white tracking-wide">Add Product to Inventory</h3>
-            <p class="text-[10px] text-brand-muted font-medium">Scan or enter barcode, name, stock & price</p>
+            <p class="text-[10px] text-brand-muted font-medium">Scan barcode or enter name & price</p>
           </div>
         </div>
         <button type="button" onclick="closeAddProductModal()" class="w-8 h-8 rounded-full bg-brand-surfaceElevated border border-brand-surfaceBorder hover:bg-brand-surface text-slate-300 hover:text-white transition flex items-center justify-center active:scale-95">
@@ -2459,33 +2459,72 @@
       <!-- Form Body: Sequential one-above-another -->
       <div class="space-y-3 text-left">
         
-        <!-- SECTION 1: BARCODE / ITEM CODE (Picture Scan or Enter Number) -->
-        <div class="space-y-1.5 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
+        <!-- SECTION 1: BARCODE / ITEM CODE (Live Camera Viewfinder + Number Input) -->
+        <div class="space-y-2 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
           <div class="flex items-center justify-between">
             <label class="text-[10px] font-black uppercase tracking-wider text-brand-secondary flex items-center gap-1">
               <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
               <span>1. Barcode Number *</span>
             </label>
-            <span class="text-[9px] font-bold text-brand-muted">Picture Scan or Enter</span>
+            <div class="flex items-center gap-1">
+              <span id="modalCamStatusBadge" class="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">● Camera Active</span>
+            </div>
           </div>
           
+          <!-- LIVE CAMERA VIEWFINDER (INSIDE MODAL) -->
+          <div id="modalBarcodeCameraBox" class="relative w-full h-44 bg-slate-950 rounded-xl overflow-hidden border border-emerald-500/40 shadow-inner flex flex-col justify-between">
+            <!-- Html5Qrcode video render element -->
+            <div id="modalLiveScannerContainer" class="w-full h-full object-cover"></div>
+            
+            <!-- Viewfinder Overlay & Laser Beam -->
+            <div class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-3">
+              <div class="w-3/4 h-24 border-2 border-emerald-400/80 rounded-xl relative shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                <!-- Laser line -->
+                <div class="absolute inset-x-0 h-0.5 bg-emerald-400 shadow-[0_0_8px_#34d399] animate-bounce top-1/2"></div>
+                <!-- Corner highlights -->
+                <div class="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-emerald-300"></div>
+                <div class="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-emerald-300"></div>
+                <div class="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-emerald-300"></div>
+                <div class="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-emerald-300"></div>
+              </div>
+              <p class="text-[10px] font-bold text-white/90 drop-shadow mt-2">Center product barcode in box</p>
+            </div>
+
+            <!-- Top Camera Controls Bar -->
+            <div class="absolute top-2 inset-x-2 flex items-center justify-between z-10">
+              <span class="px-2 py-0.5 bg-black/60 backdrop-blur-md rounded-md text-[9.5px] font-bold text-emerald-300 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Camera Stream</span>
+              </span>
+              <button type="button" onclick="toggleModalLiveCamera()" id="modalCamToggleBtn" class="px-2 py-0.5 bg-black/60 hover:bg-black/80 backdrop-blur-md text-slate-200 hover:text-white rounded-md text-[9.5px] font-bold transition">
+                Pause Camera
+              </button>
+            </div>
+          </div>
+
+          <!-- Barcode Number Input -->
           <div class="relative flex items-center">
             <span class="material-symbols-outlined absolute left-3 text-brand-muted text-base">barcode</span>
             <input type="text" id="addProdBarcode" 
-                   placeholder="Enter barcode number (e.g. 8901030762100)..." 
+                   placeholder="Enter / scanned barcode number (e.g. 8901030762100)..." 
                    class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl pl-9 pr-3 py-2 text-xs font-mono font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition" 
                    oninput="checkAddProductBarcodeLookup(this.value)" />
           </div>
 
-          <!-- Buttons for Picture Scanning and Auto-generate -->
+          <!-- Action Buttons for Barcode -->
           <div class="flex items-center gap-1.5 pt-0.5">
-            <button type="button" onclick="triggerModalCameraScan()" class="flex-1 py-1.5 px-2 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 rounded-lg text-[10.5px] font-black flex items-center justify-center gap-1 transition active:scale-95">
+            <button type="button" onclick="startModalLiveCamera()" class="flex-1 py-1.5 px-2 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 rounded-lg text-[10.5px] font-black flex items-center justify-center gap-1 transition active:scale-95">
               <span class="material-symbols-outlined text-sm">photo_camera</span>
-              <span>Scan via Picture / Camera</span>
+              <span>Re-open Camera</span>
+            </button>
+            <input type="file" id="modalBarcodeSnapFile" accept="image/*" capture="environment" class="hidden" onchange="handleModalSnapPhoto(event)">
+            <button type="button" onclick="document.getElementById('modalBarcodeSnapFile')?.click()" class="py-1.5 px-2.5 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white rounded-lg text-[10.5px] font-bold flex items-center justify-center gap-1 transition active:scale-95">
+              <span class="material-symbols-outlined text-xs">camera_alt</span>
+              <span>Snap Photo</span>
             </button>
             <button type="button" onclick="generateRandomBarcodeForAdd()" class="py-1.5 px-2.5 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white rounded-lg text-[10.5px] font-bold flex items-center justify-center gap-1 transition active:scale-95">
               <span class="material-symbols-outlined text-xs">bolt</span>
-              <span>Auto-Generate</span>
+              <span>Auto-Code</span>
             </button>
           </div>
 
@@ -5508,16 +5547,22 @@
       modal.classList.remove('hidden');
       modal.style.display = 'flex';
 
+      // Launch live camera immediately inside modal
+      setTimeout(() => {
+        startModalLiveCamera();
+      }, 100);
+
       setTimeout(() => {
         if (!barcodeInput?.value) {
           barcodeInput?.focus();
         } else {
           nameInput?.focus();
         }
-      }, 100);
+      }, 150);
     }
 
     function closeAddProductModal() {
+      stopModalLiveCamera();
       const modal = document.getElementById('addProductModal');
       if (modal) {
         modal.classList.add('hidden');
@@ -5525,21 +5570,138 @@
       }
     }
 
-    function triggerModalCameraScan() {
-      showAppPrompt({
-        title: 'Camera Barcode Scanner',
-        message: 'Scan product barcode or enter barcode code number:',
-        defaultValue: '8901030762100',
-        onSubmit: (scanned) => {
-          if (scanned) {
-            const input = document.getElementById('addProdBarcode');
-            if (input) {
-              input.value = scanned.trim();
-              checkAddProductBarcodeLookup(scanned.trim());
-            }
+    // --- LIVE CAMERA SCANNER CONTROLLER FOR ADD PRODUCT MODAL ---
+    let modalCameraScannerInstance = null;
+    let isModalCameraActive = false;
+
+    async function startModalLiveCamera() {
+      const box = document.getElementById('modalBarcodeCameraBox');
+      const badge = document.getElementById('modalCamStatusBadge');
+      const toggleBtn = document.getElementById('modalCamToggleBtn');
+      if (box) box.classList.remove('hidden');
+
+      if (isModalCameraActive) return;
+
+      try {
+        if (!modalCameraScannerInstance && window.Html5Qrcode) {
+          modalCameraScannerInstance = new Html5Qrcode("modalLiveScannerContainer");
+        }
+        if (!modalCameraScannerInstance) {
+          console.warn('Html5Qrcode library not ready');
+          return;
+        }
+
+        const config = {
+          fps: 15,
+          qrbox: { width: 220, height: 110 },
+          aspectRatio: 1.777778
+        };
+
+        try {
+          await modalCameraScannerInstance.start(
+            { facingMode: "environment" },
+            config,
+            onModalBarcodeDetected,
+            () => {}
+          );
+        } catch (strictErr) {
+          const cameras = await Html5Qrcode.getCameras();
+          if (cameras && cameras.length) {
+            await modalCameraScannerInstance.start(
+              cameras[0].id,
+              config,
+              onModalBarcodeDetected,
+              () => {}
+            );
+          } else {
+            throw strictErr;
           }
         }
-      });
+
+        isModalCameraActive = true;
+        if (badge) {
+          badge.innerText = '● Live Scanner Active';
+          badge.className = 'text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20';
+        }
+        if (toggleBtn) toggleBtn.innerText = 'Pause Camera';
+      } catch (err) {
+        console.warn('Modal camera start note:', err);
+        isModalCameraActive = false;
+        if (badge) {
+          badge.innerText = 'Snap Photo or Type Code';
+          badge.className = 'text-[9px] font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20';
+        }
+      }
+    }
+
+    async function stopModalLiveCamera() {
+      if (modalCameraScannerInstance && isModalCameraActive) {
+        try {
+          await modalCameraScannerInstance.stop();
+          await modalCameraScannerInstance.clear();
+        } catch (e) {}
+      }
+      isModalCameraActive = false;
+      const badge = document.getElementById('modalCamStatusBadge');
+      const toggleBtn = document.getElementById('modalCamToggleBtn');
+      if (badge) {
+        badge.innerText = 'Camera Paused';
+        badge.className = 'text-[9px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full';
+      }
+      if (toggleBtn) toggleBtn.innerText = 'Resume Camera';
+    }
+
+    function toggleModalLiveCamera() {
+      if (isModalCameraActive) {
+        stopModalLiveCamera();
+      } else {
+        startModalLiveCamera();
+      }
+    }
+
+    function onModalBarcodeDetected(decodedText) {
+      if (!decodedText) return;
+      playBarcodeScanAudioTone();
+      showAppToast(`✓ Barcode Scanned: ${decodedText}`, 'check_circle');
+
+      const input = document.getElementById('addProdBarcode');
+      if (input) {
+        input.value = decodedText.trim();
+        checkAddProductBarcodeLookup(decodedText.trim());
+      }
+
+      // Stop camera once barcode is captured so user can easily enter name & price
+      stopModalLiveCamera();
+
+      // Focus product name
+      setTimeout(() => {
+        document.getElementById('addProdName')?.focus();
+      }, 200);
+    }
+
+    async function handleModalSnapPhoto(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      showAppToast('Scanning barcode photo...', 'search');
+      try {
+        if (!modalCameraScannerInstance && window.Html5Qrcode) {
+          modalCameraScannerInstance = new Html5Qrcode("modalLiveScannerContainer");
+        }
+        if (modalCameraScannerInstance) {
+          const decodedText = await modalCameraScannerInstance.scanFile(file, true);
+          if (decodedText) {
+            onModalBarcodeDetected(decodedText);
+          } else {
+            showAppToast('No barcode found in picture. Please write down barcode number.', 'warning', true);
+          }
+        }
+      } catch (err) {
+        console.warn('Snap photo scan notice:', err);
+        showAppToast('Could not read barcode in photo. Please write down barcode number.', 'warning', true);
+      } finally {
+        event.target.value = '';
+      }
     }
 
     function generateRandomBarcodeForAdd() {
