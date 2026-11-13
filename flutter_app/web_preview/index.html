@@ -892,7 +892,7 @@
                 <span id="cameraStatusText" style="color: #FFFFFF !important;">Camera Active</span>
               </span>
               <button type="button" onclick="toggleCameraScanning()" id="cameraToggleBtn" class="p-2 bg-slate-900/90 hover:bg-slate-900 backdrop-blur-md border border-white/20 rounded-xl text-white transition active:scale-95 shadow flex items-center justify-center" style="color: #FFFFFF !important;" title="Toggle Camera On / Off">
-                <span class="material-symbols-outlined text-base" id="cameraToggleIcon" style="color: #FFFFFF !important;">videocam</span>
+                <span class="material-symbols-outlined text-base" id="cameraToggleIcon" style="color: #FFFFFF !important;">photo_camera</span>
               </button>
             </div>
           </div>
@@ -4772,10 +4772,10 @@
     function toggleCameraScanning() {
       if (isCameraScanningActive) {
         stopCameraBarcodeScanner();
-        showAppToast('Camera Switched Off', 'videocam_off');
+        showAppToast('Camera Switched Off', 'no_photography');
       } else {
         startCameraBarcodeScanner();
-        showAppToast('Camera Switched On', 'videocam');
+        showAppToast('Camera Switched On', 'photo_camera');
       }
     }
 
@@ -4788,8 +4788,8 @@
 
       if (text) text.innerText = message || (isActive ? 'Camera Active' : 'Camera Off');
       if (icon) {
-        // Dynamic icon: 'videocam' when on, 'videocam_off' (with diagonal strike-through line) when switched off
-        icon.innerText = isActive ? 'videocam' : 'videocam_off';
+        // Dynamic camera icon: 'photo_camera' when on, 'no_photography' (with strike-through slash) when switched off
+        icon.innerText = isActive ? 'photo_camera' : 'no_photography';
       }
       if (dot) {
         dot.className = isActive ? 'w-2 h-2 rounded-full bg-emerald-400 animate-ping' : 'w-2 h-2 rounded-full bg-rose-500';
