@@ -1106,15 +1106,19 @@
       <!-- 5. PRODUCT CATALOG SCREEN -->
       <!-- ============================================================ -->
       <div id="screen-products" class="hidden space-y-3">
-        <div class="p-4 rounded-3xl bg-gradient-to-r from-brand-primary to-brand-tertiary flex justify-between items-center shadow-lg">
+        <!-- TOTAL STOCK VALUE BANNER -->
+        <div class="p-4 rounded-3xl bg-gradient-to-r from-brand-primary to-brand-tertiary flex items-center shadow-lg">
           <div>
             <p class="text-[10px] font-bold text-white/80 uppercase">Total Stock Value</p>
             <p class="text-xl font-black text-white" id="totalStockValue">₹2,48,500.00</p>
           </div>
-          <button onclick="openAddProductModal()" class="px-3 py-1.5 bg-white text-black font-extrabold text-xs rounded-xl shadow hover:bg-slate-100 transition active:scale-95">
-            + Add Product
-          </button>
         </div>
+
+        <!-- SEPARATE DEDICATED ADD PRODUCT BUTTON (NO + ICON) -->
+        <button type="button" onclick="openAddProductModal()" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-600 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition flex flex-col items-center justify-center border border-emerald-400/30 group">
+          <span class="text-sm font-black tracking-wide text-white">ADD PRODUCT</span>
+          <span class="text-[10px] font-bold text-emerald-100/90 tracking-wider uppercase mt-0.5">ADD BARCODE NUMBER</span>
+        </button>
 
         <!-- 🔍 SEARCH IN INVENTORY -->
         <div class="bg-brand-surface border border-brand-surfaceBorder rounded-2xl p-2.5 shadow-sm space-y-2">
@@ -2440,34 +2444,34 @@
         </button>
       </div>
 
-      <!-- Form Body -->
+      <!-- Form Body: Sequential one-above-another -->
       <div class="space-y-3 text-left">
         
-        <!-- SECTION 1: BARCODE / ITEM CODE (Scan or Write down manually) -->
+        <!-- SECTION 1: BARCODE / ITEM CODE (Picture Scan or Enter Number) -->
         <div class="space-y-1.5 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
           <div class="flex items-center justify-between">
             <label class="text-[10px] font-black uppercase tracking-wider text-brand-secondary flex items-center gap-1">
               <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
-              <span>1. Barcode / Item Code *</span>
+              <span>1. Barcode Number *</span>
             </label>
-            <span class="text-[9px] font-bold text-brand-muted">Scan or Type</span>
+            <span class="text-[9px] font-bold text-brand-muted">Picture Scan or Enter</span>
           </div>
           
           <div class="relative flex items-center">
             <span class="material-symbols-outlined absolute left-3 text-brand-muted text-base">barcode</span>
             <input type="text" id="addProdBarcode" 
-                   placeholder="Scan or write barcode (e.g. 8901030762100)..." 
+                   placeholder="Enter barcode number (e.g. 8901030762100)..." 
                    class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl pl-9 pr-3 py-2 text-xs font-mono font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition" 
                    oninput="checkAddProductBarcodeLookup(this.value)" />
           </div>
 
-          <!-- Quick Action Buttons for Barcode -->
+          <!-- Buttons for Picture Scanning and Auto-generate -->
           <div class="flex items-center gap-1.5 pt-0.5">
-            <button type="button" onclick="triggerModalCameraScan()" class="flex-1 py-1 px-2 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-black flex items-center justify-center gap-1 transition active:scale-95">
-              <span class="material-symbols-outlined text-xs">photo_camera</span>
-              <span>Scan via Camera</span>
+            <button type="button" onclick="triggerModalCameraScan()" class="flex-1 py-1.5 px-2 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 rounded-lg text-[10.5px] font-black flex items-center justify-center gap-1 transition active:scale-95">
+              <span class="material-symbols-outlined text-sm">photo_camera</span>
+              <span>Scan via Picture / Camera</span>
             </button>
-            <button type="button" onclick="generateRandomBarcodeForAdd()" class="py-1 px-2.5 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition active:scale-95">
+            <button type="button" onclick="generateRandomBarcodeForAdd()" class="py-1.5 px-2.5 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white rounded-lg text-[10.5px] font-bold flex items-center justify-center gap-1 transition active:scale-95">
               <span class="material-symbols-outlined text-xs">bolt</span>
               <span>Auto-Generate</span>
             </button>
@@ -2480,104 +2484,40 @@
           </div>
         </div>
 
-        <!-- SECTION 2: PRODUCT NAME & TAX (Separate Display) -->
+        <!-- SECTION 2: PRODUCT NAME -->
         <div class="space-y-1.5 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
           <label class="text-[10px] font-black uppercase tracking-wider text-brand-primaryContainer flex items-center gap-1">
             <span class="material-symbols-outlined text-sm">label</span>
-            <span>2. Product Name *</span>
+            <span>2. Name of Product *</span>
           </label>
           <input type="text" id="addProdName" 
-                 placeholder="e.g. Parle-G Gold Biscuits 100g" 
+                 placeholder="Enter product name (e.g. Parle-G Gold Biscuits 100g)" 
                  class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition" />
-          
-          <div class="grid grid-cols-2 gap-2 pt-1">
-            <div>
-              <label class="text-[9.5px] font-bold text-brand-muted block mb-0.5">GST Rate (%)</label>
-              <select id="addProdGst" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2.5 py-1.5 text-xs font-bold text-white outline-none focus:border-brand-primary">
-                <option value="0">GST 0% (Exempt)</option>
-                <option value="5">GST 5% (FMCG)</option>
-                <option value="12">GST 12% (Standard)</option>
-                <option value="18" selected>GST 18% (Packaged)</option>
-                <option value="28">GST 28% (Luxury)</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-[9.5px] font-bold text-brand-muted block mb-0.5">HSN Code</label>
-              <input type="text" id="addProdHsn" value="1905" placeholder="e.g. 1905" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2.5 py-1.5 text-xs font-bold text-white outline-none focus:border-brand-primary font-mono" />
-            </div>
-          </div>
         </div>
 
-        <!-- SECTION 3: QUANTITY & UNIT (Separate Display) -->
-        <div class="space-y-1.5 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
-          <label class="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
-            <span class="material-symbols-outlined text-sm">inventory</span>
-            <span>3. Stock Quantity & Unit *</span>
-          </label>
-          <div class="grid grid-cols-2 gap-2">
-            <!-- Quantity with +/- counters -->
-            <div>
-              <label class="text-[9.5px] font-bold text-brand-muted block mb-0.5">Quantity</label>
-              <div class="flex items-center bg-brand-surface border border-brand-surfaceBorder rounded-xl overflow-hidden">
-                <button type="button" onclick="adjustAddProdQty(-1)" class="w-7 h-8 text-slate-400 hover:text-white flex items-center justify-center font-black text-sm active:bg-brand-surfaceElevated">−</button>
-                <input type="number" id="addProdQty" value="25" min="1" step="1" class="w-full bg-transparent text-center text-xs font-black text-white outline-none py-1.5" />
-                <button type="button" onclick="adjustAddProdQty(1)" class="w-7 h-8 text-slate-400 hover:text-white flex items-center justify-center font-black text-sm active:bg-brand-surfaceElevated">+</button>
-              </div>
-            </div>
-            <!-- Unit Selector -->
-            <div>
-              <label class="text-[9.5px] font-bold text-brand-muted block mb-0.5">Measurement Unit</label>
-              <select id="addProdUnit" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2.5 py-1.5 text-xs font-bold text-white outline-none focus:border-brand-primary h-8">
-                <option value="pcs" selected>pcs (Pieces)</option>
-                <option value="pack">pack (Packet)</option>
-                <option value="box">box (Box / Carton)</option>
-                <option value="kg">kg (Kilogram)</option>
-                <option value="g">g (Gram)</option>
-                <option value="L">L (Litre)</option>
-                <option value="ml">ml (Millilitre)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 4: ITEM SELLING PRICE (Separate Display) -->
+        <!-- SECTION 3: SEPARATE BOX FOR PRICE -->
         <div class="space-y-1.5 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
           <div class="flex items-center justify-between">
             <label class="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1">
               <span class="material-symbols-outlined text-sm">payments</span>
-              <span>4. Item Selling Price *</span>
+              <span>3. Price of Item (₹) *</span>
             </label>
-            <span class="text-[9px] font-bold text-brand-muted">₹ INR Per Unit</span>
+            <span class="text-[9px] font-bold text-brand-muted">Selling Price</span>
           </div>
           <div class="relative flex items-center">
             <span class="absolute left-3 text-sm font-black text-emerald-400">₹</span>
             <input type="number" id="addProdPrice" step="0.25" min="0" placeholder="0.00" 
                    class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl pl-8 pr-3 py-2 text-sm font-black text-emerald-400 placeholder:text-brand-muted outline-none focus:border-emerald-500 transition font-mono" />
           </div>
-          <!-- Quick Price Helper Chips -->
-          <div class="flex items-center gap-1 pt-0.5 flex-wrap">
-            <button type="button" onclick="setAddProdPriceHelper(10)" class="px-2 py-0.5 bg-brand-surface hover:bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300">₹10</button>
-            <button type="button" onclick="setAddProdPriceHelper(20)" class="px-2 py-0.5 bg-brand-surface hover:bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300">₹20</button>
-            <button type="button" onclick="setAddProdPriceHelper(50)" class="px-2 py-0.5 bg-brand-surface hover:bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300">₹50</button>
-            <button type="button" onclick="setAddProdPriceHelper(100)" class="px-2 py-0.5 bg-brand-surface hover:bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300">₹100</button>
-            <button type="button" onclick="setAddProdPriceHelper(250)" class="px-2 py-0.5 bg-brand-surface hover:bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300">₹250</button>
-          </div>
         </div>
 
       </div>
 
-      <!-- Action Buttons -->
-      <div class="space-y-2 pt-1">
+      <!-- Action Button: Just ONE clean button saying ADD TO INVENTORY -->
+      <div class="pt-1">
         <button type="button" onclick="saveProductToInventory(false)" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 active:scale-95 transition flex items-center justify-center gap-1.5">
           <span class="material-symbols-outlined text-sm font-bold">check_circle</span>
-          <span>SAVE PRODUCT TO INVENTORY</span>
-        </button>
-        <button type="button" onclick="saveProductToInventory(true)" class="w-full py-2 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-brand-primaryContainer font-extrabold text-[11px] rounded-xl transition flex items-center justify-center gap-1 active:scale-95">
-          <span class="material-symbols-outlined text-xs">bolt</span>
-          <span>Save & Add to Active Bill</span>
-        </button>
-        <button type="button" onclick="closeAddProductModal()" class="w-full py-2 bg-transparent text-slate-400 hover:text-white text-[10.5px] font-bold rounded-xl transition">
-          Cancel
+          <span>ADD TO INVENTORY</span>
         </button>
       </div>
 
@@ -5468,19 +5408,11 @@
 
       const barcodeInput = document.getElementById('addProdBarcode');
       const nameInput = document.getElementById('addProdName');
-      const qtyInput = document.getElementById('addProdQty');
-      const unitInput = document.getElementById('addProdUnit');
       const priceInput = document.getElementById('addProdPrice');
-      const gstInput = document.getElementById('addProdGst');
-      const hsnInput = document.getElementById('addProdHsn');
 
       if (barcodeInput) barcodeInput.value = '';
       if (nameInput) nameInput.value = '';
-      if (qtyInput) qtyInput.value = '25';
-      if (unitInput) unitInput.value = 'pcs';
       if (priceInput) priceInput.value = '';
-      if (gstInput) gstInput.value = '18';
-      if (hsnInput) hsnInput.value = '1905';
 
       const hintEl = document.getElementById('addProdBarcodeMatchHint');
       if (hintEl) hintEl.classList.add('hidden');
@@ -5626,14 +5558,14 @@
     function saveProductToInventory(addToActiveBill = false) {
       const barcode = (document.getElementById('addProdBarcode')?.value || '').trim();
       const name = (document.getElementById('addProdName')?.value || '').trim();
-      const qty = parseFloat(document.getElementById('addProdQty')?.value || '1');
-      const unit = document.getElementById('addProdUnit')?.value || 'pcs';
       const price = parseFloat(document.getElementById('addProdPrice')?.value || '0');
-      const gst = parseFloat(document.getElementById('addProdGst')?.value || '18');
-      const hsn = (document.getElementById('addProdHsn')?.value || '1905').trim();
+      const qty = 100;
+      const unit = 'pcs';
+      const gst = 5.0;
+      const hsn = '1905';
 
       if (!barcode) {
-        showAppToast('Please scan or write down a barcode number', 'warning', true);
+        showAppToast('Please scan or enter a barcode number', 'warning', true);
         document.getElementById('addProdBarcode')?.focus();
         return;
       }
@@ -5645,11 +5577,6 @@
       if (isNaN(price) || price <= 0) {
         showAppToast('Please enter a valid item selling price', 'warning', true);
         document.getElementById('addProdPrice')?.focus();
-        return;
-      }
-      if (isNaN(qty) || qty <= 0) {
-        showAppToast('Please enter a valid stock quantity', 'warning', true);
-        document.getElementById('addProdQty')?.focus();
         return;
       }
 
@@ -6422,10 +6349,6 @@
                 <span class="text-[9.5px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                   ${p.barcode}
                 </span>
-                <span class="text-[9.5px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shadow-xs">
-                  HSN: ${p.hsn || '1905'} • GST: ${p.gst}%
-                </span>
-                <span class="text-[9.5px] font-semibold text-slate-400">Stock: ${p.qty} ${p.unit}</span>
               </div>
             </div>
           </div>
