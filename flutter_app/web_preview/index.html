@@ -1117,7 +1117,7 @@
         <!-- SEPARATE DEDICATED ADD PRODUCT BUTTON (NO + ICON) -->
         <button type="button" onclick="openAddProductModal()" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-600 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition flex flex-col items-center justify-center border border-emerald-400/30 group">
           <span class="text-sm font-black tracking-wide text-white">ADD PRODUCT</span>
-          <span class="text-[10px] font-bold text-emerald-100/90 tracking-wider uppercase mt-0.5">ADD BARCODE NUMBER</span>
+          <span class="text-[10.5px] font-black text-emerald-100 tracking-widest uppercase mt-0.5">SCAN</span>
         </button>
 
         <!-- 🔍 SEARCH IN INVENTORY -->
@@ -2431,10 +2431,13 @@
           Dismiss
         </button>
       </div>
+    </div>
+  </div>
+
   <!-- ============================================================ -->
   <!-- PROFESSIONAL ADD PRODUCT TO INVENTORY MODAL -->
   <!-- ============================================================ -->
-  <div id="addProductModal" style="display: none;" onclick="if(event.target === this) closeAddProductModal();" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-md z-[110] flex items-center justify-center p-3.5 transition-all overflow-y-auto custom-scroll">
+  <div id="addProductModal" style="display: none;" onclick="if(event.target === this) closeAddProductModal();" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[200] flex items-center justify-center p-3.5 transition-all overflow-y-auto custom-scroll">
     <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[365px] shadow-2xl text-left space-y-3.5 my-auto relative animate-in fade-in zoom-in-95 duration-150">
       
       <!-- Modal Header -->
@@ -6396,13 +6399,13 @@
                 <span class="material-symbols-outlined text-3xl">inventory_2</span>
               </div>
               <div>
-                <p class="text-sm font-black text-white">Your Store Inventory is Ready</p>
+                <p class="text-sm font-black text-white tracking-wider">YOUR STORE INVENTORY</p>
                 <p class="text-[11px] text-brand-muted mt-1 max-w-xs mx-auto">No products added to this store yet. Start scanning barcodes or click below to build your private inventory catalog.</p>
               </div>
               <div class="pt-2">
                 <button onclick="openAddProductModal();" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center gap-1.5 mx-auto active:scale-95">
                   <span class="material-symbols-outlined text-base">add_circle</span>
-                  <span>+ Add First Product to Inventory</span>
+                  <span>Add First Product to Inventory</span>
                 </button>
               </div>
             </div>
