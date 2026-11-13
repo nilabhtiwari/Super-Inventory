@@ -1114,7 +1114,7 @@
             <p class="text-[10px] font-bold text-white/80 uppercase">Total Stock Value</p>
             <p class="text-xl font-black text-white" id="totalStockValue">₹2,48,500.00</p>
           </div>
-          <button onclick="promptCustomScan()" class="px-3 py-1.5 bg-white text-black font-extrabold text-xs rounded-xl shadow hover:bg-slate-100 transition active:scale-95">
+          <button onclick="openAddProductModal()" class="px-3 py-1.5 bg-white text-black font-extrabold text-xs rounded-xl shadow hover:bg-slate-100 transition active:scale-95">
             + Add Product
           </button>
         </div>
@@ -2429,6 +2429,169 @@
           Dismiss
         </button>
       </div>
+  <!-- ============================================================ -->
+  <!-- PROFESSIONAL ADD PRODUCT TO INVENTORY MODAL -->
+  <!-- ============================================================ -->
+  <div id="addProductModal" style="display: none;" onclick="if(event.target === this) closeAddProductModal();" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-md z-[110] flex items-center justify-center p-3.5 transition-all overflow-y-auto custom-scroll">
+    <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[365px] shadow-2xl text-left space-y-3.5 my-auto relative animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-2.5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-brand-primary/20 border border-brand-primary/40 flex items-center justify-center text-brand-primaryContainer shadow-inner">
+            <span class="material-symbols-outlined text-xl">add_box</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-white tracking-wide">Add Product to Inventory</h3>
+            <p class="text-[10px] text-brand-muted font-medium">Scan or enter barcode, name, stock & price</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAddProductModal()" class="w-8 h-8 rounded-full bg-brand-surfaceElevated border border-brand-surfaceBorder hover:bg-brand-surface text-slate-300 hover:text-white transition flex items-center justify-center active:scale-95">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <div class="space-y-3 text-left">
+        
+        <!-- SECTION 1: BARCODE / ITEM CODE (Scan or Write down manually) -->
+        <div class="space-y-1.5 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
+          <div class="flex items-center justify-between">
+            <label class="text-[10px] font-black uppercase tracking-wider text-brand-secondary flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
+              <span>1. Barcode / Item Code *</span>
+            </label>
+            <span class="text-[9px] font-bold text-brand-muted">Scan or Type</span>
+          </div>
+          
+          <div class="relative flex items-center">
+            <span class="material-symbols-outlined absolute left-3 text-brand-muted text-base">barcode</span>
+            <input type="text" id="addProdBarcode" 
+                   placeholder="Scan or write barcode (e.g. 8901030762100)..." 
+                   class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl pl-9 pr-3 py-2 text-xs font-mono font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition" 
+                   oninput="checkAddProductBarcodeLookup(this.value)" />
+          </div>
+
+          <!-- Quick Action Buttons for Barcode -->
+          <div class="flex items-center gap-1.5 pt-0.5">
+            <button type="button" onclick="triggerModalCameraScan()" class="flex-1 py-1 px-2 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-black flex items-center justify-center gap-1 transition active:scale-95">
+              <span class="material-symbols-outlined text-xs">photo_camera</span>
+              <span>Scan via Camera</span>
+            </button>
+            <button type="button" onclick="generateRandomBarcodeForAdd()" class="py-1 px-2.5 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition active:scale-95">
+              <span class="material-symbols-outlined text-xs">bolt</span>
+              <span>Auto-Generate</span>
+            </button>
+          </div>
+
+          <!-- Auto-lookup Match Indicator -->
+          <div id="addProdBarcodeMatchHint" class="hidden text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-lg flex items-center justify-between">
+            <span id="addProdBarcodeMatchText"></span>
+            <button type="button" onclick="applyAddProductAutoFill()" class="underline font-black text-white hover:text-emerald-300 text-[9.5px]">Auto-Fill</button>
+          </div>
+        </div>
+
+        <!-- SECTION 2: PRODUCT NAME & TAX (Separate Display) -->
+        <div class="space-y-1.5 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
+          <label class="text-[10px] font-black uppercase tracking-wider text-brand-primaryContainer flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">label</span>
+            <span>2. Product Name *</span>
+          </label>
+          <input type="text" id="addProdName" 
+                 placeholder="e.g. Parle-G Gold Biscuits 100g" 
+                 class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition" />
+          
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <div>
+              <label class="text-[9.5px] font-bold text-brand-muted block mb-0.5">GST Rate (%)</label>
+              <select id="addProdGst" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2.5 py-1.5 text-xs font-bold text-white outline-none focus:border-brand-primary">
+                <option value="0">GST 0% (Exempt)</option>
+                <option value="5">GST 5% (FMCG)</option>
+                <option value="12">GST 12% (Standard)</option>
+                <option value="18" selected>GST 18% (Packaged)</option>
+                <option value="28">GST 28% (Luxury)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[9.5px] font-bold text-brand-muted block mb-0.5">HSN Code</label>
+              <input type="text" id="addProdHsn" value="1905" placeholder="e.g. 1905" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2.5 py-1.5 text-xs font-bold text-white outline-none focus:border-brand-primary font-mono" />
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: QUANTITY & UNIT (Separate Display) -->
+        <div class="space-y-1.5 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
+          <label class="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">inventory</span>
+            <span>3. Stock Quantity & Unit *</span>
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <!-- Quantity with +/- counters -->
+            <div>
+              <label class="text-[9.5px] font-bold text-brand-muted block mb-0.5">Quantity</label>
+              <div class="flex items-center bg-brand-surface border border-brand-surfaceBorder rounded-xl overflow-hidden">
+                <button type="button" onclick="adjustAddProdQty(-1)" class="w-7 h-8 text-slate-400 hover:text-white flex items-center justify-center font-black text-sm active:bg-brand-surfaceElevated">−</button>
+                <input type="number" id="addProdQty" value="25" min="1" step="1" class="w-full bg-transparent text-center text-xs font-black text-white outline-none py-1.5" />
+                <button type="button" onclick="adjustAddProdQty(1)" class="w-7 h-8 text-slate-400 hover:text-white flex items-center justify-center font-black text-sm active:bg-brand-surfaceElevated">+</button>
+              </div>
+            </div>
+            <!-- Unit Selector -->
+            <div>
+              <label class="text-[9.5px] font-bold text-brand-muted block mb-0.5">Measurement Unit</label>
+              <select id="addProdUnit" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2.5 py-1.5 text-xs font-bold text-white outline-none focus:border-brand-primary h-8">
+                <option value="pcs" selected>pcs (Pieces)</option>
+                <option value="pack">pack (Packet)</option>
+                <option value="box">box (Box / Carton)</option>
+                <option value="kg">kg (Kilogram)</option>
+                <option value="g">g (Gram)</option>
+                <option value="L">L (Litre)</option>
+                <option value="ml">ml (Millilitre)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: ITEM SELLING PRICE (Separate Display) -->
+        <div class="space-y-1.5 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
+          <div class="flex items-center justify-between">
+            <label class="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">payments</span>
+              <span>4. Item Selling Price *</span>
+            </label>
+            <span class="text-[9px] font-bold text-brand-muted">₹ INR Per Unit</span>
+          </div>
+          <div class="relative flex items-center">
+            <span class="absolute left-3 text-sm font-black text-emerald-400">₹</span>
+            <input type="number" id="addProdPrice" step="0.25" min="0" placeholder="0.00" 
+                   class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl pl-8 pr-3 py-2 text-sm font-black text-emerald-400 placeholder:text-brand-muted outline-none focus:border-emerald-500 transition font-mono" />
+          </div>
+          <!-- Quick Price Helper Chips -->
+          <div class="flex items-center gap-1 pt-0.5 flex-wrap">
+            <button type="button" onclick="setAddProdPriceHelper(10)" class="px-2 py-0.5 bg-brand-surface hover:bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300">₹10</button>
+            <button type="button" onclick="setAddProdPriceHelper(20)" class="px-2 py-0.5 bg-brand-surface hover:bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300">₹20</button>
+            <button type="button" onclick="setAddProdPriceHelper(50)" class="px-2 py-0.5 bg-brand-surface hover:bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300">₹50</button>
+            <button type="button" onclick="setAddProdPriceHelper(100)" class="px-2 py-0.5 bg-brand-surface hover:bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300">₹100</button>
+            <button type="button" onclick="setAddProdPriceHelper(250)" class="px-2 py-0.5 bg-brand-surface hover:bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300">₹250</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="space-y-2 pt-1">
+        <button type="button" onclick="saveProductToInventory(false)" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 active:scale-95 transition flex items-center justify-center gap-1.5">
+          <span class="material-symbols-outlined text-sm font-bold">check_circle</span>
+          <span>SAVE PRODUCT TO INVENTORY</span>
+        </button>
+        <button type="button" onclick="saveProductToInventory(true)" class="w-full py-2 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-brand-primaryContainer font-extrabold text-[11px] rounded-xl transition flex items-center justify-center gap-1 active:scale-95">
+          <span class="material-symbols-outlined text-xs">bolt</span>
+          <span>Save & Add to Active Bill</span>
+        </button>
+        <button type="button" onclick="closeAddProductModal()" class="w-full py-2 bg-transparent text-slate-400 hover:text-white text-[10.5px] font-bold rounded-xl transition">
+          Cancel
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -5148,31 +5311,234 @@
     }
 
 
-        function promptCustomScan() {
-      showAppPrompt({
-        title: 'Create & Add Custom Product',
-        message: 'Enter product name and selling price:',
-        defaultValue: 'Cadbury Silk Chocolate 60g - ₹175',
-        onSubmit: (val) => {
-          if (!val) return;
-          const matchPrice = val.match(/₹?\s*(\d+(\.\d+)?)/);
-          const price = matchPrice ? parseFloat(matchPrice[1]) : 100.0;
-          const name = val.replace(/₹?\s*(\d+(\.\d+)?)/, '').trim() || 'Custom Store Item';
+    // --- PROFESSIONAL ADD PRODUCT TO INVENTORY CONTROLLER ---
+    let pendingAutoFillData = null;
 
-          const newProd = {
-            id: Date.now(),
-            barcode: String(Date.now()).slice(-8),
-            name: name,
-            price: price,
-            gst: 18.0,
-            qty: 25,
-            unit: 'pcs'
-          };
-          sampleProducts.push(newProd);
-          scanProduct(newProd.barcode);
-          showAppToast(`Added custom product "${name}"`, 'add_circle');
+    function openAddProductModal(prefillQueryOrBarcode) {
+      const modal = document.getElementById('addProductModal');
+      if (!modal) return;
+
+      const barcodeInput = document.getElementById('addProdBarcode');
+      const nameInput = document.getElementById('addProdName');
+      const qtyInput = document.getElementById('addProdQty');
+      const unitInput = document.getElementById('addProdUnit');
+      const priceInput = document.getElementById('addProdPrice');
+      const gstInput = document.getElementById('addProdGst');
+      const hsnInput = document.getElementById('addProdHsn');
+
+      if (barcodeInput) barcodeInput.value = '';
+      if (nameInput) nameInput.value = '';
+      if (qtyInput) qtyInput.value = '25';
+      if (unitInput) unitInput.value = 'pcs';
+      if (priceInput) priceInput.value = '';
+      if (gstInput) gstInput.value = '18';
+      if (hsnInput) hsnInput.value = '1905';
+
+      const hintEl = document.getElementById('addProdBarcodeMatchHint');
+      if (hintEl) hintEl.classList.add('hidden');
+
+      if (prefillQueryOrBarcode) {
+        const val = String(prefillQueryOrBarcode).trim();
+        if (/^\d{6,14}$/.test(val)) {
+          if (barcodeInput) barcodeInput.value = val;
+          checkAddProductBarcodeLookup(val);
+        } else {
+          if (nameInput) nameInput.value = val;
+        }
+      }
+
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+
+      setTimeout(() => {
+        if (!barcodeInput?.value) {
+          barcodeInput?.focus();
+        } else {
+          nameInput?.focus();
+        }
+      }, 100);
+    }
+
+    function closeAddProductModal() {
+      const modal = document.getElementById('addProductModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+    }
+
+    function triggerModalCameraScan() {
+      showAppPrompt({
+        title: 'Camera Barcode Scanner',
+        message: 'Scan product barcode or enter barcode code number:',
+        defaultValue: '8901030762100',
+        onSubmit: (scanned) => {
+          if (scanned) {
+            const input = document.getElementById('addProdBarcode');
+            if (input) {
+              input.value = scanned.trim();
+              checkAddProductBarcodeLookup(scanned.trim());
+            }
+          }
         }
       });
+    }
+
+    function generateRandomBarcodeForAdd() {
+      const code = '890' + Math.floor(1000000000 + Math.random() * 9000000000);
+      const input = document.getElementById('addProdBarcode');
+      if (input) {
+        input.value = code;
+        checkAddProductBarcodeLookup(code);
+      }
+    }
+
+    function checkAddProductBarcodeLookup(barcode) {
+      const clean = (barcode || '').trim();
+      const hintEl = document.getElementById('addProdBarcodeMatchHint');
+      const textEl = document.getElementById('addProdBarcodeMatchText');
+      pendingAutoFillData = null;
+
+      if (!clean || clean.length < 4) {
+        if (hintEl) hintEl.classList.add('hidden');
+        return;
+      }
+
+      // Check existing in sampleProducts
+      const existing = sampleProducts.find(p => p.barcode === clean);
+      if (existing) {
+        pendingAutoFillData = existing;
+        if (hintEl && textEl) {
+          textEl.innerText = `Existing in stock: ${existing.name} (₹${existing.price.toFixed(2)})`;
+          hintEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      // FMCG catalog quick match
+      const fmcgCatalog = {
+        '8901030762100': { name: 'Parle-G Glucose Biscuits 100g', price: 10, gst: 18, unit: 'pcs', hsn: '1905' },
+        '8901063141010': { name: 'Britannia Marie Gold Biscuits 100g', price: 15, gst: 18, unit: 'pcs', hsn: '1905' },
+        '8901058852070': { name: 'Nestle Maggi 2-Minute Noodles 70g', price: 14, gst: 12, unit: 'pcs', hsn: '1902' },
+        '8901058000100': { name: 'Amul Salted Butter 100g', price: 58, gst: 12, unit: 'pcs', hsn: '0405' },
+        '8901207040409': { name: 'Tata Salt Vacuum Evaporated 1kg', price: 28, gst: 0, unit: 'kg', hsn: '2501' },
+        '8901030383701': { name: 'Dettol Antiseptic Liquid 125ml', price: 82, gst: 18, unit: 'ml', hsn: '3004' }
+      };
+
+      if (fmcgCatalog[clean]) {
+        pendingAutoFillData = fmcgCatalog[clean];
+        if (hintEl && textEl) {
+          textEl.innerText = `Verified FMCG item: ${fmcgCatalog[clean].name}`;
+          hintEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (hintEl) hintEl.classList.add('hidden');
+    }
+
+    function applyAddProductAutoFill() {
+      if (!pendingAutoFillData) return;
+      if (pendingAutoFillData.name && document.getElementById('addProdName')) {
+        document.getElementById('addProdName').value = pendingAutoFillData.name;
+      }
+      if (pendingAutoFillData.price && document.getElementById('addProdPrice')) {
+        document.getElementById('addProdPrice').value = pendingAutoFillData.price;
+      }
+      if (pendingAutoFillData.unit && document.getElementById('addProdUnit')) {
+        document.getElementById('addProdUnit').value = pendingAutoFillData.unit;
+      }
+      if (pendingAutoFillData.gst !== undefined && document.getElementById('addProdGst')) {
+        document.getElementById('addProdGst').value = String(pendingAutoFillData.gst);
+      }
+      if (pendingAutoFillData.hsn && document.getElementById('addProdHsn')) {
+        document.getElementById('addProdHsn').value = pendingAutoFillData.hsn;
+      }
+      const hintEl = document.getElementById('addProdBarcodeMatchHint');
+      if (hintEl) hintEl.classList.add('hidden');
+    }
+
+    function adjustAddProdQty(delta) {
+      const input = document.getElementById('addProdQty');
+      if (input) {
+        const current = parseFloat(input.value || '1');
+        const next = Math.max(1, current + delta);
+        input.value = next;
+      }
+    }
+
+    function setAddProdPriceHelper(val) {
+      const input = document.getElementById('addProdPrice');
+      if (input) {
+        input.value = Number(val).toFixed(2);
+      }
+    }
+
+    function saveProductToInventory(addToActiveBill = false) {
+      const barcode = (document.getElementById('addProdBarcode')?.value || '').trim();
+      const name = (document.getElementById('addProdName')?.value || '').trim();
+      const qty = parseFloat(document.getElementById('addProdQty')?.value || '1');
+      const unit = document.getElementById('addProdUnit')?.value || 'pcs';
+      const price = parseFloat(document.getElementById('addProdPrice')?.value || '0');
+      const gst = parseFloat(document.getElementById('addProdGst')?.value || '18');
+      const hsn = (document.getElementById('addProdHsn')?.value || '1905').trim();
+
+      if (!barcode) {
+        showAppToast('Please scan or write down a barcode number', 'warning', true);
+        document.getElementById('addProdBarcode')?.focus();
+        return;
+      }
+      if (!name) {
+        showAppToast('Please enter the product name', 'warning', true);
+        document.getElementById('addProdName')?.focus();
+        return;
+      }
+      if (isNaN(price) || price <= 0) {
+        showAppToast('Please enter a valid item selling price', 'warning', true);
+        document.getElementById('addProdPrice')?.focus();
+        return;
+      }
+      if (isNaN(qty) || qty <= 0) {
+        showAppToast('Please enter a valid stock quantity', 'warning', true);
+        document.getElementById('addProdQty')?.focus();
+        return;
+      }
+
+      const existingIdx = sampleProducts.findIndex(p => p.barcode === barcode);
+      if (existingIdx >= 0) {
+        sampleProducts[existingIdx].name = name;
+        sampleProducts[existingIdx].price = price;
+        sampleProducts[existingIdx].qty = qty;
+        sampleProducts[existingIdx].unit = unit;
+        sampleProducts[existingIdx].gst = gst;
+        sampleProducts[existingIdx].hsn = hsn;
+        showAppToast(`✓ Updated "${name}" in inventory!`, 'check_circle');
+      } else {
+        const newProd = {
+          id: Date.now(),
+          barcode,
+          name,
+          price,
+          qty,
+          unit,
+          gst,
+          hsn
+        };
+        sampleProducts.unshift(newProd);
+        showAppToast(`✓ Added "${name}" to inventory!`, 'check_circle');
+      }
+
+      renderProducts();
+      closeAddProductModal();
+
+      if (addToActiveBill) {
+        scanProduct(barcode);
+        switchScreen('billing');
+      }
+    }
+
+    function promptCustomScan() {
+      openAddProductModal();
     }
 
     function updateCartQty(index, delta) {
@@ -5845,8 +6211,8 @@
               <p class="text-[10.5px] text-brand-muted mt-0.5">"${q}" is not in the store catalog. You can add it directly to stock.</p>
             </div>
             <div class="flex items-center justify-center gap-2 pt-1">
-              <button onclick="promptCustomScan();" class="px-3.5 py-1.5 bg-brand-primary text-white text-xs font-black rounded-xl shadow hover:bg-brand-primaryGlow transition">
-                + Add New Product
+              <button onclick="openAddProductModal('${q.replace(/'/g, "\\'")}');" class="px-3.5 py-1.5 bg-brand-primary text-white text-xs font-black rounded-xl shadow hover:bg-brand-primaryGlow transition">
+                + Add "${q}" to Inventory
               </button>
               <button onclick="clearInventorySearch();" class="px-3 py-1.5 bg-brand-surfaceElevated border border-brand-surfaceBorder text-slate-300 text-xs font-bold rounded-xl hover:text-white transition">
                 Show All Products
