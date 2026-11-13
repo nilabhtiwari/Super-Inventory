@@ -20,13 +20,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- QRCode.js for live dynamic UPI QR -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- Html5Qrcode for Live Phone Camera Barcode Scanning with CDN Fallback -->
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <script>
-    if (typeof Html5Qrcode === 'undefined') {
-      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"><\/script>');
-    }
-  </script>
+  <!-- Html5Qrcode for Live Phone Camera Barcode Scanning -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
   
   <script>
     tailwind.config = {
@@ -889,6 +885,21 @@
               </p>
             </div>
 
+            <!-- Camera Permission & Action Overlay (shown when camera permission is needed or denied) -->
+            <div id="cameraPermissionPromptOverlay" class="hidden absolute inset-0 z-15 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center">
+              <div class="w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-400 flex items-center justify-center mb-2 shadow-lg">
+                <span class="material-symbols-outlined text-2xl">videocam</span>
+              </div>
+              <p class="text-xs font-bold text-white mb-1">Camera Access Required</p>
+              <p id="cameraPermissionSubtitle" class="text-[11px] text-slate-300 max-w-xs mb-3">Allow camera permission to scan barcodes directly from your device.</p>
+              <button type="button" onclick="requestUserCameraPermission()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-base">lock_open</span> Enable Camera Access
+              </button>
+              <p id="cameraPermissionHint" class="text-[10px] text-slate-400 mt-2.5 max-w-xs hidden leading-relaxed">
+                If blocked: Tap 🔒 lock icon in browser URL bar &rarr; <b>Permissions</b> &rarr; <b>Camera</b> &rarr; <b>Allow</b>, then refresh.
+              </p>
+            </div>
+
             <!-- Top Camera Controls: Single Dynamic Camera Toggle Button -->
             <div id="cameraControlsRow" class="absolute top-2.5 left-3 right-3 flex items-center justify-between z-20 pointer-events-auto">
               <span id="cameraStatusPill" class="camera-ui-text text-[10px] font-bold bg-slate-900/90 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-white flex items-center gap-1.5 shadow-lg" style="color: #FFFFFF !important;">
@@ -911,10 +922,6 @@
                  placeholder="Type / scan barcode (e.g. 8901030762100)..." 
                  class="w-full bg-transparent text-xs font-semibold text-slate-800 placeholder:text-slate-400 outline-none" 
                  onkeydown="if(event.key === 'Enter'){ const val=this.value.trim(); if(val){ processScannedBarcode(val); this.value=''; } }">
-          <button type="button" onclick="const input = document.getElementById('billingDirectBarcodeInput'); if(input && input.value.trim()){ processScannedBarcode(input.value.trim()); input.value=''; }" 
-                  class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 shrink-0">
-            <span class="material-symbols-outlined text-sm">bolt</span> Scan
-          </button>
         </div>
 
         <!-- 🔍 STORE INVENTORY LIVE SEARCH & 1-TAP ADD -->
@@ -4792,7 +4799,9 @@
 
       // Lifecycle hook for Live Camera Scanner
       if (screenId === 'billing') {
-        startCameraBarcodeScanner();
+        setTimeout(() => {
+          startCameraBarcodeScanner();
+        }, 120);
       } else {
         stopCameraBarcodeScanner();
       }
@@ -5267,6 +5276,47 @@
     let currentCameraFacingMode = "environment"; // "environment" (rear camera) or "user" (front)
     let lastScannedBarcodeTime = 0;
 
+    async function requestUserCameraPermission() {
+      updateCameraStatusUI(false, 'Requesting access...');
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showAppToast('Camera API unavailable. Make sure you are using HTTPS.', 'warning', true);
+        updateCameraStatusUI(false, 'Camera Unavailable');
+        return;
+      }
+
+      try {
+        // Direct user-gesture invocation: this triggers the browser's native camera permission prompt
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } }
+        });
+        // Stop the temporary stream tracks immediately so Html5Qrcode has full exclusive hardware control
+        stream.getTracks().forEach(track => track.stop());
+
+        // Hide permission overlay
+        const overlay = document.getElementById('cameraPermissionPromptOverlay');
+        if (overlay) overlay.classList.add('hidden');
+
+        showAppToast('Camera access granted!', 'check_circle');
+        await startCameraBarcodeScanner();
+      } catch (err) {
+        console.warn('Camera permission request error:', err);
+        const isDenied = err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError';
+        const hint = document.getElementById('cameraPermissionHint');
+        if (hint) hint.classList.remove('hidden');
+        const sub = document.getElementById('cameraPermissionSubtitle');
+        if (sub) {
+          sub.innerText = isDenied
+            ? 'Camera access was blocked by your browser. Please allow camera in site settings.'
+            : 'Camera could not be accessed: ' + (err.message || err.name);
+        }
+        const overlay = document.getElementById('cameraPermissionPromptOverlay');
+        if (overlay) overlay.classList.remove('hidden');
+        updateCameraStatusUI(false, 'Permission Required');
+        showAppToast('Camera access blocked. Tap the 🔒 lock icon in the address bar to allow.', 'warning', true);
+      }
+    }
+
     async function startCameraBarcodeScanner() {
       const container = document.getElementById('liveBarcodeCameraScanner');
       if (!container) return;
@@ -5379,6 +5429,17 @@
           }
         }
 
+        if (!started) {
+          isCameraScanningActive = false;
+          updateCameraStatusUI(false, 'Camera Off');
+          const overlay = document.getElementById('cameraPermissionPromptOverlay');
+          if (overlay) overlay.classList.remove('hidden');
+          return;
+        }
+
+        // Success!
+        const overlay = document.getElementById('cameraPermissionPromptOverlay');
+        if (overlay) overlay.classList.add('hidden');
         isCameraScanningActive = true;
         updateCameraStatusUI(true, 'Live Scanner Active');
 
@@ -5395,6 +5456,8 @@
         console.warn('Camera initiation notice:', err);
         isCameraScanningActive = false;
         updateCameraStatusUI(false, 'Camera Off');
+        const overlay = document.getElementById('cameraPermissionPromptOverlay');
+        if (overlay) overlay.classList.remove('hidden');
       }
     }
 
@@ -5451,8 +5514,7 @@
         stopCameraBarcodeScanner();
         showAppToast('Camera Switched Off', 'no_photography');
       } else {
-        startCameraBarcodeScanner();
-        showAppToast('Camera Switched On', 'photo_camera');
+        requestUserCameraPermission();
       }
     }
 
@@ -5884,6 +5946,16 @@
             );
             started = true;
           } catch (e) {}
+        }
+
+        if (!started) {
+          isModalCameraActive = false;
+          if (text) text.innerText = 'Camera Off';
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-slate-500';
+          if (icon) icon.innerText = 'no_photography';
+          if (btn) btn.title = 'Turn Camera On';
+          if (laser) laser.classList.add('hidden');
+          return;
         }
 
         isModalCameraActive = true;
