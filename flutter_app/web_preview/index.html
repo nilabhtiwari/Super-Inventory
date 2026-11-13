@@ -4680,7 +4680,6 @@
       // If user is not authenticated and target screen is not login or splash, block access and force redirect to login
       if (!isLoggedIn && screenId !== 'login' && screenId !== 'splash') {
         screenId = 'login';
-        showAppToast('Please sign in to access your inventory.', 'lock', true);
       }
 
       if (screenId === 'edit-profile') {
@@ -5297,19 +5296,7 @@
       } catch (err) {
         console.warn('Camera initiation notice:', err);
         isCameraScanningActive = false;
-        const errStr = (err && (err.name || err.message || String(err))) || '';
-        let msg = 'Tap 📷 to snap photo';
-        if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-          msg = 'Requires HTTPS URL';
-          showAppToast('⚠️ Camera requires HTTPS on Render. Please visit via https://', 'warning', true);
-          if (window.location.protocol === 'http:') {
-            window.location.href = window.location.href.replace('http:', 'https:');
-          }
-        } else if (errStr.includes('NotAllowedError') || errStr.includes('Permission') || errStr.includes('denied')) {
-          msg = '🔒 Camera Blocked - Tap 🔒 to Allow';
-          showAppToast('Camera is blocked! Tap the 🔒 lock icon in your browser address bar to Allow Camera access.', 'lock', true);
-        }
-        updateCameraStatusUI(false, msg);
+        updateCameraStatusUI(false, 'Tap 📷 to snap photo');
       }
     }
 
@@ -5658,27 +5645,10 @@
       } catch (err) {
         console.warn('Modal camera start note:', err);
         isModalCameraActive = false;
-        let badgeMsg = 'Snap Photo or Type Code';
-        const errStr = (err && (err.name || err.message || String(err))) || '';
-
-        if (!window.isSecureContext && window.location.hostname !== 'localhost') {
-          badgeMsg = 'Requires HTTPS';
-          showAppToast('⚠️ Camera requires HTTPS on Render. Redirecting to https://...', 'warning', true);
-          if (window.location.protocol === 'http:') {
-            window.location.href = window.location.href.replace('http:', 'https:');
-          }
-        } else if (errStr.includes('NotAllowedError') || errStr.includes('Permission') || errStr.includes('denied')) {
-          badgeMsg = '🔒 Camera Blocked';
-          showAppToast('Camera is blocked! Tap the 🔒 lock icon in your browser address bar and set Camera to "Allow", then tap the Camera icon.', 'lock', true);
-        } else if (errStr.includes('NotFoundError') || errStr.includes('DevicesNotFoundError')) {
-          badgeMsg = 'No Camera Device';
-          showAppToast('No physical camera detected. You can type the barcode or snap a photo.', 'warning', true);
-        }
-
-        if (text) text.innerText = badgeMsg;
-        if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+        if (text) text.innerText = 'Camera Off';
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-slate-500';
         if (icon) icon.innerText = 'no_photography';
-        if (btn) btn.title = 'Allow Camera / Retry';
+        if (btn) btn.title = 'Turn Camera On';
         if (laser) laser.classList.add('hidden');
       }
     }
