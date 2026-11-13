@@ -5323,22 +5323,26 @@
 
         let started = false;
 
-        // Try ideal environment facing mode first
+        // Try standard environment facing mode first
         try {
           await html5QrScannerInstance.start(
-            { facingMode: { ideal: "environment" } },
+            { facingMode: "environment" },
             config,
             onBarcodeSuccessfullyDetected,
             onBarcodeScanFailure
           );
           started = true;
-        } catch (idealErr) {
-          console.warn('Ideal environment mode failed, falling back to camera enumeration...', idealErr);
+        } catch (envErr) {
+          console.warn('Direct facingMode environment failed, trying camera enumeration...', envErr);
         }
 
         // Fallback: enumerate available cameras and choose back camera
         if (!started) {
           try {
+            try { await html5QrScannerInstance.clear(); } catch (e) {}
+            container.innerHTML = '';
+            html5QrScannerInstance = new Html5Qrcode("liveBarcodeCameraScanner", { verbose: false });
+
             const cameras = await Html5Qrcode.getCameras();
             if (cameras && cameras.length > 0) {
               const backCam = cameras.find(c => /back|rear|environment|primary/i.test(c.label)) 
@@ -5357,15 +5361,22 @@
           }
         }
 
-        // Fallback 3: standard environment string
+        // Fallback 3: try any camera device available
         if (!started) {
-          await html5QrScannerInstance.start(
-            { facingMode: "environment" },
-            config,
-            onBarcodeSuccessfullyDetected,
-            onBarcodeScanFailure
-          );
-          started = true;
+          try {
+            try { await html5QrScannerInstance.clear(); } catch (e) {}
+            container.innerHTML = '';
+            html5QrScannerInstance = new Html5Qrcode("liveBarcodeCameraScanner", { verbose: false });
+            await html5QrScannerInstance.start(
+              { facingMode: "user" },
+              config,
+              onBarcodeSuccessfullyDetected,
+              onBarcodeScanFailure
+            );
+            started = true;
+          } catch (userErr) {
+            console.warn('User facing mode start failed:', userErr);
+          }
         }
 
         isCameraScanningActive = true;
@@ -5816,22 +5827,29 @@
 
         let started = false;
 
-        // Try ideal environment facing mode
+        // Try standard environment facing mode
         try {
           await modalCameraScannerInstance.start(
-            { facingMode: { ideal: "environment" } },
+            { facingMode: "environment" },
             config,
             onModalBarcodeDetected,
             () => {}
           );
           started = true;
-        } catch (idealErr) {
-          console.warn('Modal ideal environment failed, enumerating cameras...', idealErr);
+        } catch (envErr) {
+          console.warn('Modal facingMode environment failed, trying camera devices...', envErr);
         }
 
         // Fallback: choose back camera by ID
         if (!started) {
           try {
+            const container = document.getElementById('modalLiveScannerContainer');
+            if (container) {
+              try { await modalCameraScannerInstance.clear(); } catch (e) {}
+              container.innerHTML = '';
+            }
+            modalCameraScannerInstance = new Html5Qrcode("modalLiveScannerContainer", { verbose: false });
+
             const cameras = await Html5Qrcode.getCameras();
             if (cameras && cameras.length > 0) {
               const backCam = cameras.find(c => /back|rear|environment|primary/i.test(c.label)) 
@@ -5849,15 +5867,23 @@
           }
         }
 
-        // Fallback 3: standard environment string
+        // Fallback 3: try user facing mode
         if (!started) {
-          await modalCameraScannerInstance.start(
-            { facingMode: "environment" },
-            config,
-            onModalBarcodeDetected,
-            () => {}
-          );
-          started = true;
+          try {
+            const container = document.getElementById('modalLiveScannerContainer');
+            if (container) {
+              try { await modalCameraScannerInstance.clear(); } catch (e) {}
+              container.innerHTML = '';
+            }
+            modalCameraScannerInstance = new Html5Qrcode("modalLiveScannerContainer", { verbose: false });
+            await modalCameraScannerInstance.start(
+              { facingMode: "user" },
+              config,
+              onModalBarcodeDetected,
+              () => {}
+            );
+            started = true;
+          } catch (e) {}
         }
 
         isModalCameraActive = true;

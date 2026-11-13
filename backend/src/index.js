@@ -36,8 +36,8 @@ app.use((req, res, next) => {
   if (req.headers['x-forwarded-proto'] === 'http') {
     return res.redirect(301, `https://${req.headers.host}${req.url}`);
   }
-  // Allow Camera in all contexts and iframes
-  res.setHeader('Permissions-Policy', 'camera=(self "*"), microphone=*');
+  // Allow Camera in all contexts and iframes with valid Permissions-Policy syntax
+  res.setHeader('Permissions-Policy', 'camera=*, microphone=*');
   next();
 });
 
