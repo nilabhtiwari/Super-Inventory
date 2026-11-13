@@ -29,7 +29,17 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
+
+// ── Enforce HTTPS on Render & Cloud Proxies for Camera API ───────────────────
+app.use((req, res, next) => {
+  if (req.headers['x-forwarded-proto'] === 'http') {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`);
+  }
+  // Allow Camera in all contexts and iframes
+  res.setHeader('Permissions-Policy', 'camera=(self "*"), microphone=*');
+  next();
+});
 
 // ── General Middleware ─────────────────────────────────────────────────────────
 app.use(compression());

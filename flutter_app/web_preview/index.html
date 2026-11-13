@@ -2847,6 +2847,11 @@
   </div>
 
   <script>
+    // Ensure Secure Context for Camera & Web APIs (Render / Cloud domains)
+    if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      window.location.href = window.location.href.replace('http:', 'https:');
+    }
+
     // STATUTORY GOVERNMENT OF INDIA (CBIC / GST COUNCIL) CLASSIFIED PRODUCT MASTER
     // Governed by Notification No. 1/2017-Central Tax (Rate) & Notification No. 2/2017-Central Tax (Rate) as amended
     const DEFAULT_INITIAL_PRODUCTS = [
@@ -5296,13 +5301,17 @@
       } catch (err) {
         console.warn('Camera initiation notice:', err);
         isCameraScanningActive = false;
+        const errStr = (err && (err.name || err.message || String(err))) || '';
         let msg = 'Tap 📷 to snap photo';
         if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-          msg = 'HTTP: Tap 📷 to snap';
-          showAppToast('Tip: Over local HTTP, tap the 📷 icon to scan with your phone camera!', 'photo_camera');
-        } else if (err && err.name === 'NotAllowedError') {
-          msg = 'Camera Blocked in Browser';
-          showAppToast('Please allow camera permissions in Chrome settings', 'warning');
+          msg = 'Requires HTTPS URL';
+          showAppToast('⚠️ Camera requires HTTPS on Render. Please visit via https://', 'warning', true);
+          if (window.location.protocol === 'http:') {
+            window.location.href = window.location.href.replace('http:', 'https:');
+          }
+        } else if (errStr.includes('NotAllowedError') || errStr.includes('Permission') || errStr.includes('denied')) {
+          msg = '🔒 Camera Blocked - Tap 🔒 to Allow';
+          showAppToast('Camera is blocked! Tap the 🔒 lock icon in your browser address bar to Allow Camera access.', 'lock', true);
         }
         updateCameraStatusUI(false, msg);
       }
@@ -5650,10 +5659,28 @@
       } catch (err) {
         console.warn('Modal camera start note:', err);
         isModalCameraActive = false;
+        let badgeMsg = 'Snap Photo or Type Code';
+        const errStr = (err && (err.name || err.message || String(err))) || '';
+
+        if (!window.isSecureContext && window.location.hostname !== 'localhost') {
+          badgeMsg = 'Requires HTTPS';
+          showAppToast('⚠️ Camera requires HTTPS on Render. Redirecting to https://...', 'warning', true);
+          if (window.location.protocol === 'http:') {
+            window.location.href = window.location.href.replace('http:', 'https:');
+          }
+        } else if (errStr.includes('NotAllowedError') || errStr.includes('Permission') || errStr.includes('denied')) {
+          badgeMsg = '🔒 Camera Blocked in Browser';
+          showAppToast('Camera permission denied! Tap the 🔒 lock icon in your browser address bar and set Camera to "Allow", then click Resume Camera.', 'lock', true);
+        } else if (errStr.includes('NotFoundError') || errStr.includes('DevicesNotFoundError')) {
+          badgeMsg = 'No Camera Device Found';
+          showAppToast('No physical camera detected. You can type the barcode or snap a photo.', 'warning', true);
+        }
+
         if (badge) {
-          badge.innerText = 'Snap Photo or Type Code';
+          badge.innerText = badgeMsg;
           badge.className = 'text-[9px] font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20';
         }
+        if (toggleBtn) toggleBtn.innerText = 'Allow Camera / Retry';
       }
     }
 
