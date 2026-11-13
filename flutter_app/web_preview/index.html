@@ -1948,6 +1948,15 @@
               <label class="text-[10px] font-semibold text-slate-600 block mb-1" id="authIdentifierLabel">Registered Email Address</label>
               <input type="email" id="authEmailInput" placeholder="Enter Registered Email Address" value="" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:border-brand-primary focus:bg-white" />
               <p id="emailErrorText" class="hidden text-[10px] text-red-500 font-bold mt-1">Please enter your registered email address</p>
+              
+              <!-- Small Verify Email Button (Only shown in Sign Up mode) -->
+              <div id="signupVerifyEmailRow" class="hidden flex items-center justify-between pt-1.5 px-0.5">
+                <span id="signupEmailVerifyStatus" class="text-[10px] text-slate-500 font-medium">Verify email address?</span>
+                <button type="button" onclick="triggerEmailOtpVerification()" class="px-2.5 py-1 bg-brand-primary/10 hover:bg-brand-primary/20 border border-brand-primary/30 text-brand-primary font-black text-[10.5px] rounded-lg transition active:scale-95 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-xs">mark_email_read</span>
+                  <span>Verify Email</span>
+                </button>
+              </div>
             </div>
 
             <!-- Password Field (Normal Mode) -->
@@ -3124,6 +3133,7 @@
         newPwGroup.classList.add('hidden');
         if (biometricBtn) biometricBtn.classList.remove('hidden');
         if (demoRow) demoRow.classList.remove('hidden');
+        document.getElementById('signupVerifyEmailRow')?.classList.add('hidden');
         label.innerText = 'Registered Email Address';
         emailInput.placeholder = 'Enter Registered Email Address';
         submitText.innerText = 'SIGN IN';
@@ -3137,9 +3147,10 @@
         newPwGroup.classList.add('hidden');
         if (biometricBtn) biometricBtn.classList.add('hidden');
         if (demoRow) demoRow.classList.add('hidden');
-        label.innerText = 'Email Address (For Verification)';
+        document.getElementById('signupVerifyEmailRow')?.classList.remove('hidden');
+        label.innerText = 'Store Email Address';
         emailInput.placeholder = 'your_store@gmail.com';
-        submitText.innerText = 'Verify Email and Register';
+        submitText.innerText = 'SIGN UP';
         
         // If values were demo values, reset them for clean registration
         if (emailInput.value === 'merchant@gmail.com') emailInput.value = '';
@@ -3152,6 +3163,7 @@
         newPwGroup.classList.remove('hidden');
         if (biometricBtn) biometricBtn.classList.add('hidden');
         if (demoRow) demoRow.classList.add('hidden');
+        document.getElementById('signupVerifyEmailRow')?.classList.add('hidden');
         label.innerText = 'Registered Email Address';
         emailInput.placeholder = 'Enter Registered Email Address';
         submitText.innerText = 'Send OTP to Reset Password';
@@ -3284,39 +3296,75 @@
       }
 
       // -------------------------------------------------------------
-      // 2. SIGN UP MODE: EMAIL VERIFICATION REQUIRED (PHONE OPTIONAL)
+      // 2. SIGN UP MODE: DIRECT SIGN UP WITH VALID EMAIL & STRONG PASSWORD
       // -------------------------------------------------------------
       if (currentAuthMode === 'signup') {
-        const storeName = document.getElementById('authStoreName').value.trim() || 'Super Inventory Store';
+        const storeName = document.getElementById('authStoreName')?.value.trim() || 'Super Inventory Store';
         const phone = document.getElementById('authSignupPhone')?.value?.trim() || '';
         
-        // Check if user is already registered
+        // 1. Validate Email
+        if (!identifier || !identifier.includes('@') || !identifier.includes('.')) {
+          showAppToast('Please enter a valid email address', 'warning', true);
+          document.getElementById('authEmailInput')?.focus();
+          return;
+        }
+
+        // 2. Validate Strong Password
+        if (!pw || pw.length < 6) {
+          showAppToast('Please set a strong password (at least 6 characters)', 'warning', true);
+          document.getElementById('authPasswordInput')?.focus();
+          return;
+        }
+
+        // 3. Check if user is already registered
         const existingUsers = getStoredUsers();
         const alreadyExists = existingUsers.some(u => u.email && u.email.toLowerCase() === identifier.toLowerCase());
         if (alreadyExists) {
           showAppToast('An account with this email is already registered. Please Sign In.', 'warning', true);
-          currentAuthMode = 'login';
-          updateAuthFormUI();
+          setAuthView('login');
           document.getElementById('authEmailInput').value = identifier;
           document.getElementById('authPasswordInput').value = '';
           document.getElementById('authPasswordInput')?.focus();
           return;
         }
 
-        // Save pending registration details (Phone is optional)
-        pendingRegistration = {
+        // 4. Save account and continue directly into Super Inventory
+        const newUser = {
           storeName: storeName,
-          phone: phone,
+          phone: phone || '+91 9876543210',
           email: identifier,
           password: pw,
           createdAt: new Date().toISOString()
         };
+        saveNewUser(newUser);
 
-        // Open OTP Modal for verification
-        const targetEl = document.getElementById('otpTargetEmail');
-        if (targetEl) targetEl.innerText = identifier;
-        document.getElementById('otpModal').classList.remove('hidden');
-        generateAndSendDualOtp();
+        try {
+          fetch(`${BACKEND_API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              storeName: storeName,
+              email: identifier,
+              phone: phone || '+91 9876543210',
+              password: pw
+            })
+          }).catch(e => console.warn('Backend register note:', e));
+        } catch (e) {}
+
+        const newSeller = {
+          id: identifier,
+          name: storeName,
+          store_name: storeName,
+          email: identifier,
+          phone: phone || '+91 9876543210',
+          role: 'seller'
+        };
+        localStorage.setItem('super_inventory_token', 'local-token-' + Date.now());
+        isLoggedIn = true;
+        activateMerchantSession(newSeller);
+
+        showAppToast(`✓ Account created! Welcome, ${storeName}!`, 'verified');
+        switchScreen('dashboard');
         return;
       }
 
@@ -3340,6 +3388,33 @@
         document.getElementById('otpModal').classList.remove('hidden');
         generateAndSendDualOtp();
       }
+    }
+
+    function triggerEmailOtpVerification() {
+      const email = document.getElementById('authEmailInput')?.value.trim();
+      const pw = document.getElementById('authPasswordInput')?.value.trim();
+      const storeName = document.getElementById('authStoreName')?.value.trim() || 'Super Inventory Store';
+      const phone = document.getElementById('authSignupPhone')?.value?.trim() || '';
+
+      if (!email || !email.includes('@') || !email.includes('.')) {
+        showAppToast('Please enter a valid email address first to verify', 'warning', true);
+        document.getElementById('authEmailInput')?.focus();
+        return;
+      }
+
+      pendingRegistration = {
+        storeName: storeName,
+        phone: phone,
+        email: email,
+        password: pw || 'Merchant@1234',
+        createdAt: new Date().toISOString()
+      };
+
+      const targetEl = document.getElementById('otpTargetEmail');
+      if (targetEl) targetEl.innerText = email;
+      const modal = document.getElementById('otpModal');
+      if (modal) modal.classList.remove('hidden');
+      generateAndSendDualOtp();
     }
 
     // ============================================================
@@ -3726,8 +3801,7 @@
         if (document.getElementById('authSignupPhone')) document.getElementById('authSignupPhone').value = '';
         if (document.getElementById('authStoreName')) document.getElementById('authStoreName').value = '';
 
-        currentAuthMode = 'login';
-        updateAuthFormUI();
+        setAuthView('login');
         document.getElementById('authEmailInput')?.focus();
 
         showAppToast('✓ Registered! Please sign in to your account.', 'verified', true);
