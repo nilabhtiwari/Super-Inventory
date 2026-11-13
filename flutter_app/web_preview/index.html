@@ -849,6 +849,17 @@
         </div>
 
 
+        <!-- RECENT TRANSACTIONS -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider">Recent Transactions</h3>
+            <button onclick="switchScreen('history')" class="text-xs font-bold text-brand-primaryContainer hover:underline">See All</button>
+          </div>
+          <div class="space-y-2" id="dashRecentList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
         <!-- SCAN & OPEN IN ANOTHER DEVICE BANNER -->
         <div onclick="openMobileConnectModal()" class="cursor-pointer p-3 bg-emerald-50/90 border border-emerald-300/80 rounded-2xl flex items-center justify-between hover:border-emerald-500 transition shadow-xs active:scale-[0.98]">
           <div class="flex items-center gap-2.5">
@@ -861,17 +872,6 @@
             </div>
           </div>
           <span class="material-symbols-outlined text-emerald-600 text-lg">qr_code_2</span>
-        </div>
-
-        <!-- RECENT TRANSACTIONS -->
-        <div>
-          <div class="flex justify-between items-center mb-2">
-            <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider">Recent Transactions</h3>
-            <button onclick="switchScreen('history')" class="text-xs font-bold text-brand-primaryContainer hover:underline">See All</button>
-          </div>
-          <div class="space-y-2" id="dashRecentList">
-            <!-- Rendered by JS -->
-          </div>
         </div>
       </div>
 
