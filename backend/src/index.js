@@ -83,18 +83,20 @@ app.get('*', (req, res, next) => {
 app.use(notFound);
 app.use(errorHandler);
 
-// ── Start ─────────────────────────────────────────────────────────────────────
-const start = async () => {
-  await testConnection();
-  app.listen(PORT, () => {
-    logger.info(`🚀 Super Inventory API running on http://localhost:${PORT}`);
-    logger.info(`📦 Environment: ${process.env.NODE_ENV}`);
-  });
-};
+// ── Start (Only if executed directly as standalone process, not serverless) ───
+if (require.main === module && !process.env.VERCEL) {
+  const start = async () => {
+    await testConnection();
+    app.listen(PORT, () => {
+      logger.info(`🚀 Super Inventory API running on http://localhost:${PORT}`);
+      logger.info(`📦 Environment: ${process.env.NODE_ENV}`);
+    });
+  };
 
-start().catch((err) => {
-  logger.error('Failed to start server:', err);
-  process.exit(1);
-});
+  start().catch((err) => {
+    logger.error('Failed to start server:', err);
+    process.exit(1);
+  });
+}
 
 module.exports = app;
