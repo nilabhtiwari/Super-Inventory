@@ -819,9 +819,33 @@
           </div>
         </div>
 
-        <!-- TODAY'S LIVE OVERVIEW -->
+        <!-- STORE INVENTORY & TODAY'S LIVE OVERVIEW -->
         <div>
-          <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider mb-2">Today's Quick Stats</h3>
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-[11px] font-extrabold text-brand-muted uppercase tracking-wider">Live Store Overview</h3>
+            <button type="button" onclick="switchScreen('products')" class="text-xs font-bold text-brand-primaryContainer hover:underline flex items-center gap-0.5">
+              <span>View Stock</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </button>
+          </div>
+
+          <!-- Real-Time Total Stock Value Highlight Card -->
+          <div onclick="switchScreen('products')" class="cursor-pointer mb-3 p-3.5 rounded-2xl bg-gradient-to-r from-brand-primary/20 via-brand-surface to-brand-surface border border-brand-primary/30 flex items-center justify-between shadow-xs hover:border-brand-primary transition">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-brand-primary/20 text-brand-primaryContainer flex items-center justify-center shrink-0 border border-brand-primary/30">
+                <span class="material-symbols-outlined text-lg">inventory_2</span>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-brand-muted uppercase tracking-wider">TOTAL INVENTORY STOCK VALUE</p>
+                <p class="text-lg font-black text-white tracking-tight dash-total-stock-val" id="dashTotalStockValue">₹0.00</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-primary/20 text-brand-primaryContainer border border-brand-primary/30" id="dashTotalStockItems">0 Items</span>
+              <p class="text-[9.5px] text-brand-muted mt-0.5 font-medium">Real-time Stock &rarr;</p>
+            </div>
+          </div>
+
           <div class="grid grid-cols-2 gap-3">
             <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl flex flex-col justify-between min-h-[92px] shadow-xs">
               <span class="text-[10.5px] font-bold text-brand-muted tracking-wider uppercase truncate">TODAY'S SALE</span>
@@ -1119,10 +1143,14 @@
       <!-- ============================================================ -->
       <div id="screen-products" class="hidden space-y-3">
         <!-- TOTAL STOCK VALUE BANNER -->
-        <div class="p-4 rounded-3xl bg-gradient-to-r from-brand-primary to-brand-tertiary flex items-center shadow-lg">
+        <div class="p-4 rounded-3xl bg-gradient-to-r from-brand-primary via-brand-primaryGlow to-brand-tertiary flex items-center justify-between shadow-lg">
           <div>
-            <p class="text-[10px] font-bold text-white/80 uppercase">Total Stock Value</p>
-            <p class="text-xl font-black text-white" id="totalStockValue">₹2,48,500.00</p>
+            <p class="text-[10px] font-extrabold text-white/80 uppercase tracking-wider">Total Stock Value</p>
+            <p class="text-2xl font-black text-white tracking-tight" id="totalStockValue">₹0.00</p>
+          </div>
+          <div class="text-right">
+            <p class="text-[10px] font-extrabold text-white/80 uppercase tracking-wider">Total In Stock</p>
+            <p class="text-xs font-black text-white/95" id="totalStockQtyUnits">0 Units</p>
           </div>
         </div>
 
@@ -2935,12 +2963,66 @@
       return `${baseKey}_${getActiveMerchantId()}`;
     }
 
+    function calculateRealtimeInventoryStats() {
+      if (!Array.isArray(sampleProducts) || sampleProducts.length === 0) {
+        return { totalValue: 0, totalUnits: 0, totalItems: 0 };
+      }
+      let totalValue = 0;
+      let totalUnits = 0;
+      let totalItems = 0;
+
+      sampleProducts.forEach(p => {
+        if (!p) return;
+        totalItems++;
+        const price = Number(p.price !== undefined ? p.price : (p.selling_price !== undefined ? p.selling_price : 0)) || 0;
+        let q = 0;
+        if (p.qty !== undefined && p.qty !== null && !isNaN(Number(p.qty))) {
+          q = Number(p.qty);
+        } else if (p.stock_qty !== undefined && p.stock_qty !== null && !isNaN(Number(p.stock_qty))) {
+          q = Number(p.stock_qty);
+        } else if (p.stock_quantity !== undefined && p.stock_quantity !== null && !isNaN(Number(p.stock_quantity))) {
+          q = Number(p.stock_quantity);
+        } else if (p.stock !== undefined && p.stock !== null && !isNaN(Number(p.stock))) {
+          q = Number(p.stock);
+        }
+        q = Math.max(0, q);
+        totalUnits += q;
+        totalValue += (price * q);
+      });
+
+      return { totalValue, totalUnits, totalItems };
+    }
+
+    function updateTotalStockValueUI() {
+      const stats = calculateRealtimeInventoryStats();
+      const formattedVal = `₹${stats.totalValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      
+      // Update Products screen total stock value banner
+      const prodStockValEl = document.getElementById('totalStockValue');
+      if (prodStockValEl) {
+        prodStockValEl.innerText = formattedVal;
+      }
+      const prodUnitsEl = document.getElementById('totalStockQtyUnits');
+      if (prodUnitsEl) {
+        prodUnitsEl.innerText = `${Math.round(stats.totalUnits).toLocaleString('en-IN')} Units`;
+      }
+
+      // Update Dashboard live overview
+      const dashStockValEls = document.querySelectorAll('.dash-total-stock-val');
+      dashStockValEls.forEach(el => { el.innerText = formattedVal; });
+      const dashItemsEl = document.getElementById('dashTotalStockItems');
+      if (dashItemsEl) {
+        dashItemsEl.innerText = `${stats.totalItems} Items`;
+      }
+    }
+
     function loadMerchantProducts() {
       try {
         const key = getMerchantStorageKey('super_inventory_products');
         const stored = localStorage.getItem(key);
         if (stored) {
           sampleProducts = JSON.parse(stored);
+          updateTotalStockValueUI();
           return sampleProducts;
         }
         // First-time load for this merchant
@@ -2957,6 +3039,7 @@
         console.error('Error loading merchant products:', e);
         sampleProducts = [];
       }
+      updateTotalStockValueUI();
       return sampleProducts;
     }
 
@@ -2964,6 +3047,7 @@
       try {
         const key = getMerchantStorageKey('super_inventory_products');
         localStorage.setItem(key, JSON.stringify(sampleProducts));
+        updateTotalStockValueUI();
       } catch (e) {
         console.error('Error saving merchant products:', e);
       }
@@ -6733,15 +6817,17 @@
         status: 'Paid'
       };
 
-      // Deduct sold quantity from merchant's isolated inventory
+      // Deduct sold quantity from merchant's isolated inventory in real time
       cart.forEach(item => {
         const prod = sampleProducts.find(p => p.barcode === item.barcode);
-        if (prod && typeof prod.qty === 'number') {
-          let deductQty = item.quantity;
+        if (prod) {
+          const currentQty = Number(prod.qty !== undefined ? prod.qty : (prod.stock_qty !== undefined ? prod.stock_qty : 100)) || 0;
+          let deductQty = Number(item.quantity) || 1;
           if ((item.unit === 'g' || item.unit === 'ml') && (prod.unit === 'kg' || prod.unit === 'L')) {
-            deductQty = item.quantity / 1000;
+            deductQty = deductQty / 1000;
           }
-          prod.qty = Math.max(0, +(prod.qty - deductQty).toFixed(2));
+          prod.qty = Math.max(0, +(currentQty - deductQty).toFixed(2));
+          if (prod.stock_qty !== undefined) prod.stock_qty = prod.qty;
         }
       });
       saveMerchantProducts();
@@ -6756,6 +6842,9 @@
     }
 
     function renderDashboard() {
+      // Recalculate dynamic realtime stock value
+      updateTotalStockValueUI();
+
       // Calculate Real Today's Sales and Bills from real store transactions
       const todayStr = new Date().toISOString().slice(0, 10);
       const todayInvoices = completedInvoices.filter(inv => {
@@ -6886,12 +6975,8 @@
       const input = document.getElementById('inventorySearchInput');
       const q = (filterQuery !== undefined ? filterQuery : (input?.value || '')).trim().toLowerCase();
 
-      // Recalculate dynamic stock value
-      const totalStockValEl = document.getElementById('totalStockValue');
-      if (totalStockValEl) {
-        const totalVal = sampleProducts.reduce((sum, p) => sum + ((p.price || 0) * (p.qty || 1)), 0);
-        totalStockValEl.innerText = `₹${totalVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      }
+      // Recalculate dynamic realtime stock value
+      updateTotalStockValueUI();
 
       let list = sampleProducts;
       if (q) {
@@ -6972,11 +7057,16 @@
 
       container.innerHTML = list.map(p => {
         const escapedBarcode = (p.barcode || '').replace(/'/g, "\\'");
+        const priceNum = Number(p.price !== undefined ? p.price : (p.selling_price !== undefined ? p.selling_price : 0)) || 0;
+        const stockQtyNum = Number(p.qty !== undefined ? p.qty : (p.stock_qty !== undefined ? p.stock_qty : (p.stockQuantity !== undefined ? p.stockQuantity : 0))) || 0;
+        const itemStockVal = priceNum * stockQtyNum;
+        const isOutOfStock = stockQtyNum <= 0;
+
         return `
         <div class="p-3 bg-white border border-slate-200 rounded-2xl flex items-center justify-between shadow-xs hover:border-emerald-300 transition group">
           <div class="flex items-center gap-3 cursor-pointer flex-1 min-w-0 pr-2" onclick="openEditProductModal('${escapedBarcode}')" title="Click to edit details">
-            <div class="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-emerald-50 text-slate-700 group-hover:text-emerald-700 flex items-center justify-center shrink-0 transition">
-              <span class="material-symbols-outlined text-xl">inventory_2</span>
+            <div class="w-10 h-10 rounded-xl ${isOutOfStock ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 group-hover:bg-emerald-50 text-slate-700 group-hover:text-emerald-700'} flex items-center justify-center shrink-0 transition">
+              <span class="material-symbols-outlined text-xl">${isOutOfStock ? 'production_quantity_limits' : 'inventory_2'}</span>
             </div>
             <div class="min-w-0 flex-1">
               <p class="text-xs font-bold text-slate-800 leading-tight truncate group-hover:text-emerald-700 transition">${p.name}</p>
@@ -6984,14 +7074,17 @@
                 <span class="text-[9.5px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                   ${p.barcode}
                 </span>
-                <span class="text-[9.5px] font-medium text-slate-500">
-                  Stock: <b class="text-slate-700 font-bold">${p.qty !== undefined ? p.qty : 100} ${p.unit || 'pcs'}</b>
+                <span class="text-[9.5px] font-medium ${isOutOfStock ? 'text-rose-600 font-bold' : 'text-slate-500'}">
+                  Stock: <b class="${isOutOfStock ? 'text-rose-600 font-black' : 'text-slate-700 font-bold'}">${stockQtyNum} ${p.unit || 'pcs'}</b>
+                </span>
+                <span class="text-[9px] font-bold ${isOutOfStock ? 'text-rose-600 bg-rose-50 border-rose-200' : 'text-emerald-700 bg-emerald-50 border-emerald-200'} px-1.5 py-0.5 rounded border">
+                  Val: ₹${itemStockVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
           </div>
           <div class="text-right flex flex-col items-end gap-1.5 shrink-0">
-            <p class="text-xs font-black text-slate-900">₹${p.price.toFixed(2)}</p>
+            <p class="text-xs font-black text-slate-900">₹${priceNum.toFixed(2)}</p>
             <div class="flex items-center gap-1">
               <button type="button" onclick="openEditProductModal('${escapedBarcode}')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700 flex items-center gap-0.5 transition active:scale-95 shadow-xs" title="Edit product details">
                 <span class="material-symbols-outlined text-xs">edit</span>
