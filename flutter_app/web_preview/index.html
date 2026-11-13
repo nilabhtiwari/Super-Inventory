@@ -20,8 +20,13 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- QRCode.js for live dynamic UPI QR -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- Html5Qrcode for Live Phone Camera Barcode Scanning -->
+  <!-- Html5Qrcode for Live Phone Camera Barcode Scanning with CDN Fallback -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script>
+    if (typeof Html5Qrcode === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"><\/script>');
+    }
+  </script>
   
   <script>
     tailwind.config = {
@@ -5266,70 +5271,119 @@
       const container = document.getElementById('liveBarcodeCameraScanner');
       if (!container) return;
 
+      // Ensure modal camera is completely stopped first
+      if (typeof stopModalLiveCamera === 'function') {
+        await stopModalLiveCamera();
+      }
+
       await stopCameraBarcodeScanner();
 
+      // Ensure library is loaded (wait if still loading over mobile network)
       if (typeof Html5Qrcode === 'undefined') {
-        updateCameraStatusUI(false, 'Scanner lib loading...');
-        return;
+        console.warn('Waiting for Html5Qrcode...');
+        updateCameraStatusUI(false, 'Loading scanner...');
+        let retries = 0;
+        while (typeof Html5Qrcode === 'undefined' && retries < 15) {
+          await new Promise(r => setTimeout(r, 200));
+          retries++;
+        }
+        if (typeof Html5Qrcode === 'undefined') {
+          updateCameraStatusUI(false, 'Scanner offline');
+          return;
+        }
       }
 
       try {
-        const supportedBarcodeFormats = (typeof Html5QrcodeSupportedFormats !== 'undefined') ? [
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.QR_CODE
-        ] : undefined;
+        if (!html5QrScannerInstance) {
+          const supportedBarcodeFormats = (typeof Html5QrcodeSupportedFormats !== 'undefined') ? [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.QR_CODE
+          ] : undefined;
 
-        html5QrScannerInstance = new Html5Qrcode("liveBarcodeCameraScanner", {
-          formatsToSupport: supportedBarcodeFormats,
-          verbose: false
-        });
+          html5QrScannerInstance = new Html5Qrcode("liveBarcodeCameraScanner", {
+            formatsToSupport: supportedBarcodeFormats,
+            verbose: false
+          });
+        }
 
         const config = {
-          fps: 15,
+          fps: 20,
           qrbox: (viewfinderWidth, viewfinderHeight) => {
-            const width = Math.min(Math.floor(viewfinderWidth * 0.92), 480);
-            const height = Math.min(Math.floor(viewfinderHeight * 0.75), 260);
-            return { width, height };
+            const w = Math.max(200, Math.min(Math.floor((viewfinderWidth || 320) * 0.90), 480));
+            const h = Math.max(120, Math.min(Math.floor((viewfinderHeight || 220) * 0.70), 240));
+            return { width: w, height: h };
           },
-          videoConstraints: {
-            facingMode: currentCameraFacingMode
-          }
+          aspectRatio: 1.777778
         };
 
+        let started = false;
+
+        // Try ideal environment facing mode first
         try {
           await html5QrScannerInstance.start(
-            { facingMode: currentCameraFacingMode },
+            { facingMode: { ideal: "environment" } },
             config,
             onBarcodeSuccessfullyDetected,
             onBarcodeScanFailure
           );
-        } catch (strictCamErr) {
-          console.warn('Facing mode constraint failed, trying default camera device...', strictCamErr);
-          const cameras = await Html5Qrcode.getCameras();
-          if (cameras && cameras.length) {
-            const selectedCamId = cameras[0].id;
-            await html5QrScannerInstance.start(
-              selectedCamId,
-              config,
-              onBarcodeSuccessfullyDetected,
-              onBarcodeScanFailure
-            );
-          } else {
-            throw strictCamErr;
+          started = true;
+        } catch (idealErr) {
+          console.warn('Ideal environment mode failed, falling back to camera enumeration...', idealErr);
+        }
+
+        // Fallback: enumerate available cameras and choose back camera
+        if (!started) {
+          try {
+            const cameras = await Html5Qrcode.getCameras();
+            if (cameras && cameras.length > 0) {
+              const backCam = cameras.find(c => /back|rear|environment|primary/i.test(c.label)) 
+                           || cameras[cameras.length - 1];
+              const selectedId = backCam ? backCam.id : cameras[0].id;
+              await html5QrScannerInstance.start(
+                selectedId,
+                config,
+                onBarcodeSuccessfullyDetected,
+                onBarcodeScanFailure
+              );
+              started = true;
+            }
+          } catch (enumErr) {
+            console.warn('Camera enumeration start failed:', enumErr);
           }
+        }
+
+        // Fallback 3: standard environment string
+        if (!started) {
+          await html5QrScannerInstance.start(
+            { facingMode: "environment" },
+            config,
+            onBarcodeSuccessfullyDetected,
+            onBarcodeScanFailure
+          );
+          started = true;
         }
 
         isCameraScanningActive = true;
         updateCameraStatusUI(true, 'Live Scanner Active');
+
+        // Playsinline & video autoplay enforcement for mobile iOS / Android
+        const videoEl = container.querySelector('video');
+        if (videoEl) {
+          videoEl.setAttribute('playsinline', 'true');
+          videoEl.setAttribute('webkit-playsinline', 'true');
+          videoEl.setAttribute('autoplay', 'true');
+          videoEl.muted = true;
+          videoEl.play().catch(() => {});
+        }
       } catch (err) {
         console.warn('Camera initiation notice:', err);
         isCameraScanningActive = false;
-        updateCameraStatusUI(false, 'Tap 📷 to snap photo');
+        updateCameraStatusUI(false, 'Tap 📷 to start');
       }
     }
 
@@ -5339,12 +5393,14 @@
 
       showAppToast('Processing barcode image...', 'search');
       try {
-        if (!html5QrScannerInstance) {
+        if (!html5QrScannerInstance && window.Html5Qrcode) {
           html5QrScannerInstance = new Html5Qrcode("liveBarcodeCameraScanner");
         }
-        const decodedText = await html5QrScannerInstance.scanFile(file, true);
-        if (decodedText) {
-          onBarcodeSuccessfullyDetected(decodedText, null);
+        if (html5QrScannerInstance) {
+          const decodedText = await html5QrScannerInstance.scanFile(file, true);
+          if (decodedText) {
+            onBarcodeSuccessfullyDetected(decodedText, null);
+          }
         }
       } catch (err) {
         console.warn('Image barcode scan error:', err);
@@ -5355,16 +5411,28 @@
     }
 
     async function stopCameraBarcodeScanner() {
-      if (html5QrScannerInstance && isCameraScanningActive) {
+      if (html5QrScannerInstance) {
         try {
-          await html5QrScannerInstance.stop();
-          await html5QrScannerInstance.clear();
+          if (html5QrScannerInstance.isScanning) {
+            await html5QrScannerInstance.stop();
+          }
         } catch (e) {
-          // ignore already stopped state
+          console.warn('Error stopping scanner:', e);
         }
       }
+      // Release hardware tracks directly from video elements
+      const container = document.getElementById('liveBarcodeCameraScanner');
+      if (container) {
+        const videos = container.querySelectorAll('video');
+        videos.forEach(v => {
+          if (v.srcObject && typeof v.srcObject.getTracks === 'function') {
+            v.srcObject.getTracks().forEach(t => t.stop());
+            v.srcObject = null;
+          }
+        });
+      }
       isCameraScanningActive = false;
-      updateCameraStatusUI(false, 'Camera Paused');
+      updateCameraStatusUI(false, 'Camera Off');
     }
 
     function toggleCameraScanning() {
@@ -5386,7 +5454,6 @@
 
       if (text) text.innerText = message || (isActive ? 'Camera Active' : 'Camera Off');
       if (icon) {
-        // Dynamic camera icon: 'photo_camera' when on, 'no_photography' (with strike-through slash) when switched off
         icon.innerText = isActive ? 'photo_camera' : 'no_photography';
       }
       if (dot) {
@@ -5683,6 +5750,13 @@
         modal.classList.add('hidden');
         modal.style.display = 'none';
       }
+      // If billing screen is active, restore billing camera scanner
+      const billingScreen = document.getElementById('screen-billing');
+      if (billingScreen && !billingScreen.classList.contains('hidden')) {
+        setTimeout(() => {
+          startCameraBarcodeScanner();
+        }, 150);
+      }
     }
 
     function handleDeleteFromModal() {
@@ -5709,40 +5783,81 @@
 
       if (isModalCameraActive) return;
 
+      // Stop billing camera first to free mobile camera hardware
+      if (typeof stopCameraBarcodeScanner === 'function') {
+        await stopCameraBarcodeScanner();
+      }
+
+      await stopModalLiveCamera();
+
+      if (typeof Html5Qrcode === 'undefined') {
+        let retries = 0;
+        while (typeof Html5Qrcode === 'undefined' && retries < 15) {
+          await new Promise(r => setTimeout(r, 200));
+          retries++;
+        }
+        if (typeof Html5Qrcode === 'undefined') return;
+      }
+
       try {
         if (!modalCameraScannerInstance && window.Html5Qrcode) {
-          modalCameraScannerInstance = new Html5Qrcode("modalLiveScannerContainer");
-        }
-        if (!modalCameraScannerInstance) {
-          console.warn('Html5Qrcode library not ready');
-          return;
+          modalCameraScannerInstance = new Html5Qrcode("modalLiveScannerContainer", { verbose: false });
         }
 
         const config = {
-          fps: 15,
-          qrbox: { width: 220, height: 110 },
+          fps: 20,
+          qrbox: (viewfinderWidth, viewfinderHeight) => {
+            const w = Math.max(180, Math.min(Math.floor((viewfinderWidth || 260) * 0.85), 320));
+            const h = Math.max(90, Math.min(Math.floor((viewfinderHeight || 160) * 0.70), 180));
+            return { width: w, height: h };
+          },
           aspectRatio: 1.777778
         };
 
+        let started = false;
+
+        // Try ideal environment facing mode
         try {
+          await modalCameraScannerInstance.start(
+            { facingMode: { ideal: "environment" } },
+            config,
+            onModalBarcodeDetected,
+            () => {}
+          );
+          started = true;
+        } catch (idealErr) {
+          console.warn('Modal ideal environment failed, enumerating cameras...', idealErr);
+        }
+
+        // Fallback: choose back camera by ID
+        if (!started) {
+          try {
+            const cameras = await Html5Qrcode.getCameras();
+            if (cameras && cameras.length > 0) {
+              const backCam = cameras.find(c => /back|rear|environment|primary/i.test(c.label)) 
+                           || cameras[cameras.length - 1];
+              await modalCameraScannerInstance.start(
+                backCam.id,
+                config,
+                onModalBarcodeDetected,
+                () => {}
+              );
+              started = true;
+            }
+          } catch (enumErr) {
+            console.warn('Modal camera enum failed:', enumErr);
+          }
+        }
+
+        // Fallback 3: standard environment string
+        if (!started) {
           await modalCameraScannerInstance.start(
             { facingMode: "environment" },
             config,
             onModalBarcodeDetected,
             () => {}
           );
-        } catch (strictErr) {
-          const cameras = await Html5Qrcode.getCameras();
-          if (cameras && cameras.length) {
-            await modalCameraScannerInstance.start(
-              cameras[0].id,
-              config,
-              onModalBarcodeDetected,
-              () => {}
-            );
-          } else {
-            throw strictErr;
-          }
+          started = true;
         }
 
         isModalCameraActive = true;
@@ -5751,6 +5866,19 @@
         if (icon) icon.innerText = 'photo_camera';
         if (btn) btn.title = 'Turn Camera Off';
         if (laser) laser.classList.remove('hidden');
+
+        // Force mobile inline video playback
+        const container = document.getElementById('modalLiveScannerContainer');
+        if (container) {
+          const videoEl = container.querySelector('video');
+          if (videoEl) {
+            videoEl.setAttribute('playsinline', 'true');
+            videoEl.setAttribute('webkit-playsinline', 'true');
+            videoEl.setAttribute('autoplay', 'true');
+            videoEl.muted = true;
+            videoEl.play().catch(() => {});
+          }
+        }
       } catch (err) {
         console.warn('Modal camera start note:', err);
         isModalCameraActive = false;
@@ -5763,11 +5891,23 @@
     }
 
     async function stopModalLiveCamera() {
-      if (modalCameraScannerInstance && isModalCameraActive) {
+      if (modalCameraScannerInstance) {
         try {
-          await modalCameraScannerInstance.stop();
-          await modalCameraScannerInstance.clear();
+          if (modalCameraScannerInstance.isScanning) {
+            await modalCameraScannerInstance.stop();
+          }
         } catch (e) {}
+      }
+      // Release hardware tracks directly
+      const box = document.getElementById('modalLiveScannerContainer');
+      if (box) {
+        const videos = box.querySelectorAll('video');
+        videos.forEach(v => {
+          if (v.srcObject && typeof v.srcObject.getTracks === 'function') {
+            v.srcObject.getTracks().forEach(t => t.stop());
+            v.srcObject = null;
+          }
+        });
       }
       isModalCameraActive = false;
       const text = document.getElementById('modalCamStatusText');
@@ -5775,8 +5915,8 @@
       const icon = document.getElementById('modalCamToggleIcon');
       const btn = document.getElementById('modalCamToggleBtn');
       const laser = document.getElementById('modalScannerLaser');
-      if (text) text.innerText = 'Camera Paused';
-      if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+      if (text) text.innerText = 'Camera Off';
+      if (dot) dot.className = 'w-2 h-2 rounded-full bg-slate-500';
       if (icon) icon.innerText = 'no_photography';
       if (btn) btn.title = 'Turn Camera On';
       if (laser) laser.classList.add('hidden');
