@@ -2863,7 +2863,7 @@
   <script>
     // STATUTORY GOVERNMENT OF INDIA (CBIC / GST COUNCIL) CLASSIFIED PRODUCT MASTER
     // Governed by Notification No. 1/2017-Central Tax (Rate) & Notification No. 2/2017-Central Tax (Rate) as amended
-    const sampleProducts = [
+    const DEFAULT_INITIAL_PRODUCTS = [
       { id: 16, barcode: '8901063141010', name: 'Britannia Marie Gold Biscuits 100g', price: 15.0, gst: 18.0, hsn: '1905 31 00', qty: 140, unit: 'pcs' },
       { id: 17, barcode: '8901063141020', name: 'Britannia Good Day Butter Biscuits 200g', price: 35.0, gst: 18.0, hsn: '1905 31 00', qty: 110, unit: 'pcs' },
       { id: 1, barcode: '8901030762050', name: 'Parle-G Glucose Biscuits 50g', price: 5.0, gst: 18.0, hsn: '1905 31 00', qty: 200, unit: 'pcs' },
@@ -2882,6 +2882,66 @@
       { id: 14, barcode: '8901234567893', name: 'Fortune Sunlite Sunflower Oil', price: 165.0, gst: 5.0, hsn: '1512 19 10', qty: 40, unit: 'L' },
       { id: 15, barcode: '8901234567894', name: 'Aashirvaad Superior MP Atta', price: 48.0, gst: 0.0, hsn: '1101 00 00', qty: 300, unit: 'kg' }
     ];
+
+    // Dynamic, merchant-isolated inventory catalog
+    let sampleProducts = [];
+
+    // ============================================================
+    // MULTI-TENANT MERCHANT DATA ISOLATION ENGINE
+    // ============================================================
+    function getActiveMerchantId() {
+      try {
+        const raw = localStorage.getItem('super_inventory_seller');
+        if (raw) {
+          const s = JSON.parse(raw);
+          if (s) {
+            if (s.id !== undefined && s.id !== null) return 'seller_' + String(s.id).toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+            if (s.email) return 'seller_' + String(s.email).toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+            if (s.phone) return 'seller_' + String(s.phone).replace(/[^0-9]/g, '');
+            if (s.store_name || s.name) return 'seller_' + String(s.store_name || s.name).toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+          }
+        }
+      } catch (e) {}
+      return 'seller_demo_default';
+    }
+
+    function getMerchantStorageKey(baseKey) {
+      return `${baseKey}_${getActiveMerchantId()}`;
+    }
+
+    function loadMerchantProducts() {
+      try {
+        const key = getMerchantStorageKey('super_inventory_products');
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          sampleProducts = JSON.parse(stored);
+          return sampleProducts;
+        }
+        // First-time load for this merchant
+        const mId = getActiveMerchantId();
+        if (mId.includes('demo') || mId.includes('merchant_gmail_com') || mId.includes('default')) {
+          sampleProducts = JSON.parse(JSON.stringify(DEFAULT_INITIAL_PRODUCTS));
+          saveMerchantProducts();
+        } else {
+          // Dedicated clean private inventory for newly registered merchants
+          sampleProducts = [];
+          saveMerchantProducts();
+        }
+      } catch (e) {
+        console.error('Error loading merchant products:', e);
+        sampleProducts = [];
+      }
+      return sampleProducts;
+    }
+
+    function saveMerchantProducts() {
+      try {
+        const key = getMerchantStorageKey('super_inventory_products');
+        localStorage.setItem(key, JSON.stringify(sampleProducts));
+      } catch (e) {
+        console.error('Error saving merchant products:', e);
+      }
+    }
 
         // --- ON-SCREEN NOTIFICATION & MODAL ENGINE (REPLACES BROWSER ALERTS/CONFIRMS) ---
     let toastTimeout = null;
@@ -2976,7 +3036,8 @@
 
     function getStoredCompletedInvoices() {
       try {
-        const stored = localStorage.getItem(COMPLETED_INVOICES_KEY);
+        const key = getMerchantStorageKey(COMPLETED_INVOICES_KEY);
+        const stored = localStorage.getItem(key);
         if (stored) return JSON.parse(stored);
       } catch (e) {
         console.error('Error reading stored invoices:', e);
@@ -2986,13 +3047,54 @@
 
     function saveCompletedInvoices() {
       try {
-        localStorage.setItem(COMPLETED_INVOICES_KEY, JSON.stringify(completedInvoices));
+        const key = getMerchantStorageKey(COMPLETED_INVOICES_KEY);
+        localStorage.setItem(key, JSON.stringify(completedInvoices));
       } catch (e) {
         console.error('Error saving invoices:', e);
       }
     }
 
     let completedInvoices = getStoredCompletedInvoices();
+
+    // Dedicated multi-tenant session activator for logged-in merchant
+    function activateMerchantSession(sellerData) {
+      if (!sellerData) return;
+      try {
+        localStorage.setItem('super_inventory_seller', JSON.stringify(sellerData));
+      } catch (e) {}
+
+      // 1. Load this merchant's isolated inventory items
+      loadMerchantProducts();
+
+      // 2. Load this merchant's isolated invoice history
+      completedInvoices = getStoredCompletedInvoices();
+
+      // 3. Clear active cart of previous session
+      cart = [];
+      if (typeof renderCart === 'function') renderCart();
+
+      // 4. Load merchant's store profile and sync all UI headers, drawer, receipts
+      loadStoredProfile(sellerData);
+      if (typeof snapshotProfileOriginals === 'function') snapshotProfileOriginals();
+      if (typeof updateProfileDirtyWarning === 'function') updateProfileDirtyWarning(false);
+
+      // 5. Refresh this merchant's isolated bank/UPI details
+      refreshUpiDisplays();
+
+      // 6. Update UI headers & drawers with this merchant's details
+      const dispName = sellerData.store_name || sellerData.name || 'Super Inventory';
+      if (document.getElementById('headerShopName')) document.getElementById('headerShopName').innerText = dispName;
+      if (document.getElementById('drawerShopName')) document.getElementById('drawerShopName').innerText = dispName;
+      if (document.getElementById('settingsStoreName')) document.getElementById('settingsStoreName').innerText = dispName;
+      if (document.getElementById('rcptShopName')) document.getElementById('rcptShopName').innerText = dispName;
+      if (sellerData.email && document.getElementById('settingsUserEmail')) document.getElementById('settingsUserEmail').innerText = sellerData.email;
+      if (sellerData.phone && document.getElementById('drawerPhone')) document.getElementById('drawerPhone').innerText = sellerData.phone;
+
+      // 7. Refresh dashboard, history, and product lists with isolated data
+      renderDashboard();
+      renderHistory();
+      renderProducts();
+    }
 
         // ============================================================
     // PERMANENT USER DATABASE & MATCHING AUTHENTICATION ENGINE
@@ -3050,12 +3152,13 @@
         name: 'Super Inventory Store',
         store_name: 'Super Inventory Store',
         email: 'merchant@gmail.com',
+        phone: '+91 9876543210',
         role: 'seller'
       };
       try {
         localStorage.setItem('super_inventory_token', 'demo-token-' + Date.now());
-        localStorage.setItem('super_inventory_seller', JSON.stringify(demoSeller));
       } catch (e) {}
+      activateMerchantSession(demoSeller);
 
       // Open the app home screen / dashboard immediately
       setTimeout(() => {
@@ -3171,23 +3274,27 @@
           if (result.success && result.token) {
             // Save Session in localStorage
             localStorage.setItem('super_inventory_token', result.token);
-            localStorage.setItem('super_inventory_seller', JSON.stringify(result.seller));
+
+            const sellerObj = {
+              id: result.seller.id || result.seller.uuid || 1,
+              name: result.seller.name || result.seller.store_name || 'My Store',
+              store_name: result.seller.name || result.seller.store_name || 'My Store',
+              email: result.seller.email || identifier,
+              phone: result.seller.phone || '+91 9876543210',
+              role: result.seller.role || 'seller'
+            };
 
             // Sync with local memory
             saveNewUser({
-              storeName: result.seller.name,
-              phone: result.seller.phone || '+91 9876543210',
-              email: result.seller.email,
+              storeName: sellerObj.name,
+              phone: sellerObj.phone,
+              email: sellerObj.email,
               password: pw,
               createdAt: new Date().toISOString()
             });
 
             isLoggedIn = true;
-            document.getElementById('headerShopName').innerText = result.seller.name;
-            document.getElementById('settingsStoreName').innerText = result.seller.name;
-            document.getElementById('settingsUserEmail').innerText = result.seller.email;
-            if (result.seller.phone) document.getElementById('drawerPhone').innerText = result.seller.phone;
-            document.getElementById('rcptShopName').innerText = result.seller.name;
+            activateMerchantSession(sellerObj);
 
             showAppToast(`✓ ${result.message}`, 'verified');
             if (submitBtn) submitBtn.disabled = false;
@@ -3228,11 +3335,16 @@
           }
 
           isLoggedIn = true;
-          document.getElementById('headerShopName').innerText = matchedUser.storeName;
-          document.getElementById('settingsStoreName').innerText = matchedUser.storeName;
-          document.getElementById('settingsUserEmail').innerText = matchedUser.email;
-          document.getElementById('drawerPhone').innerText = matchedUser.phone;
-          document.getElementById('rcptShopName').innerText = matchedUser.storeName;
+          const localSeller = {
+            id: matchedUser.email || matchedUser.phone,
+            name: matchedUser.storeName,
+            store_name: matchedUser.storeName,
+            email: matchedUser.email,
+            phone: matchedUser.phone,
+            role: 'seller'
+          };
+          localStorage.setItem('super_inventory_token', 'local-token-' + Date.now());
+          activateMerchantSession(localSeller);
 
           showAppToast(`✓ Welcome back, ${matchedUser.storeName}!`, 'verified');
           if (submitBtn) submitBtn.disabled = false;
@@ -3809,19 +3921,19 @@
         // Save session
         const mockToken = 'google_session_' + Date.now();
         localStorage.setItem('super_inventory_token', mockToken);
-        localStorage.setItem('super_inventory_seller', JSON.stringify({
+        const googleSeller = {
+          id: existingUser.email || email,
           name: existingUser.storeName || name,
-          email: existingUser.email
-        }));
+          store_name: existingUser.storeName || name,
+          email: existingUser.email || email,
+          phone: existingUser.phone || '',
+          role: 'seller'
+        };
 
         isLoggedIn = true;
-        const displayName = existingUser.storeName || name;
-        if (document.getElementById('headerShopName')) document.getElementById('headerShopName').innerText = displayName;
-        if (document.getElementById('drawerShopName')) document.getElementById('drawerShopName').innerText = displayName;
-        if (document.getElementById('settingsStoreName')) document.getElementById('settingsStoreName').innerText = displayName;
-        if (document.getElementById('settingsUserEmail')) document.getElementById('settingsUserEmail').innerText = existingUser.email;
+        activateMerchantSession(googleSeller);
 
-        showAppToast(`✓ Welcome back! Logged in as ${existingUser.email}`, 'verified', false);
+        showAppToast(`✓ Welcome back! Logged in as ${googleSeller.email}`, 'verified', false);
         switchScreen('dashboard');
       }, 600);
     }
@@ -3859,17 +3971,18 @@
             const userEmail = payload.email || 'merchant.google@gmail.com';
             const userName = payload.user_metadata?.full_name || payload.user_metadata?.name || userEmail.split('@')[0];
 
-            // Store token and details
+            // Store token and activate merchant
             localStorage.setItem('super_inventory_token', accessToken);
-            localStorage.setItem('super_inventory_seller', JSON.stringify({
+            const oauthSeller = {
+              id: userEmail,
               name: userName,
-              email: userEmail
-            }));
+              store_name: userName,
+              email: userEmail,
+              role: 'seller'
+            };
 
             isLoggedIn = true;
-            if (document.getElementById('headerShopName')) document.getElementById('headerShopName').innerText = userName;
-            if (document.getElementById('settingsStoreName')) document.getElementById('settingsStoreName').innerText = userName;
-            if (document.getElementById('settingsUserEmail')) document.getElementById('settingsUserEmail').innerText = userEmail;
+            activateMerchantSession(oauthSeller);
 
             // Clean hash URL
             window.history.replaceState(null, null, window.location.pathname);
@@ -3892,14 +4005,23 @@
 
     function getStoredBankUpiSettings() {
       try {
-        const saved = localStorage.getItem(DEFAULT_BANK_SETTINGS_KEY);
+        const key = getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY);
+        const saved = localStorage.getItem(key);
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed && parsed.vpa) return parsed;
         }
       } catch (e) {}
+      let defaultPayee = 'Super Inventory Store';
+      try {
+        const sRaw = localStorage.getItem('super_inventory_seller');
+        if (sRaw) {
+          const s = JSON.parse(sRaw);
+          if (s.name || s.store_name) defaultPayee = s.name || s.store_name;
+        }
+      } catch (e) {}
       return {
-        payeeName: 'Super Inventory Store',
+        payeeName: defaultPayee,
         vpa: 'superinventory@upi',
         accountNo: '',
         ifsc: '',
@@ -4112,7 +4234,7 @@
       }
 
       const settings = { payeeName, vpa, accountNo: '', ifsc: '', bankName: '' };
-      localStorage.setItem(DEFAULT_BANK_SETTINGS_KEY, JSON.stringify(settings));
+      localStorage.setItem(getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY), JSON.stringify(settings));
 
       lockUpiSettings();
       refreshUpiDisplays();
@@ -4262,34 +4384,62 @@
       }
     }
 
-    function loadStoredProfile() {
+    function loadStoredProfile(sellerOverride) {
       try {
-        const stored = localStorage.getItem('super_inventory_profile_updates');
-        if (stored) {
-          const data = JSON.parse(stored);
-          if (data.name && document.getElementById('stitchBusinessName')) document.getElementById('stitchBusinessName').value = data.name;
-          if (data.phone && document.getElementById('stitchPhone')) document.getElementById('stitchPhone').value = data.phone;
-          if (data.address && document.getElementById('stitchAddress')) document.getElementById('stitchAddress').value = data.address;
-          if (data.openTime && document.getElementById('stitchOpenTime')) document.getElementById('stitchOpenTime').value = data.openTime;
-          if (data.closeTime && document.getElementById('stitchCloseTime')) document.getElementById('stitchCloseTime').value = data.closeTime;
-          if (data.offer && document.getElementById('stitchOffer')) document.getElementById('stitchOffer').value = data.offer;
-          
-          const timings = `${data.openTime || '08:00 AM'} - ${data.closeTime || '10:30 PM'}`;
-          if (document.getElementById('headerShopName')) document.getElementById('headerShopName').innerText = data.name || 'Super Inventory';
-          if (document.getElementById('drawerShopName')) document.getElementById('drawerShopName').innerText = data.name || 'Super Inventory';
-          if (document.getElementById('drawerTimings')) document.getElementById('drawerTimings').innerText = timings;
-          if (document.getElementById('drawerPhone')) document.getElementById('drawerPhone').innerText = data.phone || '+91 9876543210';
-          if (document.getElementById('drawerAddress')) document.getElementById('drawerAddress').innerText = data.address || '';
-          if (document.getElementById('drawerOffer')) document.getElementById('drawerOffer').innerText = data.offer || '';
-          if (document.getElementById('settingsStoreName')) document.getElementById('settingsStoreName').innerText = data.name || 'Super Inventory';
-          if (document.getElementById('settingsTimingsDisplay')) document.getElementById('settingsTimingsDisplay').innerText = `Hours: ${timings}`;
-          if (document.getElementById('rcptShopName')) document.getElementById('rcptShopName').innerText = data.name || 'Super Inventory';
-          if (document.getElementById('rcptShopAddress')) document.getElementById('rcptShopAddress').innerText = data.address || '';
-          if (document.getElementById('rcptTimings')) document.getElementById('rcptTimings').innerText = timings;
-          if (document.getElementById('rcptHelpline')) document.getElementById('rcptHelpline').innerText = data.phone || '';
-          if (document.getElementById('rcptOfferBanner')) document.getElementById('rcptOfferBanner').innerText = data.offer || '';
+        const key = getMerchantStorageKey('super_inventory_profile_updates');
+        const stored = localStorage.getItem(key);
+        let activeSeller = sellerOverride;
+        if (!activeSeller) {
+          try {
+            activeSeller = JSON.parse(localStorage.getItem('super_inventory_seller') || '{}');
+          } catch (e) {}
         }
-      } catch (e) {}
+        const fallbackName = (activeSeller && (activeSeller.name || activeSeller.store_name)) || 'Super Inventory';
+        const fallbackPhone = (activeSeller && activeSeller.phone) || '+91 9876543210';
+        const fallbackEmail = (activeSeller && activeSeller.email) || '';
+
+        let data = {};
+        if (stored) {
+          data = JSON.parse(stored);
+        } else {
+          data = {
+            name: fallbackName,
+            phone: fallbackPhone,
+            address: '',
+            openTime: '08:00 AM',
+            closeTime: '10:30 PM',
+            offer: ''
+          };
+        }
+
+        const storeName = data.name || fallbackName;
+        const storePhone = data.phone || fallbackPhone;
+        const timings = `${data.openTime || '08:00 AM'} - ${data.closeTime || '10:30 PM'}`;
+
+        if (document.getElementById('stitchBusinessName')) document.getElementById('stitchBusinessName').value = storeName;
+        if (document.getElementById('stitchPhone')) document.getElementById('stitchPhone').value = storePhone;
+        if (document.getElementById('stitchAddress')) document.getElementById('stitchAddress').value = data.address || '';
+        if (document.getElementById('stitchOpenTime')) document.getElementById('stitchOpenTime').value = data.openTime || '08:00 AM';
+        if (document.getElementById('stitchCloseTime')) document.getElementById('stitchCloseTime').value = data.closeTime || '10:30 PM';
+        if (document.getElementById('stitchOffer')) document.getElementById('stitchOffer').value = data.offer || '';
+        
+        if (document.getElementById('headerShopName')) document.getElementById('headerShopName').innerText = storeName;
+        if (document.getElementById('drawerShopName')) document.getElementById('drawerShopName').innerText = storeName;
+        if (document.getElementById('drawerTimings')) document.getElementById('drawerTimings').innerText = timings;
+        if (document.getElementById('drawerPhone')) document.getElementById('drawerPhone').innerText = storePhone;
+        if (document.getElementById('drawerAddress')) document.getElementById('drawerAddress').innerText = data.address || '';
+        if (document.getElementById('drawerOffer')) document.getElementById('drawerOffer').innerText = data.offer || '';
+        if (document.getElementById('settingsStoreName')) document.getElementById('settingsStoreName').innerText = storeName;
+        if (document.getElementById('settingsUserEmail') && fallbackEmail) document.getElementById('settingsUserEmail').innerText = fallbackEmail;
+        if (document.getElementById('settingsTimingsDisplay')) document.getElementById('settingsTimingsDisplay').innerText = `Hours: ${timings}`;
+        if (document.getElementById('rcptShopName')) document.getElementById('rcptShopName').innerText = storeName;
+        if (document.getElementById('rcptShopAddress')) document.getElementById('rcptShopAddress').innerText = data.address || '';
+        if (document.getElementById('rcptTimings')) document.getElementById('rcptTimings').innerText = timings;
+        if (document.getElementById('rcptHelpline')) document.getElementById('rcptHelpline').innerText = storePhone;
+        if (document.getElementById('rcptOfferBanner')) document.getElementById('rcptOfferBanner').innerText = data.offer || '';
+      } catch (e) {
+        console.error('Error in loadStoredProfile:', e);
+      }
     }
 
     function saveStitchProfileUpdates() {
@@ -4321,15 +4471,15 @@
       document.getElementById('rcptHelpline').innerText = phone;
       document.getElementById('rcptOfferBanner').innerText = offer;
 
-      // Save to localStorage for persistence
+      // Save to merchant-scoped localStorage for strict multi-tenant isolation
       const profileData = { name, phone, address, openTime, closeTime, offer };
-      localStorage.setItem('super_inventory_profile_updates', JSON.stringify(profileData));
+      localStorage.setItem(getMerchantStorageKey('super_inventory_profile_updates'), JSON.stringify(profileData));
 
       // Update Bank UPI ID if entered in Profile Section
       const directUpi = (document.getElementById('profileDirectUpiInput')?.value || '').trim();
       const directPayee = (document.getElementById('profileDirectPayeeInput')?.value || '').trim() || name || 'Super Inventory Store';
       if (directUpi && directUpi.includes('@')) {
-        localStorage.setItem(DEFAULT_BANK_SETTINGS_KEY, JSON.stringify({ payeeName: directPayee, vpa: directUpi, accountNo: '', ifsc: '', bankName: '' }));
+        localStorage.setItem(getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY), JSON.stringify({ payeeName: directPayee, vpa: directUpi, accountNo: '', ifsc: '', bankName: '' }));
         refreshUpiDisplays();
       }
 
@@ -4415,6 +4565,12 @@
         isDestructive: true,
         onConfirm: () => {
           isLoggedIn = false;
+          try {
+            localStorage.removeItem('super_inventory_token');
+            localStorage.removeItem('super_inventory_seller');
+          } catch (e) {}
+          cart = [];
+          if (typeof renderCart === 'function') renderCart();
           switchScreen('login');
           // Replace browser history so browser 'Back' button cannot return to dashboard
           if (window.history && window.history.pushState) {
@@ -5231,6 +5387,7 @@
               unit: data.product.unit || 'pcs'
             };
             sampleProducts.push(backendProd);
+            saveMerchantProducts();
             openQtyUnitModal(backendProd);
             return;
           }
@@ -5263,6 +5420,7 @@
             unit: 'pcs'
           };
           sampleProducts.push(recognizedProd);
+          saveMerchantProducts();
           showAppToast(`✓ Recognized: ${fullName}`, 'check_circle');
           openQtyUnitModal(recognizedProd);
           return;
@@ -5298,6 +5456,7 @@
                 unit: 'pcs'
               };
               sampleProducts.push(newProd);
+              saveMerchantProducts();
               openQtyUnitModal(newProd);
               showAppToast(`Added "${name}" to Inventory & Bill`, 'check_circle');
             }
@@ -5512,6 +5671,7 @@
         sampleProducts[existingIdx].unit = unit;
         sampleProducts[existingIdx].gst = gst;
         sampleProducts[existingIdx].hsn = hsn;
+        saveMerchantProducts();
         showAppToast(`✓ Updated "${name}" in inventory!`, 'check_circle');
       } else {
         const newProd = {
@@ -5525,6 +5685,7 @@
           hsn
         };
         sampleProducts.unshift(newProd);
+        saveMerchantProducts();
         showAppToast(`✓ Added "${name}" to inventory!`, 'check_circle');
       }
 
@@ -6021,6 +6182,19 @@
         status: 'Paid'
       };
 
+      // Deduct sold quantity from merchant's isolated inventory
+      cart.forEach(item => {
+        const prod = sampleProducts.find(p => p.barcode === item.barcode);
+        if (prod && typeof prod.qty === 'number') {
+          let deductQty = item.quantity;
+          if ((item.unit === 'g' || item.unit === 'ml') && (prod.unit === 'kg' || prod.unit === 'L')) {
+            deductQty = item.quantity / 1000;
+          }
+          prod.qty = Math.max(0, +(prod.qty - deductQty).toFixed(2));
+        }
+      });
+      saveMerchantProducts();
+
       completedInvoices.unshift(invData);
       saveCompletedInvoices();
 
@@ -6201,25 +6375,45 @@
       }
 
       if (list.length === 0) {
-        container.innerHTML = `
-          <div class="p-6 bg-brand-surface border border-brand-surfaceBorder rounded-2xl text-center space-y-3 shadow-sm">
-            <div class="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto">
-              <span class="material-symbols-outlined text-2xl">search_off</span>
+        if (q) {
+          container.innerHTML = `
+            <div class="p-6 bg-brand-surface border border-brand-surfaceBorder rounded-2xl text-center space-y-3 shadow-sm">
+              <div class="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto">
+                <span class="material-symbols-outlined text-2xl">search_off</span>
+              </div>
+              <div>
+                <p class="text-xs font-black text-white">Product Not Present in Inventory</p>
+                <p class="text-[10.5px] text-brand-muted mt-0.5">"${q}" is not in the store catalog. You can add it directly to stock.</p>
+              </div>
+              <div class="flex items-center justify-center gap-2 pt-1">
+                <button onclick="openAddProductModal('${q.replace(/'/g, "\\'")}');" class="px-3.5 py-1.5 bg-brand-primary text-white text-xs font-black rounded-xl shadow hover:bg-brand-primaryGlow transition">
+                  + Add "${q}" to Inventory
+                </button>
+                <button onclick="clearInventorySearch();" class="px-3 py-1.5 bg-brand-surfaceElevated border border-brand-surfaceBorder text-slate-300 text-xs font-bold rounded-xl hover:text-white transition">
+                  Show All Products
+                </button>
+              </div>
             </div>
-            <div>
-              <p class="text-xs font-black text-white">Product Not Present in Inventory</p>
-              <p class="text-[10.5px] text-brand-muted mt-0.5">"${q}" is not in the store catalog. You can add it directly to stock.</p>
+          `;
+        } else {
+          container.innerHTML = `
+            <div class="p-8 bg-brand-surface border border-dashed border-brand-surfaceBorder rounded-2xl text-center space-y-3 shadow-sm">
+              <div class="w-14 h-14 rounded-2xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-brand-primaryContainer flex items-center justify-center mx-auto">
+                <span class="material-symbols-outlined text-3xl">inventory_2</span>
+              </div>
+              <div>
+                <p class="text-sm font-black text-white">Your Store Inventory is Ready</p>
+                <p class="text-[11px] text-brand-muted mt-1 max-w-xs mx-auto">No products added to this store yet. Start scanning barcodes or click below to build your private inventory catalog.</p>
+              </div>
+              <div class="pt-2">
+                <button onclick="openAddProductModal();" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center gap-1.5 mx-auto active:scale-95">
+                  <span class="material-symbols-outlined text-base">add_circle</span>
+                  <span>+ Add First Product to Inventory</span>
+                </button>
+              </div>
             </div>
-            <div class="flex items-center justify-center gap-2 pt-1">
-              <button onclick="openAddProductModal('${q.replace(/'/g, "\\'")}');" class="px-3.5 py-1.5 bg-brand-primary text-white text-xs font-black rounded-xl shadow hover:bg-brand-primaryGlow transition">
-                + Add "${q}" to Inventory
-              </button>
-              <button onclick="clearInventorySearch();" class="px-3 py-1.5 bg-brand-surfaceElevated border border-brand-surfaceBorder text-slate-300 text-xs font-bold rounded-xl hover:text-white transition">
-                Show All Products
-              </button>
-            </div>
-          </div>
-        `;
+          `;
+        }
         return;
       }
 
@@ -7124,7 +7318,18 @@ ${itemsListText}
 
     // Initialize default view with Stitch Launching Splash Screen
     setAppThemeMode('light', true);
-    loadStoredProfile();
+    if (isLoggedIn) {
+      try {
+        const storedSeller = JSON.parse(localStorage.getItem('super_inventory_seller') || '{}');
+        activateMerchantSession(storedSeller);
+      } catch (e) {
+        loadMerchantProducts();
+        loadStoredProfile();
+      }
+    } else {
+      loadMerchantProducts();
+      loadStoredProfile();
+    }
     snapshotProfileOriginals();
     initProfileDirtyListeners();
     renderDashboard();
