@@ -2152,7 +2152,19 @@
             <!-- Security Notice Banner -->
             <div class="p-2.5 bg-brand-surface border border-brand-surfaceBorder rounded-xl flex items-center gap-2">
               <span class="material-symbols-outlined text-brand-primary text-base">lock</span>
-              <p class="text-[10px] text-brand-muted leading-tight">We have dispatched a 6-digit confidential code to your inbox. Please check your email.</p>
+              <p class="text-[10px] text-brand-muted leading-tight">We have dispatched a 6-digit confidential code. You can also view and auto-fill it below.</p>
+            </div>
+
+            <!-- Instant Security Code Display & Auto-Fill -->
+            <div id="otpLiveDisplayBanner" class="p-2.5 bg-brand-primary/10 border border-brand-primary/30 rounded-xl flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-brand-primary text-sm">verified_user</span>
+                <span class="text-[10px] text-brand-muted">Security Code:</span>
+                <strong id="otpLiveCodeDisplay" class="text-xs font-mono font-black text-amber-300 tracking-wider">------</strong>
+              </div>
+              <button type="button" onclick="autoFillEmailOtp()" class="text-[10px] font-bold text-white bg-brand-primary hover:bg-brand-primaryGlow px-2.5 py-1 rounded-lg transition active:scale-95 shadow-sm">
+                Auto-Fill
+              </button>
             </div>
 
             <!-- 6 PIN Inputs for Email OTP -->
@@ -3200,6 +3212,8 @@
       if (pLive) pLive.innerText = currentRealPhoneOtp;
       const eLive = document.getElementById('emailOtpLiveCode');
       if (eLive) eLive.innerText = currentRealEmailOtp;
+      const liveDisplay = document.getElementById('otpLiveCodeDisplay');
+      if (liveDisplay) liveDisplay.innerText = currentRealEmailOtp || '------';
 
       // Clear input boxes
       for (let i = 1; i <= 6; i++) {
@@ -3222,6 +3236,19 @@
       } else {
         showAppToast(`📨 Verification code dispatched to ${email}`, 'mail');
       }
+    }
+
+    function autoFillEmailOtp() {
+      if (!currentRealEmailOtp) return;
+      for (let i = 0; i < 6; i++) {
+        const val = currentRealEmailOtp[i] || '';
+        const inp = document.getElementById(`e-otp-${i + 1}`);
+        if (inp) {
+          inp.value = val;
+          inp.classList.add('border-emerald-500');
+        }
+      }
+      showAppToast('✓ Verification code auto-filled. Click Verify to continue.', 'verified');
     }
 
     function formatOtpMmSs(totalSec) {

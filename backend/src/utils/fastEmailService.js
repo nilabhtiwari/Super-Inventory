@@ -16,8 +16,8 @@ if (process.env.RESEND_API_KEY) {
 let transporter = null;
 
 function getCredentials() {
-  let user = process.env.GMAIL_USER || process.env.SMTP_USER || 'lavlesh.twery@gmail.com';
-  let pass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD || 'rgvcnnnvaqbhaswr').replace(/\s+/g, '');
+  let user = process.env.GMAIL_USER || process.env.SMTP_USER || '';
+  let pass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD || '').replace(/\s+/g, '');
 
   if (!user || !pass || user.includes('your_email')) {
     try {

@@ -22,7 +22,3 @@ services:
         sync: false
       - key: RESEND_FROM_EMAIL
         value: Super Inventory <onboarding@resend.dev>
-      - key: GMAIL_USER
-        value: lavlesh.twery@gmail.com
-      - key: GMAIL_APP_PASSWORD
-        value: rgvcnnnvaqbhaswr
