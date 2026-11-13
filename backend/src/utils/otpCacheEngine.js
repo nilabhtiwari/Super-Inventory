@@ -69,7 +69,7 @@ class OtpCacheEngine {
       maxAttempts: 5,                       // Standard 5 attempts maximum
       resendCount,
       maxResends: 5,
-      cooldownExpires: now + 60 * 1000,     // 60-second cooldown wait time
+      cooldownExpires: now + 80 * 1000,     // 80-second cooldown wait time (1 min 20 sec)
       expiresAt: now + 5 * 60 * 1000,       // Strict 5-minute validity timeframe
       lockoutUntil,
       action,
@@ -80,7 +80,7 @@ class OtpCacheEngine {
       success: true,
       otp: rawOtp,
       expiresInSeconds: 300,
-      cooldownSeconds: 60,
+      cooldownSeconds: 80,
       resendsRemaining: Math.max(0, 5 - resendCount),
       resendCount
     };

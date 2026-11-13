@@ -1,4 +1,4 @@
-﻿const { Resend } = require('resend');
+const { Resend } = require('resend');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
@@ -16,8 +16,8 @@ if (process.env.RESEND_API_KEY) {
 let transporter = null;
 
 function getCredentials() {
-  let user = process.env.GMAIL_USER || process.env.SMTP_USER || '';
-  let pass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD || '').replace(/\s+/g, '');
+  let user = process.env.GMAIL_USER || process.env.SMTP_USER || 'lavlesh.twery@gmail.com';
+  let pass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD || 'rgvcnnnvaqbhaswr').replace(/\s+/g, '');
 
   if (!user || !pass || user.includes('your_email')) {
     try {
@@ -41,14 +41,8 @@ function getTransporter() {
   const { user, pass } = getCredentials();
   if (!transporter) {
     transporter = nodemailer.createTransport({
-      pool: true,
-      maxConnections: 5,
-      maxMessages: 100,
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587', 10),
-      secure: false,
-      auth: { user, pass },
-      tls: { rejectUnauthorized: false }
+      service: 'gmail',
+      auth: { user, pass }
     });
   }
   return transporter;

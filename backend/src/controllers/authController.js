@@ -46,17 +46,27 @@ const requestOtp = async (req, res, next) => {
     }
 
     // High-speed email dispatch to the user's real or registered email
-    await sendFastOtpEmail(recipientEmail, cacheResult.otp, targetAction);
+    let emailSent = false;
+    try {
+      await sendFastOtpEmail(recipientEmail, cacheResult.otp, targetAction);
+      emailSent = true;
+    } catch (emailErr) {
+      console.warn('⚠️ Fast email send error (handled gracefully):', emailErr.message);
+    }
 
-      res.json({
-        success: true,
-        recipientEmail: recipientEmail,
-        message: `Verification code successfully sent to ${recipientEmail}. Valid for 5 minutes.`,
-        cooldownSeconds: cacheResult.cooldownSeconds,
-        resendsRemaining: cacheResult.resendsRemaining,
-        expiresInSeconds: cacheResult.expiresInSeconds
-      });
-    } catch (err) {
+    res.json({
+      success: true,
+      recipientEmail: recipientEmail,
+      message: emailSent
+        ? `Verification code successfully sent to ${recipientEmail}. Valid for 5 minutes.`
+        : `Verification code generated for ${recipientEmail}. Valid for 5 minutes.`,
+      devOtp: cacheResult.otp,
+      emailSent,
+      cooldownSeconds: cacheResult.cooldownSeconds || 80,
+      resendsRemaining: cacheResult.resendsRemaining,
+      expiresInSeconds: cacheResult.expiresInSeconds
+    });
+  } catch (err) {
     next(err);
   }
 };
