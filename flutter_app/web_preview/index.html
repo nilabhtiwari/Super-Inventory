@@ -3558,19 +3558,13 @@
       const email = (emailInput?.value || '').trim();
       const pw = (pwInput?.value || '').trim();
 
-      // 1. Missing Email
+      // 1. Missing Email or Username
       if (!email) {
-        setInlineAuthError('signInEmailInput', 'Please enter your registered email address');
+        setInlineAuthError('signInEmailInput', 'Please enter your email or username');
         return;
       }
 
-      // 2. Invalid Email Format
-      if (!email.includes('@') || !email.includes('.') || email.length < 5) {
-        setInlineAuthError('signInEmailInput', 'Please enter a valid email address');
-        return;
-      }
-
-      // 3. Missing Password
+      // 2. Missing Password
       if (!pw) {
         setInlineAuthError('signInPasswordInput', 'Please enter your password');
         return;
@@ -3582,17 +3576,17 @@
       if (submitBtn) submitBtn.disabled = true;
       if (submitText) submitText.innerText = 'Verifying...';
 
-      // 4. Check Stored Users Database Locally
+      // 3. Check Stored Users Database Locally
       const cleanEmail = email.toLowerCase();
       const users = getStoredUsers();
-      const matchedUser = users.find(u => u.email && u.email.trim().toLowerCase() === cleanEmail);
+      const matchedUser = users.find(u => (u.email && u.email.trim().toLowerCase() === cleanEmail) || (u.storeName && u.storeName.trim().toLowerCase() === cleanEmail));
 
       if (matchedUser) {
         // Password Mismatch
         if (matchedUser.password !== pw) {
           if (submitBtn) submitBtn.disabled = false;
           if (submitText) submitText.innerText = originalText;
-          setInlineAuthError('signInPasswordInput', 'wrong username/password . try again');
+          setInlineAuthError('signInPasswordInput', 'wrong username/password try again');
           return;
         }
 
@@ -3629,7 +3623,7 @@
         return;
       }
 
-      // 5. Query Node.js Backend API
+      // 4. Query Node.js Backend API
       try {
         const response = await fetch(`${BACKEND_API_BASE}/auth/login`, {
           method: 'POST',
@@ -3669,25 +3663,13 @@
         } else {
           if (submitBtn) submitBtn.disabled = false;
           if (submitText) submitText.innerText = originalText;
-
-          const errMsg = result.message || '';
-          if (errMsg.toLowerCase().includes('internal server') || response.status >= 500) {
-            setInlineAuthError('signInPasswordInput', 'Internal server error. Please try again.');
-          } else {
-            setInlineAuthError('signInPasswordInput', 'wrong username/password . try again');
-          }
+          setInlineAuthError('signInPasswordInput', 'wrong username/password try again');
           return;
         }
       } catch (apiErr) {
         if (submitBtn) submitBtn.disabled = false;
         if (submitText) submitText.innerText = originalText;
-        // Check if server is reachable or errored
-        const errStr = String(apiErr || '');
-        if (errStr.toLowerCase().includes('internal server') || errStr.toLowerCase().includes('500')) {
-          setInlineAuthError('signInPasswordInput', 'Internal server error. Please try again.');
-        } else {
-          setInlineAuthError('signInPasswordInput', 'wrong username/password . try again');
-        }
+        setInlineAuthError('signInPasswordInput', 'wrong username/password try again');
       }
     }
 
@@ -3757,7 +3739,7 @@
         } else if (regRes.status >= 500) {
           if (submitBtn) submitBtn.disabled = false;
           if (submitText) submitText.innerText = originalText;
-          setInlineAuthError('signUpPasswordInput', 'Internal server error. Please try again.');
+          setInlineAuthError('signUpPasswordInput', 'Registration failed. Please try again.');
           return;
         }
       } catch (apiErr) {

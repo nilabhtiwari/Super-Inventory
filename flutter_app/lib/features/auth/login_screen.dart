@@ -72,11 +72,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final password = _signInPasswordController.text.trim();
 
       if (email.isEmpty) {
-        setState(() => _signInEmailError = 'Please enter your registered email address');
-        return;
-      }
-      if (!email.contains('@') || !email.contains('.')) {
-        setState(() => _signInEmailError = 'Please enter a valid email address');
+        setState(() => _signInEmailError = 'Please enter your email or username');
         return;
       }
       if (password.isEmpty) {
@@ -98,12 +94,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _signInPasswordController.clear();
         context.go('/');
       } else {
-        final errorMsg = (ref.read(authProvider).errorMessage ?? '').toLowerCase();
-        if (errorMsg.contains('internal server') || errorMsg.contains('500')) {
-          setState(() => _signInPasswordError = 'Internal server error. Please try again.');
-        } else {
-          setState(() => _signInPasswordError = 'wrong username/password . try again');
-        }
+        setState(() => _signInPasswordError = 'wrong username/password try again');
       }
     } else if (_viewMode == AuthViewMode.signup) {
       final storeName = _signUpStoreNameController.text.trim();
