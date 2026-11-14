@@ -49,124 +49,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  void _showSenseErrorDialog({
-    required String title,
-    required String message,
-    required IconData icon,
-    required Color iconColor,
-    required String tagText,
-    required String actionText,
-    VoidCallback? onAction,
-    String? secondaryText,
-    VoidCallback? onSecondary,
-  }) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: const BorderSide(color: AppTheme.surfaceBorder)),
-        contentPadding: const EdgeInsets.all(24),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: iconColor.withOpacity(0.3)),
-              ),
-              child: Icon(icon, color: iconColor, size: 28),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                tagText.toUpperCase(),
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: iconColor, letterSpacing: 0.8),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            Text(message, style: const TextStyle(fontSize: 12, color: AppTheme.textMuted, height: 1.4), textAlign: TextAlign.center),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  onAction?.call();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                child: Text(actionText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              ),
-            ),
-            if (secondaryText != null) ...[
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    onSecondary?.call();
-                  },
-                  child: Text(secondaryText, style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 12)),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
+  String? _signInEmailError;
+  String? _signInPasswordError;
+  String? _signUpStoreNameError;
+  String? _signUpEmailError;
+  String? _signUpPasswordError;
+
+  void _clearInlineErrors() {
+    setState(() {
+      _signInEmailError = null;
+      _signInPasswordError = null;
+      _signUpStoreNameError = null;
+      _signUpEmailError = null;
+      _signUpPasswordError = null;
+    });
   }
 
   Future<void> _handleDirectAuth() async {
+    _clearInlineErrors();
     if (_viewMode == AuthViewMode.login) {
       final email = _signInEmailController.text.trim();
       final password = _signInPasswordController.text.trim();
 
       if (email.isEmpty) {
-        _showSenseErrorDialog(
-          title: 'Email Address Required',
-          message: 'Please enter your registered email address to sign into your terminal.',
-          icon: Icons.alternate_email_rounded,
-          iconColor: Colors.amber,
-          tagText: 'Email Missing',
-          actionText: 'Enter Email',
-        );
+        setState(() => _signInEmailError = 'Please enter your registered email address');
         return;
       }
       if (!email.contains('@') || !email.contains('.')) {
-        _showSenseErrorDialog(
-          title: 'Invalid Email Format',
-          message: 'Please check your email address for spelling mistakes.',
-          icon: Icons.alternate_email_rounded,
-          iconColor: Colors.amber,
-          tagText: 'Invalid Email',
-          actionText: 'Fix Email',
-        );
+        setState(() => _signInEmailError = 'Please enter a valid email address');
         return;
       }
       if (password.isEmpty) {
-        _showSenseErrorDialog(
-          title: 'Password Required',
-          message: 'Please enter your account password to verify your identity.',
-          icon: Icons.lock_outline_rounded,
-          iconColor: Colors.roseAccent,
-          tagText: 'Password Missing',
-          actionText: 'Enter Password',
-        );
+        setState(() => _signInPasswordError = 'Please enter your password');
         return;
       }
 
@@ -184,29 +98,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _signInPasswordController.clear();
         context.go('/');
       } else {
-        final errorMsg = ref.read(authProvider).errorMessage ?? '';
-        if (errorMsg.toLowerCase().contains('password')) {
-          _showSenseErrorDialog(
-            title: 'Incorrect Password',
-            message: 'The password you entered is incorrect. Please re-enter your password or reset it.',
-            icon: Icons.lock_reset_rounded,
-            iconColor: Colors.roseAccent,
-            tagText: 'Wrong Password',
-            actionText: 'Try Again',
-            secondaryText: 'Forgot Password?',
-            onSecondary: () => setState(() => _viewMode = AuthViewMode.forgotPassword),
-          );
+        final errorMsg = (ref.read(authProvider).errorMessage ?? '').toLowerCase();
+        if (errorMsg.contains('internal server') || errorMsg.contains('500')) {
+          setState(() => _signInPasswordError = 'Internal server error. Please try again.');
         } else {
-          _showSenseErrorDialog(
-            title: 'Account Not Found',
-            message: 'No registered merchant account found matching this email address.',
-            icon: Icons.person_off_rounded,
-            iconColor: Colors.amber,
-            tagText: 'Unregistered Email',
-            actionText: 'Check Email',
-            secondaryText: 'Sign Up (Create Account)',
-            onSecondary: () => setState(() => _viewMode = AuthViewMode.signup),
-          );
+          setState(() => _signInPasswordError = 'wrong username/password . try again');
         }
       }
     } else if (_viewMode == AuthViewMode.signup) {
@@ -215,36 +111,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final password = _signUpPasswordController.text.trim();
 
       if (storeName.length < 2) {
-        _showSenseErrorDialog(
-          title: 'Store Name Required',
-          message: 'Please enter your business or store name (at least 2 characters).',
-          icon: Icons.storefront_rounded,
-          iconColor: Colors.indigoAccent,
-          tagText: 'Store Name Missing',
-          actionText: 'Enter Store Name',
-        );
+        setState(() => _signUpStoreNameError = 'Please enter your store or business name');
         return;
       }
       if (!email.contains('@') || !email.contains('.')) {
-        _showSenseErrorDialog(
-          title: 'Valid Email Required',
-          message: 'Please enter a valid business email address for registration.',
-          icon: Icons.alternate_email_rounded,
-          iconColor: Colors.amber,
-          tagText: 'Invalid Email',
-          actionText: 'Fix Email',
-        );
+        setState(() => _signUpEmailError = 'Please enter a valid business email address');
         return;
       }
       if (password.length < 6) {
-        _showSenseErrorDialog(
-          title: 'Password Too Short',
-          message: 'Your password must be at least 6 characters long for security.',
-          icon: Icons.lock_outline_rounded,
-          iconColor: Colors.roseAccent,
-          tagText: 'Weak Password',
-          actionText: 'Set Stronger Password',
-        );
+        setState(() => _signUpPasswordError = 'Password must be at least 6 characters long');
         return;
       }
 
@@ -266,38 +141,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       // SWITCH TO SIGN IN
       setState(() => _viewMode = AuthViewMode.login);
-
-      _showSenseErrorDialog(
-        title: 'Account Created Successfully! 🎉',
-        message: 'Your store "$storeName" is registered! Please sign in with your email and password.',
-        icon: Icons.verified_rounded,
-        iconColor: AppTheme.secondary,
-        tagText: 'Registration Complete',
-        actionText: 'Proceed to Sign In',
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✓ Account registered! Please enter your email and password to sign in.'),
+          backgroundColor: AppTheme.secondary,
+        ),
       );
     } else {
       final email = _forgotEmailController.text.trim();
       final newPw = _newPasswordController.text.trim();
       if (!email.contains('@')) {
-        _showSenseErrorDialog(
-          title: 'Email Address Required',
-          message: 'Please enter your registered email address to reset password.',
-          icon: Icons.alternate_email_rounded,
-          iconColor: Colors.amber,
-          tagText: 'Email Missing',
-          actionText: 'Enter Email',
-        );
-        return;
-      }
-      if (newPw.length < 6) {
-        _showSenseErrorDialog(
-          title: 'Password Too Short',
-          message: 'New password must be at least 6 characters long.',
-          icon: Icons.lock_outline_rounded,
-          iconColor: Colors.roseAccent,
-          tagText: 'Weak Password',
-          actionText: 'Set 6+ Char Password',
-        );
+        setState(() => _signInEmailError = 'Please enter your registered email address');
         return;
       }
       _showOtpModal(email);
@@ -672,6 +526,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               keyboardType: TextInputType.emailAddress,
                             ),
+                            if (_signInEmailError != null) ...[
+                              const SizedBox(height: 4),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  _signInEmailError!,
+                                  style: const TextStyle(fontSize: 11, color: AppTheme.error, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 12),
                             TextFormField(
                               controller: _signInPasswordController,
@@ -686,6 +550,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ),
                             ),
+                            if (_signInPasswordError != null) ...[
+                              const SizedBox(height: 4),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  _signInPasswordError!,
+                                  style: const TextStyle(fontSize: 11, color: AppTheme.error, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 6),
                             Align(
                               alignment: Alignment.centerRight,
@@ -726,6 +600,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 prefixIcon: Icon(Icons.storefront_rounded, size: 20),
                               ),
                             ),
+                            if (_signUpStoreNameError != null) ...[
+                              const SizedBox(height: 4),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  _signUpStoreNameError!,
+                                  style: const TextStyle(fontSize: 11, color: AppTheme.error, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 12),
                             TextFormField(
                               controller: _signUpEmailController,
@@ -737,6 +621,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               keyboardType: TextInputType.emailAddress,
                             ),
+                            if (_signUpEmailError != null) ...[
+                              const SizedBox(height: 4),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  _signUpEmailError!,
+                                  style: const TextStyle(fontSize: 11, color: AppTheme.error, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 12),
                             TextFormField(
                               controller: _signUpPhoneController,
@@ -762,6 +656,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ),
                             ),
+                            if (_signUpPasswordError != null) ...[
+                              const SizedBox(height: 4),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  _signUpPasswordError!,
+                                  style: const TextStyle(fontSize: 11, color: AppTheme.error, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 14),
                             ElevatedButton(
                               onPressed: _isLoading ? null : _handleDirectAuth,

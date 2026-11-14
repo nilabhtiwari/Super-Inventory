@@ -2058,42 +2058,6 @@
           </div>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- INTELLIGENT ERROR-SENSING AUTH MODAL POPUP                   -->
-        <!-- ============================================================ -->
-        <div id="authSenseModal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4 transition-all">
-          <div class="w-full max-w-[340px] bg-white border border-slate-200 rounded-3xl p-5 text-center shadow-2xl animate-in zoom-in-95 duration-200">
-            <!-- Dynamic Sensing Icon Container -->
-            <div id="authSenseIconBox" class="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center mb-3 shadow-xs">
-              <span class="material-symbols-outlined text-2xl" id="authSenseIcon">error</span>
-            </div>
-
-            <!-- Dynamic Category Tag -->
-            <div id="authSenseTag" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider mb-2">
-              <span class="material-symbols-outlined text-xs" id="authSenseTagIcon">info</span>
-              <span id="authSenseTagText">Authentication Alert</span>
-            </div>
-
-            <!-- Title -->
-            <h3 class="text-sm sm:text-base font-black text-slate-900 mb-1.5" id="authSenseTitle">Action Required</h3>
-
-            <!-- Detailed Sensing Explanation Message -->
-            <div class="text-xs text-slate-600 leading-relaxed mb-5" id="authSenseMessage">
-              Please review your credentials.
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="space-y-2">
-              <button type="button" id="authSenseActionBtn" class="w-full py-2.5 bg-brand-primary hover:bg-brand-primaryGlow text-white font-extrabold text-xs rounded-xl shadow transition active:scale-95">
-                Got It
-              </button>
-              <button type="button" id="authSenseSecondaryBtn" class="hidden w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition active:scale-95">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-
         <div class="flex items-center justify-center gap-1.5 text-[9px] text-brand-muted font-bold pt-3">
           <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
           <span>256-BIT ENCRYPTED & SECURED</span>
@@ -3485,98 +3449,59 @@
       });
     }
 
-    function highlightAuthField(fieldId, errorMsg) {
+    function setInlineAuthError(fieldId, errorMsg) {
       clearAuthFieldHighlights();
       const el = document.getElementById(fieldId);
       if (el) {
         el.classList.remove('border-slate-200', 'bg-slate-50');
         el.classList.add('border-rose-500', 'ring-2', 'ring-rose-400', 'bg-rose-50/50');
+        setTimeout(() => el.focus(), 60);
       }
+
       let errContainerId = '';
-      if (fieldId === 'signInEmailInput') errContainerId = 'signInEmailError';
-      else if (fieldId === 'signInPasswordInput') errContainerId = 'signInPasswordError';
-      else if (fieldId === 'signUpStoreName') errContainerId = 'signUpStoreNameError';
-      else if (fieldId === 'signUpEmailInput') errContainerId = 'signUpEmailError';
-      else if (fieldId === 'signUpPasswordInput') errContainerId = 'signUpPasswordError';
+      let textSpanId = '';
+      if (fieldId === 'signInEmailInput') {
+        errContainerId = 'signInEmailError';
+        textSpanId = 'signInEmailErrorText';
+      } else if (fieldId === 'signInPasswordInput') {
+        errContainerId = 'signInPasswordError';
+        textSpanId = 'signInPasswordErrorText';
+      } else if (fieldId === 'signUpStoreName') {
+        errContainerId = 'signUpStoreNameError';
+        textSpanId = 'signUpStoreNameErrorText';
+      } else if (fieldId === 'signUpEmailInput') {
+        errContainerId = 'signUpEmailError';
+        textSpanId = 'signUpEmailErrorText';
+      } else if (fieldId === 'signUpPasswordInput') {
+        errContainerId = 'signUpPasswordError';
+        textSpanId = 'signUpPasswordErrorText';
+      } else if (fieldId === 'forgotEmailInput') {
+        errContainerId = 'forgotEmailError';
+      }
 
       if (errContainerId) {
         const errEl = document.getElementById(errContainerId);
         if (errEl) {
           errEl.classList.remove('hidden');
-          const textSpan = errEl.querySelector('span:last-child');
-          if (textSpan && errorMsg) textSpan.innerText = errorMsg;
+          if (textSpanId) {
+            const span = document.getElementById(textSpanId);
+            if (span) span.innerText = errorMsg;
+          } else {
+            errEl.innerText = errorMsg;
+          }
         }
       }
     }
 
-    function showAuthSenseError({ field, title, message, tagText, actionText = 'Got It', onAction, secondaryText, onSecondary }) {
+    // Direct inline error bridge (no popup modal)
+    function showAuthSenseError({ field, message }) {
       if (field) {
-        highlightAuthField(field, message);
+        setInlineAuthError(field, message);
       }
-
-      const modal = document.getElementById('authSenseModal');
-      const iconBox = document.getElementById('authSenseIconBox');
-      const iconEl = document.getElementById('authSenseIcon');
-      const tagBox = document.getElementById('authSenseTag');
-      const tagIcon = document.getElementById('authSenseTagIcon');
-      const tagTextEl = document.getElementById('authSenseTagText');
-      const titleEl = document.getElementById('authSenseTitle');
-      const msgEl = document.getElementById('authSenseMessage');
-      const actionBtn = document.getElementById('authSenseActionBtn');
-      const secBtn = document.getElementById('authSenseSecondaryBtn');
-
-      if (titleEl) titleEl.innerText = title;
-      if (msgEl) msgEl.innerHTML = message;
-
-      if (field && (field.includes('Password') || field.includes('pw'))) {
-        if (iconBox) iconBox.className = 'w-14 h-14 mx-auto rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mb-3 shadow-xs';
-        if (iconEl) iconEl.innerText = 'lock_reset';
-        if (tagBox) tagBox.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider mb-2 bg-rose-100 text-rose-700';
-        if (tagIcon) tagIcon.innerText = 'password';
-        if (tagTextEl) tagTextEl.innerText = tagText || 'Password Error';
-      } else if (field && (field.includes('Email') || field.includes('identifier'))) {
-        if (iconBox) iconBox.className = 'w-14 h-14 mx-auto rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mb-3 shadow-xs';
-        if (iconEl) iconEl.innerText = 'mark_email_unread';
-        if (tagBox) tagBox.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider mb-2 bg-amber-100 text-amber-800';
-        if (tagIcon) tagIcon.innerText = 'alternate_email';
-        if (tagTextEl) tagTextEl.innerText = tagText || 'Email Issue';
-      } else {
-        if (iconBox) iconBox.className = 'w-14 h-14 mx-auto rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center mb-3 shadow-xs';
-        if (iconEl) iconEl.innerText = 'storefront';
-        if (tagBox) tagBox.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider mb-2 bg-indigo-100 text-indigo-700';
-        if (tagIcon) tagIcon.innerText = 'business';
-        if (tagTextEl) tagTextEl.innerText = tagText || 'Store Detail Required';
-      }
-
-      if (actionBtn) {
-        actionBtn.innerText = actionText;
-        actionBtn.onclick = () => {
-          closeAuthSenseModal();
-          if (onAction) onAction();
-          if (field) {
-            setTimeout(() => document.getElementById(field)?.focus(), 80);
-          }
-        };
-      }
-
-      if (secBtn) {
-        if (secondaryText) {
-          secBtn.classList.remove('hidden');
-          secBtn.innerText = secondaryText;
-          secBtn.onclick = () => {
-            closeAuthSenseModal();
-            if (onSecondary) onSecondary();
-          };
-        } else {
-          secBtn.classList.add('hidden');
-        }
-      }
-
-      if (modal) modal.classList.remove('hidden');
     }
 
     function closeAuthSenseModal() {
-      document.getElementById('authSenseModal')?.classList.add('hidden');
+      // No popup modal
     }
 
     function setAuthView(mode) {
@@ -3632,39 +3557,21 @@
       const email = (emailInput?.value || '').trim();
       const pw = (pwInput?.value || '').trim();
 
-      // 1. Sense Missing Email
+      // 1. Missing Email
       if (!email) {
-        showAuthSenseError({
-          field: 'signInEmailInput',
-          title: 'Email Address Required',
-          message: 'Please enter your registered email address to sign into Super Inventory.',
-          tagText: 'Email Missing',
-          actionText: 'Enter Email'
-        });
+        setInlineAuthError('signInEmailInput', 'Please enter your registered email address');
         return;
       }
 
-      // 2. Sense Invalid Email Format
+      // 2. Invalid Email Format
       if (!email.includes('@') || !email.includes('.') || email.length < 5) {
-        showAuthSenseError({
-          field: 'signInEmailInput',
-          title: 'Invalid Email Format',
-          message: `The email address "<b>${escapeHtml(email)}</b>" is invalid. Please verify spelling.`,
-          tagText: 'Invalid Email',
-          actionText: 'Fix Email'
-        });
+        setInlineAuthError('signInEmailInput', 'Please enter a valid email address');
         return;
       }
 
-      // 3. Sense Missing Password
+      // 3. Missing Password
       if (!pw) {
-        showAuthSenseError({
-          field: 'signInPasswordInput',
-          title: 'Password Required',
-          message: 'Please enter your account password to verify your identity.',
-          tagText: 'Password Missing',
-          actionText: 'Enter Password'
-        });
+        setInlineAuthError('signInPasswordInput', 'Please enter your password');
         return;
       }
 
@@ -3674,33 +3581,21 @@
       if (submitBtn) submitBtn.disabled = true;
       if (submitText) submitText.innerText = 'Verifying...';
 
-      // 4. Check Stored Users Database
+      // 4. Check Stored Users Database Locally
       const cleanEmail = email.toLowerCase();
       const users = getStoredUsers();
       const matchedUser = users.find(u => u.email && u.email.trim().toLowerCase() === cleanEmail);
 
       if (matchedUser) {
-        // 5. Sense Incorrect Password
+        // Password Mismatch
         if (matchedUser.password !== pw) {
           if (submitBtn) submitBtn.disabled = false;
           if (submitText) submitText.innerText = originalText;
-          showAuthSenseError({
-            field: 'signInPasswordInput',
-            title: 'Incorrect Password',
-            message: `The password you entered is incorrect for account "<b>${escapeHtml(matchedUser.email)}</b>".<br><br>Please re-enter your password or reset it.`,
-            tagText: 'Wrong Password',
-            actionText: 'Try Password Again',
-            secondaryText: 'Forgot Password?',
-            onSecondary: () => {
-              setAuthView('forgot');
-              const fEmail = document.getElementById('forgotEmailInput');
-              if (fEmail) fEmail.value = matchedUser.email;
-            }
-          });
+          setInlineAuthError('signInPasswordInput', 'wrong username/password . try again');
           return;
         }
 
-        // 6. Valid Credentials! Clean Up and Log In
+        // Credentials Matched!
         isLoggedIn = true;
         const sellerObj = {
           id: matchedUser.email || 'seller-01',
@@ -3713,11 +3608,11 @@
         localStorage.setItem('super_inventory_token', 'local-token-' + Date.now());
         activateMerchantSession(sellerObj);
 
-        // VANISH SIGN IN INPUT FIELDS
+        // Vanish input fields
         if (emailInput) emailInput.value = '';
         if (pwInput) pwInput.value = '';
 
-        // Async sync with Node backend
+        // Background sync
         fetch(`${BACKEND_API_BASE}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -3733,7 +3628,7 @@
         return;
       }
 
-      // 7. Fallback to Node.js Backend API
+      // 5. Query Node.js Backend API
       try {
         const response = await fetch(`${BACKEND_API_BASE}/auth/login`, {
           method: 'POST',
@@ -3773,32 +3668,25 @@
         } else {
           if (submitBtn) submitBtn.disabled = false;
           if (submitText) submitText.innerText = originalText;
-          showAuthSenseError({
-            field: 'signInPasswordInput',
-            title: 'Authentication Failed',
-            message: result.message || 'Incorrect email or password. Please verify your credentials.',
-            tagText: 'Verification Failed',
-            actionText: 'Try Again'
-          });
+
+          const errMsg = result.message || '';
+          if (errMsg.toLowerCase().includes('internal server') || response.status >= 500) {
+            setInlineAuthError('signInPasswordInput', 'Internal server error. Please try again.');
+          } else {
+            setInlineAuthError('signInPasswordInput', 'wrong username/password . try again');
+          }
           return;
         }
       } catch (apiErr) {
-        // 8. Account Not Found anywhere
         if (submitBtn) submitBtn.disabled = false;
         if (submitText) submitText.innerText = originalText;
-        showAuthSenseError({
-          field: 'signInEmailInput',
-          title: 'Account Not Found',
-          message: `No registered account found with email "<b>${escapeHtml(email)}</b>".<br><br>Would you like to register a new account now?`,
-          tagText: 'Unregistered Email',
-          actionText: 'Check Email',
-          secondaryText: 'Sign Up (Create Account)',
-          onSecondary: () => {
-            setAuthView('signup');
-            const sEmail = document.getElementById('signUpEmailInput');
-            if (sEmail) sEmail.value = email;
-          }
-        });
+        // Check if server is reachable or errored
+        const errStr = String(apiErr || '');
+        if (errStr.toLowerCase().includes('internal server') || errStr.toLowerCase().includes('500')) {
+          setInlineAuthError('signInPasswordInput', 'Internal server error. Please try again.');
+        } else {
+          setInlineAuthError('signInPasswordInput', 'wrong username/password . try again');
+        }
       }
     }
 
@@ -3814,59 +3702,30 @@
       const phone = (phoneInput?.value || '').trim();
       const pw = (pwInput?.value || '').trim();
 
-      // 1. Sense Missing / Invalid Store Name
+      // 1. Missing Store Name
       if (!storeName || storeName.length < 2) {
-        showAuthSenseError({
-          field: 'signUpStoreName',
-          title: 'Store Name Required',
-          message: 'Please enter your Store or Business Name (at least 2 characters) to set up your billing profile.',
-          tagText: 'Store Name Missing',
-          actionText: 'Enter Store Name'
-        });
+        setInlineAuthError('signUpStoreName', 'Please enter your store or business name');
         return;
       }
 
-      // 2. Sense Missing / Invalid Email
+      // 2. Missing Email
       if (!email || !email.includes('@') || !email.includes('.') || email.length < 5) {
-        showAuthSenseError({
-          field: 'signUpEmailInput',
-          title: 'Valid Email Address Required',
-          message: 'Please enter a valid business email address for account security and digital receipts.',
-          tagText: 'Invalid Email',
-          actionText: 'Enter Valid Email'
-        });
+        setInlineAuthError('signUpEmailInput', 'Please enter a valid business email address');
         return;
       }
 
-      // 3. Sense Email Already Registered
+      // 3. Email Already Exists
       const cleanEmail = email.toLowerCase();
       const existingUsers = getStoredUsers();
       const alreadyExists = existingUsers.some(u => u.email && u.email.trim().toLowerCase() === cleanEmail);
       if (alreadyExists) {
-        showAuthSenseError({
-          field: 'signUpEmailInput',
-          title: 'Account Already Exists',
-          message: `An account with email "<b>${escapeHtml(email)}</b>" is already registered.<br><br>Please switch to Sign In to access your store.`,
-          tagText: 'Email Registered',
-          actionText: 'Go to Sign In',
-          onAction: () => {
-            setAuthView('login');
-            const lEmail = document.getElementById('signInEmailInput');
-            if (lEmail) lEmail.value = email;
-          }
-        });
+        setInlineAuthError('signUpEmailInput', 'An account with this email already exists. Please Sign In.');
         return;
       }
 
-      // 4. Sense Weak Password
+      // 4. Password Too Short
       if (!pw || pw.length < 6) {
-        showAuthSenseError({
-          field: 'signUpPasswordInput',
-          title: 'Password Too Short',
-          message: 'Your password must be at least 6 characters long to keep your retail terminal secure.',
-          tagText: 'Password Security',
-          actionText: 'Create 6+ Character Password'
-        });
+        setInlineAuthError('signUpPasswordInput', 'Password must be at least 6 characters long');
         return;
       }
 
@@ -3892,14 +3751,12 @@
         if (regRes.status === 409 || (regData && !regData.success && regData.message && regData.message.includes('already exists'))) {
           if (submitBtn) submitBtn.disabled = false;
           if (submitText) submitText.innerText = originalText;
-          showAuthSenseError({
-            field: 'signUpEmailInput',
-            title: 'Account Already Exists',
-            message: regData.message || 'An account with this email already exists. Please Sign In.',
-            tagText: 'Email Registered',
-            actionText: 'Go to Sign In',
-            onAction: () => setAuthView('login')
-          });
+          setInlineAuthError('signUpEmailInput', regData.message || 'An account with this email already exists. Please Sign In.');
+          return;
+        } else if (regRes.status >= 500) {
+          if (submitBtn) submitBtn.disabled = false;
+          if (submitText) submitText.innerText = originalText;
+          setInlineAuthError('signUpPasswordInput', 'Internal server error. Please try again.');
           return;
         }
       } catch (apiErr) {
@@ -3916,33 +3773,22 @@
       };
       saveNewUser(newUser);
 
-      // 7. Security Enforcement: DO NOT auto-log in. Require explicit credentials matching.
       isLoggedIn = false;
       localStorage.removeItem('super_inventory_token');
       localStorage.removeItem('super_inventory_seller');
 
-      // 8. VANISH ALL SIGN UP FIELDS COMPLETELY (Nothing retained in input fields)
+      // 7. Vanish all signup inputs
       if (storeInput) storeInput.value = '';
       if (emailInput) emailInput.value = '';
       if (phoneInput) phoneInput.value = '';
       if (pwInput) pwInput.value = '';
 
-      // 9. Switch cleanly to Sign In
+      // 8. Redirect cleanly to Sign In
       setAuthView('login');
       if (submitBtn) submitBtn.disabled = false;
       if (submitText) submitText.innerText = originalText;
 
-      // Show professional modal alerting user that account was created and to sign in with their credentials!
-      showAuthSenseError({
-        field: 'signInEmailInput',
-        title: 'Account Created Successfully! 🎉',
-        message: `Your store <b>${escapeHtml(storeName)}</b> is registered!<br><br>Please enter your email and password to securely sign into your POS terminal.`,
-        tagText: 'Registration Complete',
-        actionText: 'Proceed to Sign In',
-        onAction: () => {
-          document.getElementById('signInEmailInput')?.focus();
-        }
-      });
+      showAppToast('✓ Account registered! Please enter your email and password to sign in.', 'verified', true);
     }
 
     async function handleForgotSubmit() {
@@ -3950,24 +3796,12 @@
       const newPw = document.getElementById('forgotNewPasswordInput')?.value.trim();
 
       if (!email || !email.includes('@')) {
-        showAuthSenseError({
-          field: 'forgotEmailInput',
-          title: 'Email Required',
-          message: 'Please enter your registered email address to reset your password.',
-          tagText: 'Email Missing',
-          actionText: 'Enter Email'
-        });
+        setInlineAuthError('forgotEmailInput', 'Please enter your registered email address');
         return;
       }
 
       if (!newPw || newPw.length < 6) {
-        showAuthSenseError({
-          field: 'forgotNewPasswordInput',
-          title: 'New Password Required',
-          message: 'Please enter a new password (at least 6 characters).',
-          tagText: 'Password Length',
-          actionText: 'Set Password'
-        });
+        setInlineAuthError('forgotNewPasswordInput', 'Password must be at least 6 characters long');
         return;
       }
 
