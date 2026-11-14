@@ -5270,10 +5270,12 @@
 
       // Lifecycle hook for Live Camera Scanner
       if (screenId === 'billing') {
+        isContinuousScanningMode = true;
         setTimeout(() => {
           startCameraBarcodeScanner();
         }, 120);
       } else {
+        isContinuousScanningMode = false;
         stopCameraBarcodeScanner();
       }
     }
@@ -5567,7 +5569,10 @@
       `).join('');
     }
 
-    function closeQtyUnitModal() {
+    function closeQtyUnitModal(isCancelled = true) {
+      if (isCancelled) {
+        isContinuousScanningMode = false;
+      }
       const qModal = document.getElementById('qtyUnitModal');
       if (qModal) {
         qModal.classList.add('hidden');
@@ -5734,9 +5739,19 @@
       }
 
       const addedProdName = itemDisplayName;
-      closeQtyUnitModal();
+      closeQtyUnitModal(false);
       renderCart();
       showAppToast(`✓ Added to Bill: ${addedProdName} (₹${(finalPrice * pcsCount).toFixed(2)})`, 'shopping_bag');
+
+      // Continuous scanning loop: automatically re-open camera scanner for next product
+      if (isContinuousScanningMode) {
+        setTimeout(() => {
+          const billingScreen = document.getElementById('screen-billing');
+          if (billingScreen && !billingScreen.classList.contains('hidden')) {
+            startCameraBarcodeScanner();
+          }
+        }, 250);
+      }
     }
 
     // ============================================================
@@ -5744,6 +5759,7 @@
     // ============================================================
     let html5QrScannerInstance = null;
     let isCameraScanningActive = false;
+    let isContinuousScanningMode = false;
     let currentCameraFacingMode = "environment"; // "environment" (rear camera) or "user" (front)
     let lastScannedBarcodeTime = 0;
 
@@ -5871,6 +5887,7 @@
 
         // Success!
         isCameraScanningActive = true;
+        isContinuousScanningMode = true;
         updateCameraStatusUI(true, 'Live Scanner Active');
 
         // Playsinline & video autoplay enforcement for mobile iOS / Android
@@ -5965,9 +5982,11 @@
 
     async function toggleCameraScanning() {
       if (isCameraScanningActive) {
+        isContinuousScanningMode = false;
         await stopCameraBarcodeScanner();
         showAppToast('Camera Switched Off', 'no_photography');
       } else {
+        isContinuousScanningMode = true;
         updateCameraStatusUI(false, 'Starting Camera...');
         await startCameraBarcodeScanner();
         if (isCameraScanningActive) {
@@ -6006,7 +6025,7 @@
       }
     }
 
-    function onBarcodeSuccessfullyDetected(decodedText, decodedResult) {
+    async function onBarcodeSuccessfullyDetected(decodedText, decodedResult) {
       const now = Date.now();
       // Debounce: prevent same barcode triggering rapid-fire within 1.5 seconds
       if (now - lastScannedBarcodeTime < 1500) return;
@@ -6022,6 +6041,14 @@
       }
 
       showAppToast(`🔍 Barcode Detected: ${decodedText}`, 'barcode_scanner');
+
+      // Stop camera immediately so it does NOT scan in the background behind the modal!
+      isContinuousScanningMode = true;
+      try {
+        await stopCameraBarcodeScanner();
+      } catch (e) {
+        console.warn('Error pausing camera on scan:', e);
+      }
 
       // Process product in cart
       processScannedBarcode(decodedText);
@@ -6157,7 +6184,10 @@
       }, 100);
     }
 
-    function closeQuickAddScannedProductModal() {
+    function closeQuickAddScannedProductModal(isCancelled = true) {
+      if (isCancelled) {
+        isContinuousScanningMode = false;
+      }
       const modal = document.getElementById('quickAddScannedProductModal');
       if (modal) {
         modal.classList.add('hidden');
@@ -6276,9 +6306,19 @@
       }
 
       renderCart();
-      closeQuickAddScannedProductModal();
+      closeQuickAddScannedProductModal(false);
       playBarcodeScanAudioTone();
       showAppToast(`✓ Saved "${name}" to Inventory & added to Bill!`, 'check_circle');
+
+      // Continuous scanning loop: automatically re-open camera scanner for next product
+      if (isContinuousScanningMode) {
+        setTimeout(() => {
+          const billingScreen = document.getElementById('screen-billing');
+          if (billingScreen && !billingScreen.classList.contains('hidden')) {
+            startCameraBarcodeScanner();
+          }
+        }, 250);
+      }
     }
 
     function scanProduct(barcode) {
@@ -7016,6 +7056,11 @@
       if (cart.length === 0) {
         alert('Please add products to the bill first!');
         return;
+      }
+
+      isContinuousScanningMode = false;
+      if (typeof stopCameraBarcodeScanner === 'function') {
+        stopCameraBarcodeScanner();
       }
 
       let subtotal = 0;

@@ -113,7 +113,19 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       } else {
         // Method 3: Not Found -> Open Quick Add Modal
         HapticFeedback.heavyImpact();
+        try {
+          if (_isCameraVisible) {
+            await _scannerController.stop();
+          }
+        } catch (_) {}
+
         await _showQuickAddProductDialog(barcode);
+
+        try {
+          if (_isCameraVisible && mounted) {
+            await _scannerController.start();
+          }
+        } catch (_) {}
       }
     } finally {
       if (mounted) {
