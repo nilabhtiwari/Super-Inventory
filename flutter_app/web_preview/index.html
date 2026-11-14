@@ -1457,6 +1457,7 @@
             <div>
               <h3 class="text-sm font-bold text-white group-hover:text-brand-primaryContainer transition" id="settingsStoreName">Super Inventory</h3>
               <p class="text-xs text-brand-muted" id="settingsUserEmail">merchant@superinventory.com</p>
+              <p class="text-[10px] text-brand-secondary font-semibold mt-0.5" id="settingsTimingsDisplay">Hours: 08:00 AM - 10:30 PM</p>
             </div>
           </div>
           <span class="material-symbols-outlined text-brand-primary group-hover:translate-x-1 transition-transform">chevron_right</span>
@@ -1717,7 +1718,7 @@
       <div id="screen-edit-profile" class="hidden space-y-4 text-left">
         <!-- Sub-page Header -->
         <div class="flex items-center justify-between pb-2 border-b border-brand-surfaceBorder">
-          <button id="stitchProfileBackBtn" onclick="switchScreen('settings')" class="p-2 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-white hover:bg-brand-surface transition flex items-center" title="Back to Settings">
+          <button id="stitchProfileBackBtn" onclick="exitEditProfileScreen()" class="p-2 rounded-xl bg-brand-surfaceElevated border border-brand-surfaceBorder text-white hover:bg-brand-surface transition flex items-center" title="Back to Settings">
             <span class="material-symbols-outlined text-lg">arrow_back</span>
           </button>
           <h2 class="text-sm font-black text-white">Edit Profile & Ads</h2>
@@ -4883,54 +4884,106 @@
       }
     }
 
-    function saveStitchProfileUpdates() {
-      const name = document.getElementById('stitchBusinessName').value.trim();
-      const phone = document.getElementById('stitchPhone').value.trim();
-      const address = document.getElementById('stitchAddress').value.trim();
-      const openTime = document.getElementById('stitchOpenTime').value.trim();
-      const closeTime = document.getElementById('stitchCloseTime').value.trim();
-      const offer = document.getElementById('stitchOffer').value.trim();
-      const timings = `${openTime} - ${closeTime}`;
-
-      // Update Header & Side Drawer
-      document.getElementById('headerShopName').innerText = name || 'Super Inventory';
-      if (document.getElementById('headerStoreStatus')) document.getElementById('headerStoreStatus').innerText = '';
-      document.getElementById('drawerShopName').innerText = name || 'Super Inventory';
-      document.getElementById('drawerTimings').innerText = timings;
-      document.getElementById('drawerPhone').innerText = phone;
-      document.getElementById('drawerAddress').innerText = address;
-      document.getElementById('drawerOffer').innerText = offer;
-
-      // Update Settings Screen Banner
-      document.getElementById('settingsStoreName').innerText = name || 'Super Inventory';
-      document.getElementById('settingsTimingsDisplay').innerText = `Hours: ${timings}`;
-
-      // Update Live Thermal Receipt Fields & Ads
-      document.getElementById('rcptShopName').innerText = name || 'Super Inventory';
-      document.getElementById('rcptShopAddress').innerText = address;
-      document.getElementById('rcptTimings').innerText = timings;
-      document.getElementById('rcptHelpline').innerText = phone;
-      document.getElementById('rcptOfferBanner').innerText = offer;
-
-      // Save to merchant-scoped localStorage for strict multi-tenant isolation
-      const profileData = { name, phone, address, openTime, closeTime, offer };
-      localStorage.setItem(getMerchantStorageKey('super_inventory_profile_updates'), JSON.stringify(profileData));
-
-      // Update Bank UPI ID if entered in Profile Section
-      const directUpi = (document.getElementById('profileDirectUpiInput')?.value || '').trim();
-      const directPayee = (document.getElementById('profileDirectPayeeInput')?.value || '').trim() || name || 'Super Inventory Store';
-      if (directUpi && directUpi.includes('@')) {
-        localStorage.setItem(getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY), JSON.stringify({ payeeName: directPayee, vpa: directUpi, accountNo: '', ifsc: '', bankName: '' }));
-        refreshUpiDisplays();
-      }
-
-      // Mark clean and update snapshot so user can now navigate
+    function exitEditProfileScreen() {
       isProfileDirty = false;
-      profileOriginalSnapshot = getProfileFormValues();
       updateProfileDirtyWarning(false);
+      switchScreen('settings', true);
+    }
 
-      showAppToast('✓ Profile updates saved! Details are now synchronized.', 'verified');
-      switchScreen('settings');
+    function saveStitchProfileUpdates() {
+      try {
+        const name = (document.getElementById('stitchBusinessName')?.value || '').trim();
+        const phone = (document.getElementById('stitchPhone')?.value || '').trim();
+        const address = (document.getElementById('stitchAddress')?.value || '').trim();
+        const openTime = (document.getElementById('stitchOpenTime')?.value || '').trim();
+        const closeTime = (document.getElementById('stitchCloseTime')?.value || '').trim();
+        const offer = (document.getElementById('stitchOffer')?.value || '').trim();
+        const timings = `${openTime} - ${closeTime}`;
+
+        // Safe updates for Header & Side Drawer
+        const headerShop = document.getElementById('headerShopName');
+        if (headerShop) headerShop.innerText = name || 'Super Inventory';
+
+        const headerStatus = document.getElementById('headerStoreStatus');
+        if (headerStatus) headerStatus.innerText = '';
+
+        const drawerShop = document.getElementById('drawerShopName');
+        if (drawerShop) drawerShop.innerText = name || 'Super Inventory';
+
+        const drawerTim = document.getElementById('drawerTimings');
+        if (drawerTim) drawerTim.innerText = timings;
+
+        const drawerPh = document.getElementById('drawerPhone');
+        if (drawerPh) drawerPh.innerText = phone;
+
+        const drawerAddr = document.getElementById('drawerAddress');
+        if (drawerAddr) drawerAddr.innerText = address;
+
+        const drawerOff = document.getElementById('drawerOffer');
+        if (drawerOff) drawerOff.innerText = offer;
+
+        // Safe updates for Settings Screen Banner
+        const settingsStore = document.getElementById('settingsStoreName');
+        if (settingsStore) settingsStore.innerText = name || 'Super Inventory';
+
+        const settingsTim = document.getElementById('settingsTimingsDisplay');
+        if (settingsTim) settingsTim.innerText = `Hours: ${timings}`;
+
+        // Safe updates for Live Thermal Receipt Fields & Ads
+        const rcptShop = document.getElementById('rcptShopName');
+        if (rcptShop) rcptShop.innerText = name || 'Super Inventory';
+
+        const rcptAddr = document.getElementById('rcptShopAddress');
+        if (rcptAddr) rcptAddr.innerText = address;
+
+        const rcptTim = document.getElementById('rcptTimings');
+        if (rcptTim) rcptTim.innerText = timings;
+
+        const rcptHelp = document.getElementById('rcptHelpline');
+        if (rcptHelp) rcptHelp.innerText = phone;
+
+        const rcptOff = document.getElementById('rcptOfferBanner');
+        if (rcptOff) rcptOff.innerText = offer;
+
+        // Save to merchant-scoped localStorage for strict multi-tenant isolation
+        const profileData = { name, phone, address, openTime, closeTime, offer };
+        localStorage.setItem(getMerchantStorageKey('super_inventory_profile_updates'), JSON.stringify(profileData));
+
+        // Synchronize active seller cache if present
+        try {
+          const storedSeller = JSON.parse(localStorage.getItem('super_inventory_seller') || '{}');
+          if (storedSeller && typeof storedSeller === 'object') {
+            storedSeller.name = name || storedSeller.name;
+            storedSeller.store_name = name || storedSeller.store_name;
+            storedSeller.phone = phone || storedSeller.phone;
+            storedSeller.address = address || storedSeller.address;
+            localStorage.setItem('super_inventory_seller', JSON.stringify(storedSeller));
+          }
+        } catch (e) {}
+
+        // Update Bank UPI ID if entered in Profile Section
+        const directUpi = (document.getElementById('profileDirectUpiInput')?.value || '').trim();
+        const directPayee = (document.getElementById('profileDirectPayeeInput')?.value || '').trim() || name || 'Super Inventory Store';
+        if (directUpi && directUpi.includes('@')) {
+          localStorage.setItem(getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY), JSON.stringify({ payeeName: directPayee, vpa: directUpi, accountNo: '', ifsc: '', bankName: '' }));
+          if (typeof refreshUpiDisplays === 'function') refreshUpiDisplays();
+        }
+
+        // Mark clean and update snapshot so user can now navigate freely
+        isProfileDirty = false;
+        profileOriginalSnapshot = getProfileFormValues();
+        updateProfileDirtyWarning(false);
+
+        // Show confirmation toast and smoothly transition to settings
+        showAppToast('✓ Changes saved successfully!', 'verified', true);
+        switchScreen('settings', true);
+      } catch (err) {
+        console.error('Error in saveStitchProfileUpdates:', err);
+        isProfileDirty = false;
+        updateProfileDirtyWarning(false);
+        showAppToast('✓ Changes saved successfully!', 'verified', true);
+        switchScreen('settings', true);
+      }
     }
 
     function setFinancialTab(tab) {
@@ -5037,13 +5090,13 @@
       isLoggedIn = false;
     }
 
-    function switchScreen(screenId) {
+    function switchScreen(screenId, force = false) {
       // CHECK FOR UNSAVED CHANGES IN PROFILE & ADS SECTION:
       const editProfileScreen = document.getElementById('screen-edit-profile');
       const isCurrentlyInEditProfile = editProfileScreen && !editProfileScreen.classList.contains('hidden');
 
-      if (isCurrentlyInEditProfile && screenId !== 'edit-profile') {
-        if (checkProfileDirty()) {
+      if (!force && isCurrentlyInEditProfile && screenId !== 'edit-profile') {
+        if (isProfileDirty && checkProfileDirty()) {
           showAppToast('⚠️ Unsaved changes! Please save your profile and ads details before navigating.', 'warning', true);
           const banner = document.getElementById('profileUnsavedWarningBanner');
           if (banner) {

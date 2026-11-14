@@ -67,11 +67,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✓ Business Profile & Receipt Ads Updated Successfully!'),
+          content: Text('✓ Changes saved successfully!'),
           backgroundColor: AppTheme.secondary,
         ),
       );
-      context.pop();
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/settings');
+      }
     }
   }
 
@@ -84,9 +88,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         elevation: 2,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/settings');
+            }
+          },
         ),
-        title: const Text('Edit Profile & Business Info', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        title: const Text('Edit Profile & Ads', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
