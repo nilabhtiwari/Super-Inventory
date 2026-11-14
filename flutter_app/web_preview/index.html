@@ -2407,8 +2407,8 @@
             <span class="material-symbols-outlined text-lg">chat</span>
           </div>
           <div>
-            <h3 class="text-xs font-black text-slate-900">Send WhatsApp Invoice</h3>
-            <p class="text-[10px] text-emerald-600 font-bold">● Instant Direct Dispatch</p>
+            <h3 class="text-xs font-black text-slate-900">Send WhatsApp Bill</h3>
+            <p class="text-[10px] text-emerald-600 font-bold">● Instant Direct WhatsApp Dispatch</p>
           </div>
         </div>
         <button onclick="closeWhatsAppModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition flex items-center justify-center active:scale-95">
@@ -2417,22 +2417,31 @@
       </div>
 
       <div class="space-y-1.5">
-        <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Customer Mobile (WhatsApp)</label>
+        <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Customer Mobile (WhatsApp Number)</label>
         <div class="relative flex items-center">
           <span class="absolute left-3 text-xs font-black text-slate-400">+91</span>
-          <input type="tel" id="whatsappMobileInput" maxlength="10" placeholder="9876543210" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-emerald-500 focus:bg-white transition" />
+          <input type="tel" id="whatsappMobileInput" maxlength="10" placeholder="9876543210 (Optional)" 
+                 onkeydown="if(event.key === 'Enter') dispatchWhatsAppInvoiceNow();"
+                 class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-emerald-500 focus:bg-white transition" />
         </div>
+        <p class="text-[9.5px] text-slate-400 font-medium leading-tight">Type 10-digit number to open chat directly, or leave empty to choose contact in WhatsApp.</p>
       </div>
 
       <div class="space-y-1">
-        <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Message Preview</label>
+        <div class="flex items-center justify-between">
+          <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Invoice Preview</label>
+          <button type="button" onclick="copyWhatsAppBillText()" id="copyBillBtn" class="text-[10px] font-bold text-emerald-600 hover:underline flex items-center gap-0.5">
+            <span class="material-symbols-outlined text-xs">content_copy</span>
+            <span>Copy Text</span>
+          </button>
+        </div>
         <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[10.5px] font-mono text-slate-700 whitespace-pre-line max-h-36 overflow-y-auto custom-scroll leading-relaxed" id="whatsappMessagePreview"></div>
       </div>
 
       <div class="space-y-2 pt-1">
-        <button type="button" onclick="dispatchWhatsAppInvoiceNow()" class="w-full py-3 bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 active:scale-95 transition flex items-center justify-center gap-1.5">
-          <span class="material-symbols-outlined text-sm">send</span>
-          <span>Open in WhatsApp App</span>
+        <button type="button" onclick="dispatchWhatsAppInvoiceNow()" class="w-full py-3.5 bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 active:scale-95 transition flex items-center justify-center gap-1.5 uppercase tracking-wider">
+          <span class="material-symbols-outlined text-base">send</span>
+          <span>SEND ON WHATSAPP</span>
         </button>
         <button type="button" onclick="closeWhatsAppModal()" class="w-full py-2 bg-slate-100 border border-slate-200 text-slate-600 text-[10.5px] font-bold rounded-xl hover:text-slate-900 transition">
           Dismiss
@@ -8131,25 +8140,66 @@ ${itemsListText}
 ⏱ *Store Hours:* ${timings}
 🎉 Thank you for shopping with us! Visit again.`;
 
-      document.getElementById('waPreviewText').innerText = currentFormattedWhatsAppText;
-      updateWhatsAppDirectLink();
+      const previewEl = document.getElementById('whatsappMessagePreview');
+      if (previewEl) previewEl.innerText = currentFormattedWhatsAppText;
 
-      document.getElementById('whatsappModal').classList.remove('hidden');
+      const modal = document.getElementById('whatsappModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+      }
+
+      const input = document.getElementById('whatsappMobileInput');
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 150);
+      }
     }
 
     function closeWhatsAppModal() {
-      document.getElementById('whatsappModal').classList.add('hidden');
+      const modal = document.getElementById('whatsappModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
     }
 
-    function updateWhatsAppDirectLink() {
-      const input = document.getElementById('waCustomerPhoneInput');
-      let phone = (input?.value || '9876543210').replace(/[^0-9]/g, '');
-      if (phone.length === 10) phone = '91' + phone;
+    function dispatchWhatsAppInvoiceNow() {
+      const phoneInput = document.getElementById('whatsappMobileInput');
+      let rawPhone = (phoneInput ? phoneInput.value : '').trim();
+      let cleanPhone = rawPhone.replace(/\D/g, '');
 
-      const encodedMsg = encodeURIComponent(currentFormattedWhatsAppText);
-      const link = document.getElementById('waDirectSendLink');
-      if (link) {
-        link.href = `https://api.whatsapp.com/send?phone=${phone}&text=${encodedMsg}`;
+      // Standardize Indian phone number format (prefix 91 for 10-digit mobile)
+      if (cleanPhone.length === 10) {
+        cleanPhone = '91' + cleanPhone;
+      } else if (cleanPhone.length === 11 && cleanPhone.startsWith('0')) {
+        cleanPhone = '91' + cleanPhone.substring(1);
+      }
+
+      const encodedMsg = encodeURIComponent(currentFormattedWhatsAppText || 'Invoice from Super Inventory');
+      
+      // If phone number is specified, open chat directly with that person on WhatsApp.
+      // If left blank, open WhatsApp so the merchant can pick any contact / chat.
+      const waUrl = cleanPhone 
+        ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`
+        : `https://api.whatsapp.com/send?text=${encodedMsg}`;
+
+      closeWhatsAppModal();
+      showAppToast(cleanPhone ? `Opening WhatsApp for +${cleanPhone}...` : 'Opening WhatsApp...', 'chat');
+
+      // Seamlessly open WhatsApp app on mobile or desktop
+      try {
+        const link = document.createElement('a');
+        link.href = waUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          try { document.body.removeChild(link); } catch (e) {}
+        }, 500);
+      } catch (err) {
+        window.open(waUrl, '_blank');
       }
     }
 
@@ -8158,6 +8208,7 @@ ${itemsListText}
         navigator.clipboard.writeText(currentFormattedWhatsAppText).then(() => {
           const btn = document.getElementById('copyBillBtn');
           if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-xs">done</span> Copied!';
+          showAppToast('✓ Invoice text copied to clipboard', 'check');
           setTimeout(() => {
             if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-xs">content_copy</span> Copy Text';
           }, 2000);
