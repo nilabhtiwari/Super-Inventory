@@ -3456,8 +3456,14 @@
       // 1. SIGN IN MODE: DIRECT PASSWORD & STORED CREDENTIALS MATCHING (NO OTP)
       // -------------------------------------------------------------
       if (currentAuthMode === 'login') {
+        if (!identifier) {
+          showAppToast('Please enter your email address', 'warning', true);
+          document.getElementById('authEmailInput')?.focus();
+          return;
+        }
         if (!pw) {
           showAppToast('Please enter your password', 'lock', true);
+          document.getElementById('authPasswordInput')?.focus();
           return;
         }
 
@@ -3467,8 +3473,61 @@
         if (submitBtn) submitBtn.disabled = true;
         if (submitText) submitText.innerText = 'Verifying credentials...';
 
+        // 1. Check registered users locally first (instant match)
+        const cleanInput = identifier.trim().toLowerCase();
+        const cleanPhone = cleanPhoneNum(identifier);
+        const users = getStoredUsers();
+        const matchedUser = users.find(u => {
+          if (u.email && u.email.trim().toLowerCase() === cleanInput) return true;
+          if (u.phone && (cleanPhoneNum(u.phone) === cleanPhone || cleanPhoneNum(u.phone).endsWith(cleanPhone))) return true;
+          return false;
+        });
+
+        if (matchedUser) {
+          // Strictly verify password
+          if (matchedUser.password !== pw) {
+            showAppToast('Incorrect password. Please try again.', 'error', true);
+            if (submitBtn) submitBtn.disabled = false;
+            if (submitText) submitText.innerText = originalText;
+            document.getElementById('authPasswordInput')?.focus();
+            return;
+          }
+
+          // Credentials matched! Grant authenticated session
+          isLoggedIn = true;
+          const localSeller = {
+            id: matchedUser.email || matchedUser.phone || 'seller-01',
+            name: matchedUser.storeName || 'My Store',
+            store_name: matchedUser.storeName || 'My Store',
+            email: matchedUser.email || identifier,
+            phone: matchedUser.phone || '+91 9876543210',
+            role: 'seller'
+          };
+          localStorage.setItem('super_inventory_token', 'local-token-' + Date.now());
+          activateMerchantSession(localSeller);
+
+          // Clear inputs on success
+          if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = '';
+          if (document.getElementById('authPasswordInput')) document.getElementById('authPasswordInput').value = '';
+
+          // Sync backend login in background if available
+          fetch(`${BACKEND_API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: identifier, password: pw })
+          }).then(res => res.json()).then(r => {
+            if (r.success && r.token) localStorage.setItem('super_inventory_token', r.token);
+          }).catch(() => {});
+
+          showAppToast(`✓ Welcome back, ${matchedUser.storeName}!`, 'verified');
+          if (submitBtn) submitBtn.disabled = false;
+          if (submitText) submitText.innerText = originalText;
+          switchScreen('dashboard');
+          return;
+        }
+
+        // 2. Fallback: Query Node.js Backend API
         try {
-          // Attempt Login via Node.js Backend API
           const response = await fetch(`${BACKEND_API_BASE}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -3477,7 +3536,6 @@
           const result = await response.json();
 
           if (result.success && result.token) {
-            // Save Session in localStorage
             localStorage.setItem('super_inventory_token', result.token);
 
             const sellerObj = {
@@ -3489,7 +3547,6 @@
               role: result.seller.role || 'seller'
             };
 
-            // Sync with local memory
             saveNewUser({
               storeName: sellerObj.name,
               phone: sellerObj.phone,
@@ -3501,66 +3558,31 @@
             isLoggedIn = true;
             activateMerchantSession(sellerObj);
 
+            // Clear inputs
+            if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = '';
+            if (document.getElementById('authPasswordInput')) document.getElementById('authPasswordInput').value = '';
+
             showAppToast(`✓ ${result.message}`, 'verified');
             if (submitBtn) submitBtn.disabled = false;
             if (submitText) submitText.innerText = originalText;
             switchScreen('dashboard');
             return;
           } else {
-            // Server returned explicit error (Invalid password or account not found)
-            showAppToast(result.message || 'Invalid credentials. Please try again.', 'error', true);
+            showAppToast(result.message || 'Invalid email or password. Please try again.', 'error', true);
             if (submitBtn) submitBtn.disabled = false;
             if (submitText) submitText.innerText = originalText;
             return;
           }
         } catch (apiErr) {
-          console.warn('Backend server note, falling back to local store:', apiErr);
-          // Seamless fallback to local store if backend is offline
-          const users = getStoredUsers();
-          const cleanInputPhone = cleanPhoneNum(identifier);
-          const isEmailInput = identifier.includes('@');
-
-          const matchedUser = users.find(u => {
-            if (isEmailInput) return u.email.toLowerCase() === identifier.toLowerCase();
-            return cleanPhoneNum(u.phone) === cleanInputPhone || cleanPhoneNum(u.phone).endsWith(cleanInputPhone);
-          });
-
-          if (!matchedUser) {
-            showAppToast('No store account found. Please click Sign Up to create one.', 'error', true);
-            if (submitBtn) submitBtn.disabled = false;
-            if (submitText) submitText.innerText = originalText;
-            return;
-          }
-
-          if (matchedUser.password !== pw) {
-            showAppToast('Incorrect password. Please try again.', 'error', true);
-            if (submitBtn) submitBtn.disabled = false;
-            if (submitText) submitText.innerText = originalText;
-            return;
-          }
-
-          isLoggedIn = true;
-          const localSeller = {
-            id: matchedUser.email || matchedUser.phone,
-            name: matchedUser.storeName,
-            store_name: matchedUser.storeName,
-            email: matchedUser.email,
-            phone: matchedUser.phone,
-            role: 'seller'
-          };
-          localStorage.setItem('super_inventory_token', 'local-token-' + Date.now());
-          activateMerchantSession(localSeller);
-
-          showAppToast(`✓ Welcome back, ${matchedUser.storeName}!`, 'verified');
+          showAppToast('No account found with this email. Please click Sign Up.', 'error', true);
           if (submitBtn) submitBtn.disabled = false;
           if (submitText) submitText.innerText = originalText;
-          switchScreen('dashboard');
           return;
         }
       }
 
       // -------------------------------------------------------------
-      // 2. SIGN UP MODE: DIRECT SIGN UP WITH VALID EMAIL & STRONG PASSWORD
+      // 2. SIGN UP MODE: REGISTER ACCOUNT AND VANISH INPUT FIELDS
       // -------------------------------------------------------------
       if (currentAuthMode === 'signup') {
         const storeName = document.getElementById('authStoreName')?.value.trim();
@@ -3599,9 +3621,8 @@
         if (alreadyExists) {
           showAppToast('An account with this email is already registered. Please Sign In.', 'warning', true);
           setAuthView('login');
-          document.getElementById('authEmailInput').value = identifier;
-          document.getElementById('authPasswordInput').value = '';
-          document.getElementById('authPasswordInput')?.focus();
+          if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = '';
+          if (document.getElementById('authPasswordInput')) document.getElementById('authPasswordInput').value = '';
           if (submitBtn) submitBtn.disabled = false;
           if (submitText) submitText.innerText = 'SIGN IN';
           return;
@@ -3623,9 +3644,8 @@
           if (regRes.status === 409 || (regData && !regData.success && regData.message && regData.message.includes('already exists'))) {
             showAppToast(regData.message || 'An account with this email already exists. Please Sign In.', 'warning', true);
             setAuthView('login');
-            document.getElementById('authEmailInput').value = identifier;
-            document.getElementById('authPasswordInput').value = '';
-            document.getElementById('authPasswordInput')?.focus();
+            if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = '';
+            if (document.getElementById('authPasswordInput')) document.getElementById('authPasswordInput').value = '';
             if (submitBtn) submitBtn.disabled = false;
             if (submitText) submitText.innerText = 'SIGN IN';
             return;
@@ -3650,22 +3670,21 @@
         localStorage.removeItem('super_inventory_token');
         localStorage.removeItem('super_inventory_seller');
 
-        // Clear sensitive signup input fields
+        // 8. VANISH ALL INPUT FIELD DATA COMPLETELY (nothing remains intact)
+        if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = '';
+        if (document.getElementById('authPasswordInput')) document.getElementById('authPasswordInput').value = '';
         if (document.getElementById('authStoreName')) document.getElementById('authStoreName').value = '';
         if (document.getElementById('authSignupPhone')) document.getElementById('authSignupPhone').value = '';
+        if (document.getElementById('authNewPasswordInput')) document.getElementById('authNewPasswordInput').value = '';
 
-        // 8. Redirect directly to Sign In tab with email pre-filled & password cleared
+        // 9. Redirect directly to Sign In tab with a clean slate
         setAuthView('login');
-        if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = identifier;
-        if (document.getElementById('authPasswordInput')) {
-          document.getElementById('authPasswordInput').value = '';
-          document.getElementById('authPasswordInput').focus();
-        }
+        document.getElementById('authEmailInput')?.focus();
 
         if (submitBtn) submitBtn.disabled = false;
         if (submitText) submitText.innerText = 'SIGN IN';
 
-        showAppToast('✓ Account registered! Enter your password to sign in.', 'verified', true);
+        showAppToast('✓ Account registered! Please enter your email and password to sign in.', 'verified', true);
         switchScreen('login');
         return;
       }

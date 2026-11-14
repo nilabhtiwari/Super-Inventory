@@ -144,12 +144,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       setState(() {
                         _isLoading = false;
                         _viewMode = AuthViewMode.login;
+                        _emailController.clear();
                         _passwordController.clear();
+                        _storeNameController.clear();
                       });
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('✓ Account registered! Please enter your password to sign in.'),
+                            content: Text('✓ Account registered! Please enter your email and password to sign in.'),
                             backgroundColor: AppTheme.secondary,
                           ),
                         );
