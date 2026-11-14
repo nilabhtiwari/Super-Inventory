@@ -5371,13 +5371,13 @@
             const w = Math.max(200, Math.min(Math.floor((viewfinderWidth || 320) * 0.90), 480));
             const h = Math.max(120, Math.min(Math.floor((viewfinderHeight || 220) * 0.70), 240));
             return { width: w, height: h };
-          },
-          aspectRatio: 1.777778
+          }
         };
 
         let started = false;
+        let lastFailureErr = null;
 
-        // Try standard environment facing mode first
+        // Attempt 1: Standard environment facing mode (rear camera on mobile)
         try {
           await html5QrScannerInstance.start(
             { facingMode: "environment" },
@@ -5387,10 +5387,11 @@
           );
           started = true;
         } catch (envErr) {
+          lastFailureErr = envErr;
           console.warn('Direct facingMode environment failed, trying camera enumeration...', envErr);
         }
 
-        // Fallback: enumerate available cameras and choose back camera
+        // Attempt 2: Enumerate devices and select rear/environment camera
         if (!started) {
           try {
             try { await html5QrScannerInstance.clear(); } catch (e) {}
@@ -5411,11 +5412,12 @@
               started = true;
             }
           } catch (enumErr) {
+            lastFailureErr = enumErr;
             console.warn('Camera enumeration start failed:', enumErr);
           }
         }
 
-        // Fallback 3: try any camera device available
+        // Attempt 3: User facing mode (front camera fallback)
         if (!started) {
           try {
             try { await html5QrScannerInstance.clear(); } catch (e) {}
@@ -5429,6 +5431,7 @@
             );
             started = true;
           } catch (userErr) {
+            lastFailureErr = userErr;
             console.warn('User facing mode start failed:', userErr);
           }
         }
@@ -5436,6 +5439,7 @@
         if (!started) {
           isCameraScanningActive = false;
           updateCameraStatusUI(false, 'Camera Off');
+          handleCameraStartupError(lastFailureErr);
           return;
         }
 
@@ -5456,7 +5460,33 @@
         console.warn('Camera initiation notice:', err);
         isCameraScanningActive = false;
         updateCameraStatusUI(false, 'Camera Off');
+        handleCameraStartupError(err);
       }
+    }
+
+    function handleCameraStartupError(err) {
+      console.warn('Camera startup failure reason:', err);
+      const isSec = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost';
+      if (!isSec) {
+        showAppToast('⚠️ Camera requires HTTPS. Please open with https://', 'warning', true);
+        return;
+      }
+      const ua = navigator.userAgent || '';
+      const isInApp = /\b(FBAN|FBAV|Instagram|WhatsApp|Line|Snapchat|Twitter|MicroMessenger|Telegram|GSA\/|wv)\b/i.test(ua);
+      if (isInApp) {
+        showAppToast('📱 In-app browser detected. Tap ⋮ at top-right & choose "Open in Chrome" for camera.', 'warning', true);
+        return;
+      }
+      const errStr = (err && (err.name || err.message || String(err))) || '';
+      if (/NotAllowedError|PermissionDeniedError|denied|permission/i.test(errStr)) {
+        showAppToast('📷 Camera permission blocked. Tap the 🔒 lock icon in Chrome address bar to Allow Camera.', 'warning', true);
+        return;
+      }
+      if (/NotReadableError|TrackStartError|busy/i.test(errStr)) {
+        showAppToast('⚠️ Camera is in use by another app. Please close other camera apps and tap retry.', 'warning', true);
+        return;
+      }
+      showAppToast('📷 Tap the camera button above to start scanner.', 'info');
     }
 
     async function handleBarcodeImageUpload(event) {
@@ -5507,28 +5537,16 @@
       updateCameraStatusUI(false, 'Camera Off');
     }
 
-    function toggleCameraScanning() {
+    async function toggleCameraScanning() {
       if (isCameraScanningActive) {
-        stopCameraBarcodeScanner();
+        await stopCameraBarcodeScanner();
         showAppToast('Camera Switched Off', 'no_photography');
       } else {
-        // Direct synchronous getUserMedia call within user gesture event loop:
-        // This causes the mobile browser to display its native permission popup:
-        // "Allow https://... to access your camera [Allow] [Block]"
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(stream => {
-              stream.getTracks().forEach(t => t.stop());
-              startCameraBarcodeScanner();
-            })
-            .catch(err => {
-              console.warn('Native permission prompt catch:', err);
-              startCameraBarcodeScanner();
-            });
-        } else {
-          startCameraBarcodeScanner();
+        updateCameraStatusUI(false, 'Starting Camera...');
+        await startCameraBarcodeScanner();
+        if (isCameraScanningActive) {
+          showAppToast('Camera Active', 'photo_camera');
         }
-        showAppToast('Camera Switched On', 'photo_camera');
       }
     }
 
