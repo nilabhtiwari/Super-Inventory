@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: super-inventory-apk
-          path: flutter_app/build/app/outputs/flutter-apk/app-release.apk
+          path: flutter_app/build/app/outputs/**/app-release.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
