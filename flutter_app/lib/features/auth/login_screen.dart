@@ -141,22 +141,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             password: _passwordController.text.trim(),
                             fullName: _storeNameController.text.trim(),
                           );
-                    } else {
-                      await ref.read(authProvider.notifier).login(
-                            email: identifier,
-                            password: _passwordController.text.trim(),
-                          );
+                      setState(() {
+                        _isLoading = false;
+                        _viewMode = AuthViewMode.login;
+                        _passwordController.clear();
+                      });
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('✓ Account registered! Please enter your password to sign in.'),
+                            backgroundColor: AppTheme.secondary,
+                          ),
+                        );
+                      }
+                      return;
                     }
+
+                    final success = await ref.read(authProvider.notifier).login(
+                          email: identifier,
+                          password: _passwordController.text.trim(),
+                        );
                     setState(() => _isLoading = false);
 
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('✓ OTP Verified! Welcome to Super Inventory.'),
-                          backgroundColor: AppTheme.secondary,
-                        ),
-                      );
-                      context.go('/');
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('✓ Verified! Welcome to Super Inventory.'),
+                            backgroundColor: AppTheme.secondary,
+                          ),
+                        );
+                        context.go('/');
+                      } else {
+                        final errorMsg = ref.read(authProvider).errorMessage ?? 'Invalid credentials. Please try again.';
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(errorMsg),
+                            backgroundColor: AppTheme.error,
+                          ),
+                        );
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(

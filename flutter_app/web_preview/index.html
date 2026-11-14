@@ -1997,13 +1997,7 @@
             <span id="authSubmitBtnText">SIGN IN</span>
           </button>
 
-          <!-- Quick Test / Demo Credentials Chip (Below Sign In) -->
-          <div class="flex items-center justify-between px-1 pt-2 pb-0.5" id="demoAccountChipRow">
-            <span class="text-[10px] text-slate-500 font-medium">Temporary Access:</span>
-            <button type="button" onclick="fillDemoMerchantCredentials()" class="text-[10px] font-bold text-amber-700 hover:text-amber-800 flex items-center gap-1 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-400/30 active:scale-95 transition shadow-sm">
-              <span class="material-symbols-outlined text-xs">vpn_key</span> Demo Account (Open App)
-            </button>
-          </div>
+
 
 
         </div>
@@ -3373,36 +3367,6 @@
 
     let currentAuthMode = 'login'; // 'login', 'signup', 'forgot'
 
-    function fillDemoMerchantCredentials() {
-      const emailInput = document.getElementById('authEmailInput');
-      const pwInput = document.getElementById('authPasswordInput');
-      if (emailInput) emailInput.value = 'merchant@gmail.com';
-      if (pwInput) pwInput.value = 'Merchant@1234';
-
-      showAppToast('✓ Demo account verified! Opening Super Inventory...', 'verified');
-
-      // Grant authenticated session
-      isLoggedIn = true;
-      const demoSeller = {
-        id: 1,
-        uuid: 'seller-demo-uuid',
-        name: 'Super Inventory Store',
-        store_name: 'Super Inventory Store',
-        email: 'merchant@gmail.com',
-        phone: '+91 9876543210',
-        role: 'seller'
-      };
-      try {
-        localStorage.setItem('super_inventory_token', 'demo-token-' + Date.now());
-      } catch (e) {}
-      activateMerchantSession(demoSeller);
-
-      // Open the app home screen / dashboard immediately
-      setTimeout(() => {
-        switchScreen('dashboard');
-      }, 250);
-    }
-
     function setAuthView(mode) {
       currentAuthMode = mode;
       const tabHeader = document.getElementById('authTabHeader');
@@ -3417,7 +3381,6 @@
       const label = document.getElementById('authIdentifierLabel');
       const emailInput = document.getElementById('authEmailInput');
       const pwInput = document.getElementById('authPasswordInput');
-      const demoRow = document.getElementById('demoAccountChipRow');
       const forgotPwBtn = document.getElementById('authForgotPasswordBtn');
 
       // Clear field errors
@@ -3433,7 +3396,6 @@
         newPwGroup.classList.add('hidden');
         if (forgotPwBtn) forgotPwBtn.classList.remove('hidden');
         if (biometricBtn) biometricBtn.classList.remove('hidden');
-        if (demoRow) demoRow.classList.remove('hidden');
         document.getElementById('signupVerifyEmailRow')?.classList.add('hidden');
         label.innerText = 'Registered Email Address';
         emailInput.placeholder = 'Enter Registered Email Address';
@@ -3448,7 +3410,6 @@
         newPwGroup.classList.add('hidden');
         if (forgotPwBtn) forgotPwBtn.classList.add('hidden');
         if (biometricBtn) biometricBtn.classList.add('hidden');
-        if (demoRow) demoRow.classList.add('hidden');
         document.getElementById('signupVerifyEmailRow')?.classList.remove('hidden');
         label.innerText = 'Store Email Address';
         emailInput.placeholder = 'your_store@gmail.com';
@@ -3602,24 +3563,37 @@
       // 2. SIGN UP MODE: DIRECT SIGN UP WITH VALID EMAIL & STRONG PASSWORD
       // -------------------------------------------------------------
       if (currentAuthMode === 'signup') {
-        const storeName = document.getElementById('authStoreName')?.value.trim() || 'Super Inventory Store';
+        const storeName = document.getElementById('authStoreName')?.value.trim();
         const phone = document.getElementById('authSignupPhone')?.value?.trim() || '';
         
-        // 1. Validate Email
+        // 1. Validate Store Name
+        if (!storeName || storeName.length < 2) {
+          showAppToast('Please enter your store / business name', 'warning', true);
+          document.getElementById('authStoreName')?.focus();
+          return;
+        }
+
+        // 2. Validate Email
         if (!identifier || !identifier.includes('@') || !identifier.includes('.')) {
           showAppToast('Please enter a valid email address', 'warning', true);
           document.getElementById('authEmailInput')?.focus();
           return;
         }
 
-        // 2. Validate Strong Password
+        // 3. Validate Strong Password
         if (!pw || pw.length < 6) {
-          showAppToast('Please set a strong password (at least 6 characters)', 'warning', true);
+          showAppToast('Please set a secure password (at least 6 characters)', 'warning', true);
           document.getElementById('authPasswordInput')?.focus();
           return;
         }
 
-        // 3. Check if user is already registered
+        const submitBtn = document.getElementById('authSubmitBtn');
+        const submitText = document.getElementById('authSubmitBtnText');
+        const originalText = submitText ? submitText.innerText : 'SIGN UP';
+        if (submitBtn) submitBtn.disabled = true;
+        if (submitText) submitText.innerText = 'Creating account...';
+
+        // 4. Check if user is already registered locally
         const existingUsers = getStoredUsers();
         const alreadyExists = existingUsers.some(u => u.email && u.email.toLowerCase() === identifier.toLowerCase());
         if (alreadyExists) {
@@ -3628,10 +3602,39 @@
           document.getElementById('authEmailInput').value = identifier;
           document.getElementById('authPasswordInput').value = '';
           document.getElementById('authPasswordInput')?.focus();
+          if (submitBtn) submitBtn.disabled = false;
+          if (submitText) submitText.innerText = 'SIGN IN';
           return;
         }
 
-        // 4. Save account and continue directly into Super Inventory
+        // 5. Register with Node.js Backend API
+        try {
+          const regRes = await fetch(`${BACKEND_API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              storeName: storeName,
+              email: identifier,
+              phone: phone || '+91 9876543210',
+              password: pw
+            })
+          });
+          const regData = await regRes.json();
+          if (regRes.status === 409 || (regData && !regData.success && regData.message && regData.message.includes('already exists'))) {
+            showAppToast(regData.message || 'An account with this email already exists. Please Sign In.', 'warning', true);
+            setAuthView('login');
+            document.getElementById('authEmailInput').value = identifier;
+            document.getElementById('authPasswordInput').value = '';
+            document.getElementById('authPasswordInput')?.focus();
+            if (submitBtn) submitBtn.disabled = false;
+            if (submitText) submitText.innerText = 'SIGN IN';
+            return;
+          }
+        } catch (apiErr) {
+          console.warn('Backend register note, using local store sync:', apiErr);
+        }
+
+        // 6. Save new user credentials locally for authentication
         const newUser = {
           storeName: storeName,
           phone: phone || '+91 9876543210',
@@ -3641,33 +3644,29 @@
         };
         saveNewUser(newUser);
 
-        try {
-          fetch(`${BACKEND_API_BASE}/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              storeName: storeName,
-              email: identifier,
-              phone: phone || '+91 9876543210',
-              password: pw
-            })
-          }).catch(e => console.warn('Backend register note:', e));
-        } catch (e) {}
+        // 7. SECURITY ENFORCEMENT:
+        // Do NOT log the user in immediately! Require explicit credential verification (email + password).
+        isLoggedIn = false;
+        localStorage.removeItem('super_inventory_token');
+        localStorage.removeItem('super_inventory_seller');
 
-        const newSeller = {
-          id: identifier,
-          name: storeName,
-          store_name: storeName,
-          email: identifier,
-          phone: phone || '+91 9876543210',
-          role: 'seller'
-        };
-        localStorage.setItem('super_inventory_token', 'local-token-' + Date.now());
-        isLoggedIn = true;
-        activateMerchantSession(newSeller);
+        // Clear sensitive signup input fields
+        if (document.getElementById('authStoreName')) document.getElementById('authStoreName').value = '';
+        if (document.getElementById('authSignupPhone')) document.getElementById('authSignupPhone').value = '';
 
-        showAppToast(`✓ Account created! Welcome, ${storeName}!`, 'verified');
-        switchScreen('dashboard');
+        // 8. Redirect directly to Sign In tab with email pre-filled & password cleared
+        setAuthView('login');
+        if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = identifier;
+        if (document.getElementById('authPasswordInput')) {
+          document.getElementById('authPasswordInput').value = '';
+          document.getElementById('authPasswordInput').focus();
+        }
+
+        if (submitBtn) submitBtn.disabled = false;
+        if (submitText) submitText.innerText = 'SIGN IN';
+
+        showAppToast('✓ Account registered! Enter your password to sign in.', 'verified', true);
+        switchScreen('login');
         return;
       }
 
@@ -4077,20 +4076,16 @@
           });
           const regData = await regRes.json();
 
-          if (regData.success && regData.token) {
-            localStorage.setItem('super_inventory_token', regData.token);
-            localStorage.setItem('super_inventory_seller', JSON.stringify(regData.seller));
-          }
         } catch (regErr) {
           console.warn('Backend register note:', regErr);
         }
 
         saveNewUser(pendingRegistration);
         isLoggedIn = false;
+        localStorage.removeItem('super_inventory_token');
+        localStorage.removeItem('super_inventory_seller');
 
-        const regStoreName = pendingRegistration.storeName;
         const regEmail = pendingRegistration.email;
-        const regPhone = pendingRegistration.phone;
         pendingRegistration = null;
 
         if (verifyBtn) {
@@ -4098,16 +4093,19 @@
           verifyBtn.innerText = 'Verify & Continue to Sign In';
         }
 
-        // Clear all input fields completely and switch to sign in
-        if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = '';
-        if (document.getElementById('authPasswordInput')) document.getElementById('authPasswordInput').value = '';
+        // Clear signup fields
         if (document.getElementById('authSignupPhone')) document.getElementById('authSignupPhone').value = '';
         if (document.getElementById('authStoreName')) document.getElementById('authStoreName').value = '';
 
+        // Switch to Sign In tab, pre-fill email, and clear password
         setAuthView('login');
-        document.getElementById('authEmailInput')?.focus();
+        if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = regEmail;
+        if (document.getElementById('authPasswordInput')) {
+          document.getElementById('authPasswordInput').value = '';
+          document.getElementById('authPasswordInput').focus();
+        }
 
-        showAppToast('✓ Registered! Please sign in to your account.', 'verified', true);
+        showAppToast('✓ Account registered! Enter your password to sign in.', 'verified', true);
         switchScreen('login');
         return;
       } else if (currentAuthMode === 'forgot' && pendingRegistration) {

@@ -54,34 +54,42 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      // Offline-ready validation with immediate access
-      await Future.delayed(const Duration(milliseconds: 400)); // smooth transition
-
-      UserRole role = UserRole.seller;
-      String name = 'Staff Seller';
-
+      await Future.delayed(const Duration(milliseconds: 400));
       final cleanEmail = email.trim().toLowerCase();
-      if (cleanEmail.contains('admin')) {
-        role = UserRole.admin;
-        name = 'Admin Owner';
-      } else if (cleanEmail.contains('manager')) {
-        role = UserRole.manager;
-        name = 'Store Manager';
+      final prefs = await SharedPreferences.getInstance();
+
+      final regPw = prefs.getString('reg_pw_$cleanEmail');
+      if (regPw != null && regPw != password) {
+        state = state.copyWith(isLoading: false, errorMessage: 'Incorrect password. Please try again.');
+        return false;
       }
 
-      final user = UserModel(
-        id: 1,
-        uuid: 'user-001',
-        name: name,
-        email: cleanEmail,
-        role: role,
-        token: 'jwt_mock_token_active',
-        lastLogin: DateTime.now(),
-      );
+      final regUserJson = prefs.getString('reg_$cleanEmail');
+      UserModel user;
+      if (regUserJson != null) {
+        user = UserModel.fromMap(jsonDecode(regUserJson));
+      } else {
+        UserRole role = UserRole.seller;
+        String name = 'Staff Seller';
+        if (cleanEmail.contains('admin')) {
+          role = UserRole.admin;
+          name = 'Admin Owner';
+        } else if (cleanEmail.contains('manager')) {
+          role = UserRole.manager;
+          name = 'Store Manager';
+        }
+        user = UserModel(
+          id: 1,
+          uuid: 'user-001',
+          name: name,
+          email: cleanEmail,
+          role: role,
+          token: 'jwt_mock_token_active',
+          lastLogin: DateTime.now(),
+        );
+      }
 
-      final prefs = await SharedPreferences.getInstance();
       await prefs.setString(AppConstants.keyUser, jsonEncode(user.toMap()));
-
       state = state.copyWith(user: user, isLoading: false);
       return true;
     } catch (e) {
@@ -110,9 +118,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(AppConstants.keyUser, jsonEncode(user.toMap()));
+      await prefs.setString('reg_$cleanEmail', jsonEncode(user.toMap()));
+      await prefs.setString('reg_pw_$cleanEmail', password);
 
-      state = state.copyWith(user: user, isLoading: false);
+      // User registered! Keep user null so they must authenticate via sign-in
+      state = state.copyWith(user: null, isLoading: false);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
