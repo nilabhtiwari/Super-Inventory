@@ -3370,7 +3370,7 @@
       refreshUpiDisplays();
 
       // 6. Update UI headers & drawers with this merchant's details
-      const dispName = sellerData.store_name || sellerData.name || 'Super Inventory';
+      const dispName = (document.getElementById('stitchBusinessName')?.value || sellerData.store_name || sellerData.name || 'Super Inventory').trim();
       if (document.getElementById('headerShopName')) document.getElementById('headerShopName').innerText = dispName;
       if (document.getElementById('drawerShopName')) document.getElementById('drawerShopName').innerText = dispName;
       if (document.getElementById('settingsStoreName')) document.getElementById('settingsStoreName').innerText = dispName;
@@ -3592,12 +3592,25 @@
 
         // Credentials Matched!
         isLoggedIn = true;
+
+        // Check for previously saved lifetime profile for this user
+        let userStoreName = matchedUser.storeName || 'My Store';
+        let userPhone = matchedUser.phone || '+91 9876543210';
+        try {
+          const lpRaw = localStorage.getItem('super_inventory_user_profile_' + cleanEmail);
+          if (lpRaw) {
+            const lp = JSON.parse(lpRaw);
+            if (lp.name) userStoreName = lp.name;
+            if (lp.phone) userPhone = lp.phone;
+          }
+        } catch (e) {}
+
         const sellerObj = {
           id: matchedUser.email || 'seller-01',
-          name: matchedUser.storeName || 'My Store',
-          store_name: matchedUser.storeName || 'My Store',
+          name: userStoreName,
+          store_name: userStoreName,
           email: matchedUser.email,
-          phone: matchedUser.phone || '+91 9876543210',
+          phone: userPhone,
           role: 'seller'
         };
         localStorage.setItem('super_inventory_token', 'local-token-' + Date.now());
@@ -3616,7 +3629,7 @@
           if (r.success && r.token) localStorage.setItem('super_inventory_token', r.token);
         }).catch(() => {});
 
-        showAppToast(`✓ Welcome back, ${matchedUser.storeName}!`, 'verified');
+        showAppToast(`✓ Welcome back, ${userStoreName}!`, 'verified');
         if (submitBtn) submitBtn.disabled = false;
         if (submitText) submitText.innerText = originalText;
         switchScreen('dashboard');
@@ -3634,16 +3647,28 @@
 
         if (result.success && result.token) {
           localStorage.setItem('super_inventory_token', result.token);
+          const backendCleanEmail = (result.seller?.email || email).toLowerCase().trim();
+          let userStoreName = result.seller?.name || result.seller?.store_name || 'My Store';
+          let userPhone = result.seller?.phone || '+91 9876543210';
+          try {
+            const lpRaw = localStorage.getItem('super_inventory_user_profile_' + backendCleanEmail);
+            if (lpRaw) {
+              const lp = JSON.parse(lpRaw);
+              if (lp.name) userStoreName = lp.name;
+              if (lp.phone) userPhone = lp.phone;
+            }
+          } catch (e) {}
+
           const sellerObj = {
             id: result.seller?.id || 1,
-            name: result.seller?.name || result.seller?.store_name || 'My Store',
-            store_name: result.seller?.name || result.seller?.store_name || 'My Store',
+            name: userStoreName,
+            store_name: userStoreName,
             email: result.seller?.email || email,
-            phone: result.seller?.phone || '+91 9876543210',
+            phone: userPhone,
             role: result.seller?.role || 'seller'
           };
           saveNewUser({
-            storeName: sellerObj.name,
+            storeName: userStoreName,
             phone: sellerObj.phone,
             email: sellerObj.email,
             password: pw,
@@ -4810,22 +4835,54 @@
 
     function loadStoredProfile(sellerOverride) {
       try {
-        const key = getMerchantStorageKey('super_inventory_profile_updates');
-        const stored = localStorage.getItem(key);
         let activeSeller = sellerOverride;
         if (!activeSeller) {
           try {
             activeSeller = JSON.parse(localStorage.getItem('super_inventory_seller') || '{}');
           } catch (e) {}
         }
+
+        const activeEmail = (activeSeller?.email || document.getElementById('settingsUserEmail')?.innerText || '').trim().toLowerCase();
+
+        // Check lifetime profile bound to this specific user email first
+        let data = null;
+        if (activeEmail) {
+          const emailProfile = localStorage.getItem('super_inventory_user_profile_' + activeEmail);
+          if (emailProfile) {
+            try { data = JSON.parse(emailProfile); } catch (e) {}
+          }
+        }
+
+        // Secondary check: merchant-scoped updates
+        if (!data) {
+          const key = getMerchantStorageKey('super_inventory_profile_updates');
+          const stored = localStorage.getItem(key);
+          if (stored) {
+            try { data = JSON.parse(stored); } catch (e) {}
+          }
+        }
+
+        // Tertiary check: permanent user registration DB
+        if (!data && activeEmail) {
+          const users = getStoredUsers();
+          const matched = users.find(u => u.email && u.email.trim().toLowerCase() === activeEmail);
+          if (matched && matched.storeName) {
+            data = {
+              name: matched.storeName,
+              phone: matched.phone || '',
+              address: matched.address || '',
+              openTime: matched.openTime || '08:00 AM',
+              closeTime: matched.closeTime || '10:30 PM',
+              offer: matched.offer || ''
+            };
+          }
+        }
+
         const fallbackName = (activeSeller && (activeSeller.name || activeSeller.store_name)) || 'Super Inventory';
         const fallbackPhone = (activeSeller && activeSeller.phone) || '+91 9876543210';
-        const fallbackEmail = (activeSeller && activeSeller.email) || '';
+        const fallbackEmail = activeEmail || (activeSeller && activeSeller.email) || '';
 
-        let data = {};
-        if (stored) {
-          data = JSON.parse(stored);
-        } else {
+        if (!data) {
           data = {
             name: fallbackName,
             phone: fallbackPhone,
@@ -4861,6 +4918,16 @@
         if (document.getElementById('rcptTimings')) document.getElementById('rcptTimings').innerText = timings;
         if (document.getElementById('rcptHelpline')) document.getElementById('rcptHelpline').innerText = storePhone;
         if (document.getElementById('rcptOfferBanner')) document.getElementById('rcptOfferBanner').innerText = data.offer || '';
+
+        // Synchronize activeSeller cache with the verified permanent store name
+        if (activeSeller) {
+          activeSeller.name = storeName;
+          activeSeller.store_name = storeName;
+          activeSeller.phone = storePhone;
+          try {
+            localStorage.setItem('super_inventory_seller', JSON.stringify(activeSeller));
+          } catch (e) {}
+        }
       } catch (e) {
         console.error('Error in loadStoredProfile:', e);
       }
@@ -4881,6 +4948,51 @@
         const closeTime = (document.getElementById('stitchCloseTime')?.value || '').trim();
         const offer = (document.getElementById('stitchOffer')?.value || '').trim();
         const timings = `${openTime} - ${closeTime}`;
+
+        // 1. Identify active user email
+        let activeEmail = '';
+        try {
+          const s = JSON.parse(localStorage.getItem('super_inventory_seller') || '{}');
+          activeEmail = (s.email || '').trim().toLowerCase();
+        } catch (e) {}
+        if (!activeEmail) {
+          activeEmail = (document.getElementById('settingsUserEmail')?.innerText || '').trim().toLowerCase();
+        }
+
+        const profileData = { name, phone, address, openTime, closeTime, offer };
+
+        // 2. Persist in merchant-scoped storage
+        localStorage.setItem(getMerchantStorageKey('super_inventory_profile_updates'), JSON.stringify(profileData));
+
+        // 3. Persist universally in lifetime user profile store (tied to their email for life)
+        if (activeEmail) {
+          localStorage.setItem('super_inventory_user_profile_' + activeEmail, JSON.stringify(profileData));
+
+          // 4. Update the user record permanently in DEFAULT_USERS_KEY ('super_inventory_registered_users')
+          const users = getStoredUsers();
+          const userIdx = users.findIndex(u => u.email && u.email.trim().toLowerCase() === activeEmail);
+          if (userIdx !== -1) {
+            users[userIdx].storeName = name || users[userIdx].storeName;
+            users[userIdx].phone = phone || users[userIdx].phone;
+            users[userIdx].address = address;
+            users[userIdx].openTime = openTime;
+            users[userIdx].closeTime = closeTime;
+            users[userIdx].offer = offer;
+            localStorage.setItem(DEFAULT_USERS_KEY, JSON.stringify(users));
+          }
+        }
+
+        // 5. Synchronize active seller cache in localStorage
+        try {
+          const storedSeller = JSON.parse(localStorage.getItem('super_inventory_seller') || '{}');
+          if (storedSeller && typeof storedSeller === 'object') {
+            storedSeller.name = name || storedSeller.name;
+            storedSeller.store_name = name || storedSeller.store_name;
+            storedSeller.phone = phone || storedSeller.phone;
+            storedSeller.address = address || storedSeller.address;
+            localStorage.setItem('super_inventory_seller', JSON.stringify(storedSeller));
+          }
+        } catch (e) {}
 
         // Safe updates for Header & Side Drawer
         const headerShop = document.getElementById('headerShopName');
@@ -4927,22 +5039,6 @@
         const rcptOff = document.getElementById('rcptOfferBanner');
         if (rcptOff) rcptOff.innerText = offer;
 
-        // Save to merchant-scoped localStorage for strict multi-tenant isolation
-        const profileData = { name, phone, address, openTime, closeTime, offer };
-        localStorage.setItem(getMerchantStorageKey('super_inventory_profile_updates'), JSON.stringify(profileData));
-
-        // Synchronize active seller cache if present
-        try {
-          const storedSeller = JSON.parse(localStorage.getItem('super_inventory_seller') || '{}');
-          if (storedSeller && typeof storedSeller === 'object') {
-            storedSeller.name = name || storedSeller.name;
-            storedSeller.store_name = name || storedSeller.store_name;
-            storedSeller.phone = phone || storedSeller.phone;
-            storedSeller.address = address || storedSeller.address;
-            localStorage.setItem('super_inventory_seller', JSON.stringify(storedSeller));
-          }
-        } catch (e) {}
-
         // Update Bank UPI ID if entered in Profile Section
         const directUpi = (document.getElementById('profileDirectUpiInput')?.value || '').trim();
         const directPayee = (document.getElementById('profileDirectPayeeInput')?.value || '').trim() || name || 'Super Inventory Store';
@@ -4956,14 +5052,14 @@
         profileOriginalSnapshot = getProfileFormValues();
         updateProfileDirtyWarning(false);
 
-        // Show confirmation toast and smoothly transition to settings
-        showAppToast('✓ Changes saved successfully!', 'verified', true);
+        // Show confirmation popup at top and smoothly transition to settings
+        showAppToast('✓ Changes saved successfully!', 'verified', false);
         switchScreen('settings', true);
       } catch (err) {
         console.error('Error in saveStitchProfileUpdates:', err);
         isProfileDirty = false;
         updateProfileDirtyWarning(false);
-        showAppToast('✓ Changes saved successfully!', 'verified', true);
+        showAppToast('✓ Changes saved successfully!', 'verified', false);
         switchScreen('settings', true);
       }
     }
