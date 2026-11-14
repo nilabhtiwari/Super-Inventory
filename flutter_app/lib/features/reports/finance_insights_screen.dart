@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -181,7 +180,7 @@ class _FinanceInsightsScreenState extends State<FinanceInsightsScreen> {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.monitoring_rounded, size: 14, color: AppTheme.secondary),
+                            Icon(Icons.trending_up_rounded, size: 14, color: AppTheme.secondary),
                             SizedBox(width: 4),
                             Text('Net Profit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
                           ],

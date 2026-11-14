@@ -16,12 +16,12 @@ class ShopSettingsModel {
   final String? businessPhotoUrl;
 
   ShopSettingsModel({
-    required this.shopName,
-    required this.address,
-    required this.phone,
-    required this.email,
-    required this.gstin,
-    required this.upiId,
+    this.shopName = 'Super Inventory Store',
+    this.address = 'Main Branch, City Centre',
+    this.phone = '9876543210',
+    this.email = 'merchant@superinventory.com',
+    this.gstin = '27AAAAA0000A1Z5',
+    this.upiId = 'superinventory@upi',
     this.printerPaperSize = '58mm',
     this.enableGst = true,
     this.currencySymbol = '₹',
@@ -31,6 +31,11 @@ class ShopSettingsModel {
     this.grievanceHelpline = '9876543210',
     this.businessPhotoUrl,
   });
+
+  int get id => 1;
+  String? get upiName => shopName;
+  String? get receiptFooter => promotionalOffer;
+  int get paperWidthMm => printerPaperSize.contains('80') ? 80 : 58;
 
   Map<String, dynamic> toMap() {
     return {

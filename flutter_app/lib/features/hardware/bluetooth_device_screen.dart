@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/providers/hardware_provider.dart';
 import '../../core/providers/settings_provider.dart';
@@ -305,7 +306,7 @@ class _BluetoothDeviceScreenState extends ConsumerState<BluetoothDeviceScreen> {
                       subtitle: Text("${dev['address']} • ${dev['type']}", style: const TextStyle(fontSize: 10, color: AppTheme.textMuted)),
                       trailing: ElevatedButton(
                         onPressed: () async {
-                          final printerDev = BluetoothPrinterDevice(name: dev['name'], address: dev['address']);
+                          final printerDev = BluetoothDevice(dev['name'], dev['address']);
                           await ref.read(hardwareProvider.notifier).connect(printerDev);
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(

@@ -170,7 +170,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 GestureDetector(
                   onTap: () => context.push('/inventory'),
                   child: Container(
-                    margin: const EdgeInsets.bottom: 16,
+                    margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: AppTheme.warning.withOpacity(0.12),

@@ -14,6 +14,7 @@ import '../../features/inventory/inventory_screen.dart';
 import '../../features/hardware/bluetooth_device_screen.dart';
 import '../../features/reports/reports_screen.dart';
 import '../../features/reports/finance_insights_screen.dart';
+import '../../features/reports/premium_toolkit_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/settings/edit_profile_screen.dart';
 import '../../features/shell/main_shell.dart';

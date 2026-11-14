@@ -15,6 +15,7 @@ class AppTheme {
   static const Color primaryGlow = Color(0xFF9E65C2);
   static const Color tertiary = Color(0xFFFE5ED8); // Magenta / Pink Accent
   static const Color secondary = Color(0xFF00D4AA); // Emerald / Mint
+  static const Color accent = tertiary; // Alias for tertiary
   static const Color error = Color(0xFFF97386);
   static const Color warning = Color(0xFFFF9F43);
   static const Color info = Color(0xFF3B82F6);
@@ -77,7 +78,7 @@ class AppTheme {
           color: Colors.white,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: surface,
         elevation: 0,
         shape: RoundedRectangleBorder(

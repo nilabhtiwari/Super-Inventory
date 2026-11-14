@@ -415,6 +415,11 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                     Text(
                       "UPI VPA: ${settings.upiId}",
                       style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
                         color: AppTheme.secondary.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppTheme.secondary.withOpacity(0.3)),
@@ -425,7 +430,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                         textAlign: TextAlign.center,
                       ),
                     ),
-
+                  ],
                   const SizedBox(height: 12),
                   const Text(
                     'Thank you for shopping with us! Visit again.',
@@ -444,32 +449,27 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ).build(
-                    context,
-                    child: ElevatedButton(
-                      onPressed: _isPrinting ? null : _handleThermalPrint,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: _isPrinting
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                            )
-                          : const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.print_rounded, size: 20),
-                                SizedBox(width: 8),
-                                Text('Print Receipt', style: TextStyle(fontWeight: FontWeight.bold)),
-                              ],
-                            ),
+                  child: ElevatedButton(
+                    onPressed: _isPrinting ? null : _handleThermalPrint,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
+                    child: _isPrinting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.print_rounded, size: 20),
+                              SizedBox(width: 8),
+                              Text('Print Receipt', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
                   ),
                 ),
                 const SizedBox(width: 12),

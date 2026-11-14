@@ -73,6 +73,8 @@ class HardwareNotifier extends StateNotifier<HardwareState> {
     return success;
   }
 
+  Future<bool> connect(BluetoothDevice device) => connectPrinter(device);
+
   Future<void> disconnectPrinter() async {
     await _service.disconnect();
     state = state.copyWith(
@@ -81,6 +83,8 @@ class HardwareNotifier extends StateNotifier<HardwareState> {
       message: 'Disconnected',
     );
   }
+
+  Future<void> disconnect() => disconnectPrinter();
 
   Future<bool> printTestSlip(ShopSettingsModel settings) async {
     return await _service.printTestSlip(settings);

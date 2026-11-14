@@ -90,6 +90,36 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> signup({
+    required String email,
+    required String password,
+    String? fullName,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      await Future.delayed(const Duration(milliseconds: 400));
+      final cleanEmail = email.trim().toLowerCase();
+      final user = UserModel(
+        id: 1,
+        uuid: 'user-${DateTime.now().millisecondsSinceEpoch}',
+        name: (fullName != null && fullName.isNotEmpty) ? fullName : 'Store Owner',
+        email: cleanEmail,
+        role: UserRole.admin,
+        token: 'jwt_mock_token_active',
+        lastLogin: DateTime.now(),
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(AppConstants.keyUser, jsonEncode(user.toMap()));
+
+      state = state.copyWith(user: user, isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(AppConstants.keyUser);
