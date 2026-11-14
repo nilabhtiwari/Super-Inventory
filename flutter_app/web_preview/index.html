@@ -2681,6 +2681,157 @@
     </div>
   </div>
 
+  <!-- ============================================================ -->
+  <!-- SINGLE-PAGE QUICK ADD SCANNED PRODUCT TO INVENTORY & BILL MODAL -->
+  <!-- ============================================================ -->
+  <div id="quickAddScannedProductModal" style="display: none;" onclick="if(event.target === this) closeQuickAddScannedProductModal();" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-md z-[115] flex items-center justify-center p-3.5 transition-all overflow-y-auto custom-scroll">
+    <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[365px] shadow-2xl text-left space-y-3.5 my-auto relative animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-2.5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-inner">
+            <span class="material-symbols-outlined text-xl">add_shopping_cart</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-white tracking-wide">New Product Scanned</h3>
+            <p class="text-[10px] text-brand-muted font-medium">Add details to save to inventory & bill</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeQuickAddScannedProductModal()" class="w-8 h-8 rounded-full bg-brand-surfaceElevated border border-brand-surfaceBorder hover:bg-brand-surface text-slate-300 hover:text-white transition flex items-center justify-center active:scale-95">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+
+      <!-- Scanned Barcode Display Badge -->
+      <div class="flex items-center justify-between px-3 py-1.5 bg-brand-surfaceElevated/70 border border-brand-surfaceBorder rounded-xl">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-brand-muted flex items-center gap-1">
+          <span class="material-symbols-outlined text-xs text-brand-primary">qr_code</span>
+          <span>Scanned Barcode:</span>
+        </span>
+        <span id="quickAddBarcodeBadge" class="text-xs font-mono font-black text-white tracking-wider bg-slate-900/80 px-2 py-0.5 rounded-md border border-white/10">
+          8901030762100
+        </span>
+      </div>
+
+      <!-- Form Blocks (Sequential, Clean & Handy) -->
+      <div class="space-y-3 text-left">
+        
+        <!-- BLOCK 1: PRODUCT NAME -->
+        <div class="space-y-1.5 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
+          <label class="text-[10px] font-black uppercase tracking-wider text-brand-primaryContainer flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">label</span>
+            <span>1. Product Name *</span>
+          </label>
+          <input type="text" id="quickAddProdName" 
+                 placeholder="e.g. Amul Milk, Basmati Rice, Tata Tea..." 
+                 onkeydown="if(event.key === 'Enter') document.getElementById('quickAddProdPrice')?.focus();"
+                 class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition" />
+        </div>
+
+        <!-- BLOCK 2: ITEM SELLING PRICE (₹) -->
+        <div class="space-y-1.5 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
+          <div class="flex items-center justify-between">
+            <label class="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">payments</span>
+              <span>2. Item Price (₹) *</span>
+            </label>
+            <span class="text-[9px] font-bold text-brand-muted">Selling Rate</span>
+          </div>
+          <div class="relative flex items-center">
+            <span class="absolute left-3 text-sm font-black text-emerald-400">₹</span>
+            <input type="number" id="quickAddProdPrice" step="0.25" min="0" placeholder="0.00" 
+                   onkeydown="if(event.key === 'Enter') document.getElementById('quickAddProdUnit')?.focus();"
+                   class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl pl-8 pr-3 py-2 text-sm font-black text-emerald-400 placeholder:text-brand-muted outline-none focus:border-emerald-500 transition font-mono" />
+          </div>
+          <!-- Quick Price Chips -->
+          <div class="flex items-center gap-1.5 pt-1 overflow-x-auto no-scrollbar">
+            <button type="button" onclick="setQuickAddPrice(10)" class="px-2 py-1 bg-brand-surface hover:bg-emerald-500/20 border border-brand-surfaceBorder hover:border-emerald-500/40 text-[10px] font-bold text-slate-300 hover:text-white rounded-lg transition active:scale-95">₹10</button>
+            <button type="button" onclick="setQuickAddPrice(20)" class="px-2 py-1 bg-brand-surface hover:bg-emerald-500/20 border border-brand-surfaceBorder hover:border-emerald-500/40 text-[10px] font-bold text-slate-300 hover:text-white rounded-lg transition active:scale-95">₹20</button>
+            <button type="button" onclick="setQuickAddPrice(50)" class="px-2 py-1 bg-brand-surface hover:bg-emerald-500/20 border border-brand-surfaceBorder hover:border-emerald-500/40 text-[10px] font-bold text-slate-300 hover:text-white rounded-lg transition active:scale-95">₹50</button>
+            <button type="button" onclick="setQuickAddPrice(100)" class="px-2 py-1 bg-brand-surface hover:bg-emerald-500/20 border border-brand-surfaceBorder hover:border-emerald-500/40 text-[10px] font-bold text-slate-300 hover:text-white rounded-lg transition active:scale-95">₹100</button>
+            <button type="button" onclick="setQuickAddPrice(200)" class="px-2 py-1 bg-brand-surface hover:bg-emerald-500/20 border border-brand-surfaceBorder hover:border-emerald-500/40 text-[10px] font-bold text-slate-300 hover:text-white rounded-lg transition active:scale-95">₹200</button>
+            <button type="button" onclick="setQuickAddPrice(500)" class="px-2 py-1 bg-brand-surface hover:bg-emerald-500/20 border border-brand-surfaceBorder hover:border-emerald-500/40 text-[10px] font-bold text-slate-300 hover:text-white rounded-lg transition active:scale-95">₹500</button>
+          </div>
+        </div>
+
+        <!-- BLOCK 3: QUANTITY OF MEASUREMENT & UNIT -->
+        <div class="space-y-2 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
+          <div class="flex items-center justify-between">
+            <label class="text-[10px] font-black uppercase tracking-wider text-brand-secondary flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">straighten</span>
+              <span>3. Quantity / Measurement Unit *</span>
+            </label>
+            <span class="text-[9px] font-bold text-brand-muted">Select or Write</span>
+          </div>
+
+          <!-- Quick Measurement Unit Selector Chips -->
+          <div class="grid grid-cols-5 gap-1.5" id="quickAddUnitPills">
+            <button type="button" onclick="selectQuickAddUnit('g')" data-unit="g" class="quick-unit-btn py-1.5 text-center text-[10.5px] font-extrabold rounded-xl border border-brand-surfaceBorder bg-brand-surface text-slate-300 hover:text-white transition active:scale-95">
+              g
+            </button>
+            <button type="button" onclick="selectQuickAddUnit('kg')" data-unit="kg" class="quick-unit-btn py-1.5 text-center text-[10.5px] font-extrabold rounded-xl border border-brand-surfaceBorder bg-brand-surface text-slate-300 hover:text-white transition active:scale-95">
+              kg
+            </button>
+            <button type="button" onclick="selectQuickAddUnit('ml')" data-unit="ml" class="quick-unit-btn py-1.5 text-center text-[10.5px] font-extrabold rounded-xl border border-brand-surfaceBorder bg-brand-surface text-slate-300 hover:text-white transition active:scale-95">
+              ml
+            </button>
+            <button type="button" onclick="selectQuickAddUnit('litre')" data-unit="litre" class="quick-unit-btn py-1.5 text-center text-[10.5px] font-extrabold rounded-xl border border-brand-surfaceBorder bg-brand-surface text-slate-300 hover:text-white transition active:scale-95">
+              litre
+            </button>
+            <button type="button" onclick="selectQuickAddUnit('pcs')" data-unit="pcs" class="quick-unit-btn py-1.5 text-center text-[10.5px] font-extrabold rounded-xl border border-emerald-500/40 bg-emerald-500/20 text-emerald-300 transition active:scale-95">
+              pcs
+            </button>
+          </div>
+
+          <!-- Dedicated Space to Write Unit / Measurement by User -->
+          <div class="relative flex items-center">
+            <span class="material-symbols-outlined absolute left-3 text-brand-muted text-sm">edit_note</span>
+            <input type="text" id="quickAddProdUnit" 
+                   value="pcs"
+                   placeholder="Type unit e.g. gram(g), kg, litre, militlter, 500g, 1kg..." 
+                   onkeydown="if(event.key === 'Enter') submitQuickAddScannedProduct();"
+                   class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl pl-8 pr-3 py-2 text-xs font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition" />
+          </div>
+
+          <!-- Quick Preset Weight/Size Chips -->
+          <div class="flex items-center gap-1.5 pt-0.5 overflow-x-auto no-scrollbar">
+            <span class="text-[9px] font-bold text-brand-muted shrink-0">Presets:</span>
+            <button type="button" onclick="applyQuickAddPreset('100g', 'g')" class="px-2 py-0.5 bg-brand-surface border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300 hover:text-white shrink-0">100g</button>
+            <button type="button" onclick="applyQuickAddPreset('250g', 'g')" class="px-2 py-0.5 bg-brand-surface border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300 hover:text-white shrink-0">250g</button>
+            <button type="button" onclick="applyQuickAddPreset('500g', 'g')" class="px-2 py-0.5 bg-brand-surface border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300 hover:text-white shrink-0">500g</button>
+            <button type="button" onclick="applyQuickAddPreset('1kg', 'kg')" class="px-2 py-0.5 bg-brand-surface border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300 hover:text-white shrink-0">1kg</button>
+            <button type="button" onclick="applyQuickAddPreset('500ml', 'ml')" class="px-2 py-0.5 bg-brand-surface border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300 hover:text-white shrink-0">500ml</button>
+            <button type="button" onclick="applyQuickAddPreset('1L', 'litre')" class="px-2 py-0.5 bg-brand-surface border border-brand-surfaceBorder rounded-lg text-[9.5px] font-bold text-slate-300 hover:text-white shrink-0">1L</button>
+          </div>
+
+          <!-- Initial Stock Quantity to Store in Inventory -->
+          <div class="flex items-center justify-between pt-1 border-t border-brand-surfaceBorder/60 mt-1">
+            <span class="text-[9.5px] font-bold text-slate-300 flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs text-brand-muted">inventory_2</span>
+              <span>Stock Qty in Store:</span>
+            </span>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="adjustQuickAddStock(-10)" class="w-6 h-6 rounded-lg bg-brand-surface border border-brand-surfaceBorder text-slate-300 text-xs font-bold flex items-center justify-center active:scale-90 transition">－</button>
+              <input type="number" id="quickAddProdStockQty" value="100" min="1" step="1" class="w-14 bg-brand-surface border border-brand-surfaceBorder rounded-lg py-0.5 text-center text-xs font-bold text-white outline-none focus:border-brand-primary" />
+              <button type="button" onclick="adjustQuickAddStock(10)" class="w-6 h-6 rounded-lg bg-brand-surface border border-brand-surfaceBorder text-slate-300 text-xs font-bold flex items-center justify-center active:scale-90 transition">＋</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Button: Single Tap Save to Inventory & Add to Bill -->
+      <div class="pt-1">
+        <button type="button" onclick="submitQuickAddScannedProduct()" id="quickAddSaveBtn" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-xs rounded-2xl shadow-xl shadow-emerald-500/25 active:scale-95 transition flex items-center justify-center gap-2 uppercase tracking-wider">
+          <span class="material-symbols-outlined text-base font-bold">check_circle</span>
+          <span>SAVE TO INVENTORY & ADD TO BILL</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- 5. FULL-SCREEN MINDFUL POS QUANTITY & PACK CONSOLE MODAL -->
   <div id="qtyUnitModal" style="display: none;" onclick="if(event.target === this) closeQtyUnitModal();" class="hidden absolute inset-0 bg-slate-900/65 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-all">
     <div class="bg-white border border-slate-200 rounded-[28px] p-5 w-full max-w-[356px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in-95 duration-150">
@@ -5694,40 +5845,165 @@
         console.warn('Universal barcode lookup error:', apiErr);
       }
 
-      // Fallback: If not in local, backend, or universal database -> Quick Add
-      showAppConfirm({
-        title: 'New Barcode Scanned',
-        message: `Barcode "${cleanCode}" is recognized. Add product name & price to bill:`,
-        confirmText: 'Add to Bill',
-        cancelText: 'Cancel',
-        onConfirm: () => {
-          showAppPrompt({
-            title: 'Add Scanned Item',
-            message: `Enter product name & price for barcode [${cleanCode}]:`,
-            defaultValue: 'New Retail Item - ₹50',
-            onSubmit: (val) => {
-              if (!val) return;
-              const matchPrice = val.match(/₹?\s*(\d+(\.\d+)?)/);
-              const price = matchPrice ? parseFloat(matchPrice[1]) : 50.0;
-              const name = val.replace(/₹?\s*(\d+(\.\d+)?)/, '').trim() || `Item ${cleanCode}`;
+      // Fallback: If not in local, backend, or universal database -> Open single smooth modal to store to inventory & bill
+      openQuickAddScannedProductModal(cleanCode);
+    }
 
-              const newProd = {
-                id: Date.now(),
-                barcode: cleanCode,
-                name: name,
-                price: price,
-                gst: 5.0,
-                qty: 100,
-                unit: 'pcs'
-              };
-              sampleProducts.push(newProd);
-              saveMerchantProducts();
-              openQtyUnitModal(newProd);
-              showAppToast(`Added "${name}" to Inventory & Bill`, 'check_circle');
-            }
-          });
+    // --- SINGLE-PAGE QUICK ADD SCANNED PRODUCT TO INVENTORY & BILL CONTROLLER ---
+    let currentQuickAddBarcode = null;
+
+    function openQuickAddScannedProductModal(barcode) {
+      currentQuickAddBarcode = String(barcode || '').trim();
+      const modal = document.getElementById('quickAddScannedProductModal');
+      if (!modal) return;
+
+      const badge = document.getElementById('quickAddBarcodeBadge');
+      if (badge) badge.innerText = currentQuickAddBarcode || 'N/A';
+
+      const nameInput = document.getElementById('quickAddProdName');
+      if (nameInput) nameInput.value = '';
+
+      const priceInput = document.getElementById('quickAddProdPrice');
+      if (priceInput) priceInput.value = '';
+
+      const unitInput = document.getElementById('quickAddProdUnit');
+      if (unitInput) unitInput.value = 'pcs';
+
+      const stockInput = document.getElementById('quickAddProdStockQty');
+      if (stockInput) stockInput.value = '100';
+
+      selectQuickAddUnit('pcs');
+
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+
+      setTimeout(() => {
+        nameInput?.focus();
+      }, 100);
+    }
+
+    function closeQuickAddScannedProductModal() {
+      const modal = document.getElementById('quickAddScannedProductModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+      currentQuickAddBarcode = null;
+    }
+
+    function selectQuickAddUnit(unit) {
+      const unitInput = document.getElementById('quickAddProdUnit');
+      if (unitInput) unitInput.value = unit;
+
+      const container = document.getElementById('quickAddUnitPills');
+      if (container) {
+        const buttons = container.querySelectorAll('.quick-unit-btn');
+        buttons.forEach(btn => {
+          if (btn.getAttribute('data-unit') === unit) {
+            btn.className = 'quick-unit-btn py-1.5 text-center text-[10.5px] font-extrabold rounded-xl border border-emerald-500/40 bg-emerald-500/20 text-emerald-300 transition active:scale-95';
+          } else {
+            btn.className = 'quick-unit-btn py-1.5 text-center text-[10.5px] font-extrabold rounded-xl border border-brand-surfaceBorder bg-brand-surface text-slate-300 hover:text-white transition active:scale-95';
+          }
+        });
+      }
+    }
+
+    function setQuickAddPrice(val) {
+      const priceInput = document.getElementById('quickAddProdPrice');
+      if (priceInput) {
+        priceInput.value = Number(val).toFixed(2);
+      }
+    }
+
+    function applyQuickAddPreset(presetLabel, unitType) {
+      const unitInput = document.getElementById('quickAddProdUnit');
+      if (unitInput) unitInput.value = presetLabel;
+      selectQuickAddUnit(unitType);
+
+      const nameInput = document.getElementById('quickAddProdName');
+      if (nameInput && nameInput.value.trim() && !nameInput.value.includes(presetLabel)) {
+        nameInput.value = `${nameInput.value.trim()} ${presetLabel}`;
+      }
+    }
+
+    function adjustQuickAddStock(delta) {
+      const stockInput = document.getElementById('quickAddProdStockQty');
+      if (stockInput) {
+        const cur = parseInt(stockInput.value, 10) || 100;
+        stockInput.value = Math.max(1, cur + delta);
+      }
+    }
+
+    function submitQuickAddScannedProduct() {
+      const barcode = currentQuickAddBarcode || (document.getElementById('quickAddBarcodeBadge')?.innerText || '').trim();
+      const name = (document.getElementById('quickAddProdName')?.value || '').trim();
+      const price = parseFloat(document.getElementById('quickAddProdPrice')?.value || '0');
+      const unit = (document.getElementById('quickAddProdUnit')?.value || 'pcs').trim() || 'pcs';
+      const stockQty = parseInt(document.getElementById('quickAddProdStockQty')?.value || '100', 10) || 100;
+
+      if (!name) {
+        showAppToast('Please enter the product name', 'warning', true);
+        document.getElementById('quickAddProdName')?.focus();
+        return;
+      }
+      if (isNaN(price) || price <= 0) {
+        showAppToast('Please enter a valid item selling price', 'warning', true);
+        document.getElementById('quickAddProdPrice')?.focus();
+        return;
+      }
+
+      // 1. Build and store product to store inventory
+      const newProd = {
+        id: Date.now(),
+        barcode: barcode,
+        name: name,
+        price: price,
+        unit: unit,
+        qty: stockQty,
+        gst: 5.0,
+        hsn: '1905'
+      };
+
+      const existingIdx = sampleProducts.findIndex(p => p.barcode === barcode);
+      if (existingIdx >= 0) {
+        sampleProducts[existingIdx] = { ...sampleProducts[existingIdx], ...newProd };
+      } else {
+        sampleProducts.unshift(newProd);
+      }
+
+      saveMerchantProducts();
+      renderProducts();
+      updateTotalStockValueUI();
+
+      // Optional backend sync
+      try {
+        const token = localStorage.getItem('super_inventory_token') || window.AUTH_TOKEN;
+        if (token && typeof fetch === 'function') {
+          fetch(`${BACKEND_API_BASE}/products`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ name, barcode, price, stock_quantity: stockQty, unit })
+          }).catch(() => {});
         }
-      });
+      } catch (e) {}
+
+      // 2. Add product directly to active bill / cart
+      const existingInCart = cart.find(i => i.barcode === barcode);
+      if (existingInCart) {
+        existingInCart.quantity += 1;
+        existingInCart.price = price;
+      } else {
+        cart.push({
+          ...newProd,
+          quantity: 1,
+          unitWeight: unit
+        });
+      }
+
+      renderCart();
+      closeQuickAddScannedProductModal();
+      playBarcodeScanAudioTone();
+      showAppToast(`✓ Saved "${name}" to Inventory & added to Bill!`, 'check_circle');
     }
 
     function scanProduct(barcode) {
