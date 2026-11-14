@@ -1927,79 +1927,171 @@
         
 
         <!-- Main Auth Box -->
-        <div class="w-full p-4 bg-white border border-slate-200 rounded-2xl space-y-3 text-left shadow-lg">
+        <div class="w-full p-5 bg-white border border-slate-200 rounded-3xl space-y-4 text-left shadow-xl">
           <!-- Auth Mode Tabs (Sign In / Sign Up) -->
-          <div class="p-1 bg-slate-100 rounded-xl flex" id="authTabHeader">
-            <button onclick="setAuthView('login')" id="tab-login" class="flex-1 py-1.5 bg-white text-slate-800 font-bold text-xs rounded-lg shadow-sm">Sign In</button>
-            <button onclick="setAuthView('signup')" id="tab-signup" class="flex-1 py-1.5 text-slate-500 font-bold text-xs rounded-lg">Sign Up</button>
+          <div class="p-1 bg-slate-100/90 rounded-2xl flex border border-slate-200/60" id="authTabHeader">
+            <button type="button" onclick="setAuthView('login')" id="tab-login" class="flex-1 py-2 bg-white text-slate-900 font-black text-xs rounded-xl shadow-xs transition-all active:scale-[0.98]">Sign In</button>
+            <button type="button" onclick="setAuthView('signup')" id="tab-signup" class="flex-1 py-2 text-slate-500 hover:text-slate-900 font-bold text-xs rounded-xl transition-all active:scale-[0.98]">Sign Up</button>
           </div>
 
           <!-- Forgot Password Title Banner (Hidden by default) -->
-                    <div id="forgotPwBanner" class="hidden flex justify-between items-center pb-1">
-            <span class="text-xs font-bold text-slate-800">Reset Password</span>
-            <button onclick="setAuthView('login')" class="text-[11px] text-brand-primary font-bold hover:underline">←  Back to Sign In</button>
+          <div id="forgotPwBanner" class="hidden flex justify-between items-center pb-1">
+            <span class="text-xs font-black text-slate-900">Reset Account Password</span>
+            <button type="button" onclick="setAuthView('login')" class="text-[11px] text-brand-primary font-bold hover:underline flex items-center gap-0.5">← Back to Sign In</button>
           </div>
 
-          <!-- Sign Up Specific Fields (For Registration) -->
-          <div id="authSignupFields" class="hidden space-y-2">
+          <!-- ============================================== -->
+          <!-- DEDICATED SIGN IN FORM (INDEPENDENT INPUTS)    -->
+          <!-- ============================================== -->
+          <div id="authLoginForm" class="space-y-3">
             <div>
-              <label class="text-[10px] font-bold text-slate-600 block mb-1">Store / Business Name</label>
-              <input type="text" id="authStoreName" placeholder="E.g. My Fresh Supermarket" value="" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:border-brand-primary focus:bg-white" />
-            </div>
-            <input type="hidden" id="authSignupPhone" value="" />
-          </div>
-
-          <!-- Identifier (Email Address) -->
-          <div class="space-y-2">
-            <div>
-              <label class="text-[10px] font-semibold text-slate-600 block mb-1" id="authIdentifierLabel">Registered Email Address</label>
-              <input type="email" id="authEmailInput" placeholder="Enter Registered Email Address" value="" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:border-brand-primary focus:bg-white" />
-              <p id="emailErrorText" class="hidden text-[10px] text-red-500 font-bold mt-1">Please enter your registered email address</p>
-              
-              <!-- Small Verify Email Button (Only shown in Sign Up mode) -->
-              <div id="signupVerifyEmailRow" class="hidden flex items-center justify-between pt-1.5 px-0.5">
-                <span id="signupEmailVerifyStatus" class="text-[10px] text-slate-500 font-medium">Verify email address?</span>
-                <button type="button" onclick="triggerEmailOtpVerification()" class="px-2.5 py-1 bg-brand-primary/10 hover:bg-brand-primary/20 border border-brand-primary/30 text-brand-primary font-black text-[10.5px] rounded-lg transition active:scale-95 flex items-center gap-1">
-                  <span class="material-symbols-outlined text-xs">mark_email_read</span>
-                  <span>Verify Email</span>
-                </button>
-              </div>
+              <label class="text-[10.5px] font-bold text-slate-700 block mb-1">Registered Email Address</label>
+              <input type="email" id="signInEmailInput" placeholder="name@yourstore.com" autocomplete="email" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-brand-primary focus:bg-white transition" />
+              <p id="signInEmailError" class="hidden text-[10px] text-rose-600 font-bold mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">error</span>
+                <span id="signInEmailErrorText">Please enter your registered email address</span>
+              </p>
             </div>
 
-            <!-- Password Field (Normal Mode) -->
-            <div id="authPasswordGroup">
+            <div>
               <div class="flex justify-between items-center mb-1">
-                <label class="text-[10px] font-semibold text-slate-600">Password</label>
-                <button type="button" id="authForgotPasswordBtn" onclick="setAuthView('forgot')" class="text-[10px] text-brand-primary font-bold hover:underline">Forgot Password?</button>
+                <label class="text-[10.5px] font-bold text-slate-700">Password</label>
+                <button type="button" onclick="setAuthView('forgot')" class="text-[10px] text-brand-primary font-bold hover:underline">Forgot Password?</button>
               </div>
               <div class="relative">
-                <input type="password" id="authPasswordInput" value="" placeholder="Enter password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2 text-xs text-slate-800 outline-none focus:border-brand-primary focus:bg-white" />
-                <button type="button" onclick="togglePasswordVisibility('authPasswordInput', 'authPwEyeIcon')" class="absolute right-3 top-2 text-slate-400 hover:text-slate-700 transition flex items-center">
-                  <span class="material-symbols-outlined text-base" id="authPwEyeIcon">visibility_off</span>
+                <input type="password" id="signInPasswordInput" placeholder="Enter your password" autocomplete="current-password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-slate-900 outline-none focus:border-brand-primary focus:bg-white transition" />
+                <button type="button" onclick="togglePasswordVisibility('signInPasswordInput', 'signInPwEyeIcon')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-700 transition flex items-center">
+                  <span class="material-symbols-outlined text-base" id="signInPwEyeIcon">visibility_off</span>
                 </button>
               </div>
+              <p id="signInPasswordError" class="hidden text-[10px] text-rose-600 font-bold mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">lock</span>
+                <span id="signInPasswordErrorText">Please enter your password</span>
+              </p>
             </div>
 
-            <!-- New Password Field (Forgot Password Mode) -->
-            <div id="authNewPasswordGroup" class="hidden">
-              <label class="text-[10px] font-semibold text-slate-600 block mb-1">Set New Password</label>
-              <div class="relative">
-                <input type="password" id="authNewPasswordInput" placeholder="Enter new password (min 6 chars)" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2 text-xs text-slate-800 outline-none focus:border-brand-primary focus:bg-white" />
-                <button type="button" onclick="togglePasswordVisibility('authNewPasswordInput', 'authNewPwEyeIcon')" class="absolute right-3 top-2 text-slate-400 hover:text-slate-700 transition flex items-center">
-                  <span class="material-symbols-outlined text-base" id="authNewPwEyeIcon">visibility_off</span>
-                </button>
-              </div>
+            <button type="button" onclick="handleSignInSubmit()" id="signInSubmitBtn" class="w-full py-3 bg-brand-primary text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-brand-primaryGlow active:scale-95 transition flex items-center justify-center gap-1.5 mt-2">
+              <span class="material-symbols-outlined text-sm">login</span>
+              <span id="signInSubmitBtnText">SIGN IN</span>
+            </button>
+
+            <div class="pt-2 text-center border-t border-slate-100">
+              <p class="text-[11px] text-slate-500 font-medium">New merchant? <button type="button" onclick="setAuthView('signup')" class="text-brand-primary font-bold hover:underline">Create an account</button></p>
             </div>
           </div>
 
-          <!-- Submit Button -->
-          <button onclick="handlePrimaryAuthSubmit()" id="authSubmitBtn" class="w-full py-3 bg-brand-primary text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg hover:bg-brand-primaryGlow active:scale-95 transition flex items-center justify-center">
-            <span id="authSubmitBtnText">SIGN IN</span>
-          </button>
+          <!-- ============================================== -->
+          <!-- DEDICATED SIGN UP FORM (INDEPENDENT INPUTS)    -->
+          <!-- ============================================== -->
+          <div id="authSignupForm" class="hidden space-y-3">
+            <div>
+              <label class="text-[10.5px] font-bold text-slate-700 block mb-1">Store / Business Name *</label>
+              <input type="text" id="signUpStoreName" placeholder="E.g. My Fresh Supermarket" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-brand-primary focus:bg-white transition" />
+              <p id="signUpStoreNameError" class="hidden text-[10px] text-rose-600 font-bold mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">storefront</span>
+                <span id="signUpStoreNameErrorText">Please enter your store or business name</span>
+              </p>
+            </div>
 
+            <div>
+              <label class="text-[10.5px] font-bold text-slate-700 block mb-1">Business Email Address *</label>
+              <input type="email" id="signUpEmailInput" placeholder="owner@store.com" autocomplete="email" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-brand-primary focus:bg-white transition" />
+              <p id="signUpEmailError" class="hidden text-[10px] text-rose-600 font-bold mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">alternate_email</span>
+                <span id="signUpEmailErrorText">Please enter a valid business email address</span>
+              </p>
+            </div>
 
+            <div>
+              <label class="text-[10.5px] font-bold text-slate-700 block mb-1">Mobile / WhatsApp Number <span class="text-slate-400 font-normal">(Optional)</span></label>
+              <input type="tel" id="signUpPhoneInput" placeholder="+91 98765 43210" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-brand-primary focus:bg-white transition" />
+            </div>
 
+            <div>
+              <label class="text-[10.5px] font-bold text-slate-700 block mb-1">Create Password *</label>
+              <div class="relative">
+                <input type="password" id="signUpPasswordInput" placeholder="Minimum 6 characters" autocomplete="new-password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-slate-900 outline-none focus:border-brand-primary focus:bg-white transition" />
+                <button type="button" onclick="togglePasswordVisibility('signUpPasswordInput', 'signUpPwEyeIcon')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-700 transition flex items-center">
+                  <span class="material-symbols-outlined text-base" id="signUpPwEyeIcon">visibility_off</span>
+                </button>
+              </div>
+              <p id="signUpPasswordError" class="hidden text-[10px] text-rose-600 font-bold mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">lock</span>
+                <span id="signUpPasswordErrorText">Password must be at least 6 characters long</span>
+              </p>
+            </div>
 
+            <button type="button" onclick="handleSignUpSubmit()" id="signUpSubmitBtn" class="w-full py-3 bg-brand-primary text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-brand-primaryGlow active:scale-95 transition flex items-center justify-center gap-1.5 mt-2">
+              <span class="material-symbols-outlined text-sm">person_add</span>
+              <span id="signUpSubmitBtnText">CREATE ACCOUNT</span>
+            </button>
+
+            <div class="pt-2 text-center border-t border-slate-100">
+              <p class="text-[11px] text-slate-500 font-medium">Already have an account? <button type="button" onclick="setAuthView('login')" class="text-brand-primary font-bold hover:underline">Sign In</button></p>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- DEDICATED FORGOT PASSWORD FORM                 -->
+          <!-- ============================================== -->
+          <div id="authForgotForm" class="hidden space-y-3">
+            <div>
+              <label class="text-[10.5px] font-bold text-slate-700 block mb-1">Your Registered Email Address</label>
+              <input type="email" id="forgotEmailInput" placeholder="Enter email used to sign up" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-brand-primary focus:bg-white transition" />
+              <p id="forgotEmailError" class="hidden text-[10px] text-rose-600 font-bold mt-1 flex items-center gap-1"></p>
+            </div>
+
+            <div>
+              <label class="text-[10.5px] font-bold text-slate-700 block mb-1">Set New Password</label>
+              <div class="relative">
+                <input type="password" id="forgotNewPasswordInput" placeholder="Enter new password (min 6 chars)" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-slate-900 outline-none focus:border-brand-primary focus:bg-white transition" />
+                <button type="button" onclick="togglePasswordVisibility('forgotNewPasswordInput', 'forgotPwEyeIcon')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-700 transition flex items-center">
+                  <span class="material-symbols-outlined text-base" id="forgotPwEyeIcon">visibility_off</span>
+                </button>
+              </div>
+            </div>
+
+            <button type="button" onclick="handleForgotSubmit()" id="forgotSubmitBtn" class="w-full py-3 bg-brand-primary text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-brand-primaryGlow active:scale-95 transition flex items-center justify-center gap-1.5 mt-2">
+              <span class="material-symbols-outlined text-sm">lock_reset</span>
+              <span id="forgotSubmitBtnText">RESET PASSWORD</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- INTELLIGENT ERROR-SENSING AUTH MODAL POPUP                   -->
+        <!-- ============================================================ -->
+        <div id="authSenseModal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4 transition-all">
+          <div class="w-full max-w-[340px] bg-white border border-slate-200 rounded-3xl p-5 text-center shadow-2xl animate-in zoom-in-95 duration-200">
+            <!-- Dynamic Sensing Icon Container -->
+            <div id="authSenseIconBox" class="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center mb-3 shadow-xs">
+              <span class="material-symbols-outlined text-2xl" id="authSenseIcon">error</span>
+            </div>
+
+            <!-- Dynamic Category Tag -->
+            <div id="authSenseTag" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider mb-2">
+              <span class="material-symbols-outlined text-xs" id="authSenseTagIcon">info</span>
+              <span id="authSenseTagText">Authentication Alert</span>
+            </div>
+
+            <!-- Title -->
+            <h3 class="text-sm sm:text-base font-black text-slate-900 mb-1.5" id="authSenseTitle">Action Required</h3>
+
+            <!-- Detailed Sensing Explanation Message -->
+            <div class="text-xs text-slate-600 leading-relaxed mb-5" id="authSenseMessage">
+              Please review your credentials.
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-2">
+              <button type="button" id="authSenseActionBtn" class="w-full py-2.5 bg-brand-primary hover:bg-brand-primaryGlow text-white font-extrabold text-xs rounded-xl shadow transition active:scale-95">
+                Got It
+              </button>
+              <button type="button" id="authSenseSecondaryBtn" class="hidden w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition active:scale-95">
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="flex items-center justify-center gap-1.5 text-[9px] text-brand-muted font-bold pt-3">
@@ -3367,70 +3459,162 @@
 
     let currentAuthMode = 'login'; // 'login', 'signup', 'forgot'
 
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function clearAuthFieldHighlights() {
+      const fieldIds = [
+        'signInEmailInput', 'signInPasswordInput',
+        'signUpStoreName', 'signUpEmailInput', 'signUpPasswordInput', 'signUpPhoneInput',
+        'forgotEmailInput', 'forgotNewPasswordInput'
+      ];
+      fieldIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove('border-rose-500', 'ring-2', 'ring-rose-400', 'bg-rose-50/50');
+          el.classList.add('border-slate-200', 'bg-slate-50');
+        }
+      });
+      const errorIds = [
+        'signInEmailError', 'signInPasswordError',
+        'signUpStoreNameError', 'signUpEmailError', 'signUpPasswordError', 'forgotEmailError'
+      ];
+      errorIds.forEach(id => {
+        document.getElementById(id)?.classList.add('hidden');
+      });
+    }
+
+    function highlightAuthField(fieldId, errorMsg) {
+      clearAuthFieldHighlights();
+      const el = document.getElementById(fieldId);
+      if (el) {
+        el.classList.remove('border-slate-200', 'bg-slate-50');
+        el.classList.add('border-rose-500', 'ring-2', 'ring-rose-400', 'bg-rose-50/50');
+      }
+      let errContainerId = '';
+      if (fieldId === 'signInEmailInput') errContainerId = 'signInEmailError';
+      else if (fieldId === 'signInPasswordInput') errContainerId = 'signInPasswordError';
+      else if (fieldId === 'signUpStoreName') errContainerId = 'signUpStoreNameError';
+      else if (fieldId === 'signUpEmailInput') errContainerId = 'signUpEmailError';
+      else if (fieldId === 'signUpPasswordInput') errContainerId = 'signUpPasswordError';
+
+      if (errContainerId) {
+        const errEl = document.getElementById(errContainerId);
+        if (errEl) {
+          errEl.classList.remove('hidden');
+          const textSpan = errEl.querySelector('span:last-child');
+          if (textSpan && errorMsg) textSpan.innerText = errorMsg;
+        }
+      }
+    }
+
+    function showAuthSenseError({ field, title, message, tagText, actionText = 'Got It', onAction, secondaryText, onSecondary }) {
+      if (field) {
+        highlightAuthField(field, message);
+      }
+
+      const modal = document.getElementById('authSenseModal');
+      const iconBox = document.getElementById('authSenseIconBox');
+      const iconEl = document.getElementById('authSenseIcon');
+      const tagBox = document.getElementById('authSenseTag');
+      const tagIcon = document.getElementById('authSenseTagIcon');
+      const tagTextEl = document.getElementById('authSenseTagText');
+      const titleEl = document.getElementById('authSenseTitle');
+      const msgEl = document.getElementById('authSenseMessage');
+      const actionBtn = document.getElementById('authSenseActionBtn');
+      const secBtn = document.getElementById('authSenseSecondaryBtn');
+
+      if (titleEl) titleEl.innerText = title;
+      if (msgEl) msgEl.innerHTML = message;
+
+      if (field && (field.includes('Password') || field.includes('pw'))) {
+        if (iconBox) iconBox.className = 'w-14 h-14 mx-auto rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mb-3 shadow-xs';
+        if (iconEl) iconEl.innerText = 'lock_reset';
+        if (tagBox) tagBox.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider mb-2 bg-rose-100 text-rose-700';
+        if (tagIcon) tagIcon.innerText = 'password';
+        if (tagTextEl) tagTextEl.innerText = tagText || 'Password Error';
+      } else if (field && (field.includes('Email') || field.includes('identifier'))) {
+        if (iconBox) iconBox.className = 'w-14 h-14 mx-auto rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mb-3 shadow-xs';
+        if (iconEl) iconEl.innerText = 'mark_email_unread';
+        if (tagBox) tagBox.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider mb-2 bg-amber-100 text-amber-800';
+        if (tagIcon) tagIcon.innerText = 'alternate_email';
+        if (tagTextEl) tagTextEl.innerText = tagText || 'Email Issue';
+      } else {
+        if (iconBox) iconBox.className = 'w-14 h-14 mx-auto rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center mb-3 shadow-xs';
+        if (iconEl) iconEl.innerText = 'storefront';
+        if (tagBox) tagBox.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider mb-2 bg-indigo-100 text-indigo-700';
+        if (tagIcon) tagIcon.innerText = 'business';
+        if (tagTextEl) tagTextEl.innerText = tagText || 'Store Detail Required';
+      }
+
+      if (actionBtn) {
+        actionBtn.innerText = actionText;
+        actionBtn.onclick = () => {
+          closeAuthSenseModal();
+          if (onAction) onAction();
+          if (field) {
+            setTimeout(() => document.getElementById(field)?.focus(), 80);
+          }
+        };
+      }
+
+      if (secBtn) {
+        if (secondaryText) {
+          secBtn.classList.remove('hidden');
+          secBtn.innerText = secondaryText;
+          secBtn.onclick = () => {
+            closeAuthSenseModal();
+            if (onSecondary) onSecondary();
+          };
+        } else {
+          secBtn.classList.add('hidden');
+        }
+      }
+
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeAuthSenseModal() {
+      document.getElementById('authSenseModal')?.classList.add('hidden');
+    }
+
     function setAuthView(mode) {
       currentAuthMode = mode;
+      clearAuthFieldHighlights();
+
       const tabHeader = document.getElementById('authTabHeader');
       const forgotBanner = document.getElementById('forgotPwBanner');
       const loginBtn = document.getElementById('tab-login');
       const signupBtn = document.getElementById('tab-signup');
-      const signupFields = document.getElementById('authSignupFields');
-      const pwGroup = document.getElementById('authPasswordGroup');
-      const newPwGroup = document.getElementById('authNewPasswordGroup');
-      const submitText = document.getElementById('authSubmitBtnText');
-      const biometricBtn = document.getElementById('authBiometricBtn');
-      const label = document.getElementById('authIdentifierLabel');
-      const emailInput = document.getElementById('authEmailInput');
-      const pwInput = document.getElementById('authPasswordInput');
-      const forgotPwBtn = document.getElementById('authForgotPasswordBtn');
-
-      // Clear field errors
-      document.getElementById('emailErrorText')?.classList.add('hidden');
+      const loginForm = document.getElementById('authLoginForm');
+      const signupForm = document.getElementById('authSignupForm');
+      const forgotForm = document.getElementById('authForgotForm');
 
       if (mode === 'login') {
-        tabHeader.classList.remove('hidden');
-        forgotBanner.classList.add('hidden');
-        loginBtn.className = 'flex-1 py-1.5 bg-white text-black font-bold text-xs rounded-lg shadow';
-        signupBtn.className = 'flex-1 py-1.5 text-brand-muted font-bold text-xs rounded-lg';
-        signupFields.classList.add('hidden');
-        pwGroup.classList.remove('hidden');
-        newPwGroup.classList.add('hidden');
-        if (forgotPwBtn) forgotPwBtn.classList.remove('hidden');
-        if (biometricBtn) biometricBtn.classList.remove('hidden');
-        document.getElementById('signupVerifyEmailRow')?.classList.add('hidden');
-        label.innerText = 'Registered Email Address';
-        emailInput.placeholder = 'Enter Registered Email Address';
-        submitText.innerText = 'SIGN IN';
+        if (tabHeader) tabHeader.classList.remove('hidden');
+        if (forgotBanner) forgotBanner.classList.add('hidden');
+        if (loginForm) loginForm.classList.remove('hidden');
+        if (signupForm) signupForm.classList.add('hidden');
+        if (forgotForm) forgotForm.classList.add('hidden');
+
+        if (loginBtn) loginBtn.className = 'flex-1 py-2 bg-white text-slate-900 font-black text-xs rounded-xl shadow-xs transition-all active:scale-[0.98]';
+        if (signupBtn) signupBtn.className = 'flex-1 py-2 text-slate-500 hover:text-slate-900 font-bold text-xs rounded-xl transition-all active:scale-[0.98]';
       } else if (mode === 'signup') {
-        tabHeader.classList.remove('hidden');
-        forgotBanner.classList.add('hidden');
-        signupBtn.className = 'flex-1 py-1.5 bg-white text-black font-bold text-xs rounded-lg shadow';
-        loginBtn.className = 'flex-1 py-1.5 text-brand-muted font-bold text-xs rounded-lg';
-        signupFields.classList.remove('hidden');
-        pwGroup.classList.remove('hidden');
-        newPwGroup.classList.add('hidden');
-        if (forgotPwBtn) forgotPwBtn.classList.add('hidden');
-        if (biometricBtn) biometricBtn.classList.add('hidden');
-        document.getElementById('signupVerifyEmailRow')?.classList.remove('hidden');
-        label.innerText = 'Store Email Address';
-        emailInput.placeholder = 'your_store@gmail.com';
-        submitText.innerText = 'SIGN UP';
-        
-        // If values were demo values, reset them for clean registration
-        if (emailInput.value === 'merchant@gmail.com') emailInput.value = '';
-        if (pwInput.value === 'Merchant@1234') pwInput.value = '';
+        if (tabHeader) tabHeader.classList.remove('hidden');
+        if (forgotBanner) forgotBanner.classList.add('hidden');
+        if (signupForm) signupForm.classList.remove('hidden');
+        if (loginForm) loginForm.classList.add('hidden');
+        if (forgotForm) forgotForm.classList.add('hidden');
+
+        if (signupBtn) signupBtn.className = 'flex-1 py-2 bg-white text-slate-900 font-black text-xs rounded-xl shadow-xs transition-all active:scale-[0.98]';
+        if (loginBtn) loginBtn.className = 'flex-1 py-2 text-slate-500 hover:text-slate-900 font-bold text-xs rounded-xl transition-all active:scale-[0.98]';
       } else if (mode === 'forgot') {
-        tabHeader.classList.add('hidden');
-        forgotBanner.classList.remove('hidden');
-        signupFields.classList.add('hidden');
-        pwGroup.classList.add('hidden');
-        newPwGroup.classList.remove('hidden');
-        if (forgotPwBtn) forgotPwBtn.classList.add('hidden');
-        if (biometricBtn) biometricBtn.classList.add('hidden');
-        if (demoRow) demoRow.classList.add('hidden');
-        document.getElementById('signupVerifyEmailRow')?.classList.add('hidden');
-        label.innerText = 'Registered Email Address';
-        emailInput.placeholder = 'Enter Registered Email Address';
-        submitText.innerText = 'Send OTP to Reset Password';
+        if (tabHeader) tabHeader.classList.add('hidden');
+        if (forgotBanner) forgotBanner.classList.remove('hidden');
+        if (forgotForm) forgotForm.classList.remove('hidden');
+        if (loginForm) loginForm.classList.add('hidden');
+        if (signupForm) signupForm.classList.add('hidden');
       }
     }
 
@@ -3439,287 +3623,385 @@
     // ============================================================
     const BACKEND_API_BASE = (window.location.protocol.startsWith('http') && !window.location.origin.includes(':8000')) ? '/api' : (window.location.hostname && window.location.hostname !== 'localhost' ? `http://${window.location.hostname}:5000/api` : 'http://localhost:5000/api');
 
-    // Pending registration state while OTP is verified
     let pendingRegistration = null;
 
-    async function handlePrimaryAuthSubmit() {
-      const identifier = document.getElementById('authEmailInput').value.trim();
-      const pw = document.getElementById('authPasswordInput').value.trim();
+    async function handleSignInSubmit() {
+      clearAuthFieldHighlights();
+      const emailInput = document.getElementById('signInEmailInput');
+      const pwInput = document.getElementById('signInPasswordInput');
+      const email = (emailInput?.value || '').trim();
+      const pw = (pwInput?.value || '').trim();
 
-      if (!identifier) {
-        document.getElementById('emailErrorText').classList.remove('hidden');
+      // 1. Sense Missing Email
+      if (!email) {
+        showAuthSenseError({
+          field: 'signInEmailInput',
+          title: 'Email Address Required',
+          message: 'Please enter your registered email address to sign into Super Inventory.',
+          tagText: 'Email Missing',
+          actionText: 'Enter Email'
+        });
         return;
       }
-      document.getElementById('emailErrorText').classList.add('hidden');
 
-      // -------------------------------------------------------------
-      // 1. SIGN IN MODE: DIRECT PASSWORD & STORED CREDENTIALS MATCHING (NO OTP)
-      // -------------------------------------------------------------
-      if (currentAuthMode === 'login') {
-        if (!identifier) {
-          showAppToast('Please enter your email address', 'warning', true);
-          document.getElementById('authEmailInput')?.focus();
-          return;
-        }
-        if (!pw) {
-          showAppToast('Please enter your password', 'lock', true);
-          document.getElementById('authPasswordInput')?.focus();
-          return;
-        }
-
-        const submitBtn = document.getElementById('authSubmitBtn');
-        const submitText = document.getElementById('authSubmitBtnText');
-        const originalText = submitText ? submitText.innerText : 'SIGN IN';
-        if (submitBtn) submitBtn.disabled = true;
-        if (submitText) submitText.innerText = 'Verifying credentials...';
-
-        // 1. Check registered users locally first (instant match)
-        const cleanInput = identifier.trim().toLowerCase();
-        const cleanPhone = cleanPhoneNum(identifier);
-        const users = getStoredUsers();
-        const matchedUser = users.find(u => {
-          if (u.email && u.email.trim().toLowerCase() === cleanInput) return true;
-          if (u.phone && (cleanPhoneNum(u.phone) === cleanPhone || cleanPhoneNum(u.phone).endsWith(cleanPhone))) return true;
-          return false;
+      // 2. Sense Invalid Email Format
+      if (!email.includes('@') || !email.includes('.') || email.length < 5) {
+        showAuthSenseError({
+          field: 'signInEmailInput',
+          title: 'Invalid Email Format',
+          message: `The email address "<b>${escapeHtml(email)}</b>" is invalid. Please verify spelling.`,
+          tagText: 'Invalid Email',
+          actionText: 'Fix Email'
         });
+        return;
+      }
 
-        if (matchedUser) {
-          // Strictly verify password
-          if (matchedUser.password !== pw) {
-            showAppToast('Incorrect password. Please try again.', 'error', true);
-            if (submitBtn) submitBtn.disabled = false;
-            if (submitText) submitText.innerText = originalText;
-            document.getElementById('authPasswordInput')?.focus();
-            return;
-          }
+      // 3. Sense Missing Password
+      if (!pw) {
+        showAuthSenseError({
+          field: 'signInPasswordInput',
+          title: 'Password Required',
+          message: 'Please enter your account password to verify your identity.',
+          tagText: 'Password Missing',
+          actionText: 'Enter Password'
+        });
+        return;
+      }
 
-          // Credentials matched! Grant authenticated session
-          isLoggedIn = true;
-          const localSeller = {
-            id: matchedUser.email || matchedUser.phone || 'seller-01',
-            name: matchedUser.storeName || 'My Store',
-            store_name: matchedUser.storeName || 'My Store',
-            email: matchedUser.email || identifier,
-            phone: matchedUser.phone || '+91 9876543210',
-            role: 'seller'
+      const submitBtn = document.getElementById('signInSubmitBtn');
+      const submitText = document.getElementById('signInSubmitBtnText');
+      const originalText = submitText ? submitText.innerText : 'SIGN IN';
+      if (submitBtn) submitBtn.disabled = true;
+      if (submitText) submitText.innerText = 'Verifying...';
+
+      // 4. Check Stored Users Database
+      const cleanEmail = email.toLowerCase();
+      const users = getStoredUsers();
+      const matchedUser = users.find(u => u.email && u.email.trim().toLowerCase() === cleanEmail);
+
+      if (matchedUser) {
+        // 5. Sense Incorrect Password
+        if (matchedUser.password !== pw) {
+          if (submitBtn) submitBtn.disabled = false;
+          if (submitText) submitText.innerText = originalText;
+          showAuthSenseError({
+            field: 'signInPasswordInput',
+            title: 'Incorrect Password',
+            message: `The password you entered is incorrect for account "<b>${escapeHtml(matchedUser.email)}</b>".<br><br>Please re-enter your password or reset it.`,
+            tagText: 'Wrong Password',
+            actionText: 'Try Password Again',
+            secondaryText: 'Forgot Password?',
+            onSecondary: () => {
+              setAuthView('forgot');
+              const fEmail = document.getElementById('forgotEmailInput');
+              if (fEmail) fEmail.value = matchedUser.email;
+            }
+          });
+          return;
+        }
+
+        // 6. Valid Credentials! Clean Up and Log In
+        isLoggedIn = true;
+        const sellerObj = {
+          id: matchedUser.email || 'seller-01',
+          name: matchedUser.storeName || 'My Store',
+          store_name: matchedUser.storeName || 'My Store',
+          email: matchedUser.email,
+          phone: matchedUser.phone || '+91 9876543210',
+          role: 'seller'
+        };
+        localStorage.setItem('super_inventory_token', 'local-token-' + Date.now());
+        activateMerchantSession(sellerObj);
+
+        // VANISH SIGN IN INPUT FIELDS
+        if (emailInput) emailInput.value = '';
+        if (pwInput) pwInput.value = '';
+
+        // Async sync with Node backend
+        fetch(`${BACKEND_API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: email, password: pw })
+        }).then(res => res.json()).then(r => {
+          if (r.success && r.token) localStorage.setItem('super_inventory_token', r.token);
+        }).catch(() => {});
+
+        showAppToast(`✓ Welcome back, ${matchedUser.storeName}!`, 'verified');
+        if (submitBtn) submitBtn.disabled = false;
+        if (submitText) submitText.innerText = originalText;
+        switchScreen('dashboard');
+        return;
+      }
+
+      // 7. Fallback to Node.js Backend API
+      try {
+        const response = await fetch(`${BACKEND_API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: email, password: pw })
+        });
+        const result = await response.json();
+
+        if (result.success && result.token) {
+          localStorage.setItem('super_inventory_token', result.token);
+          const sellerObj = {
+            id: result.seller?.id || 1,
+            name: result.seller?.name || result.seller?.store_name || 'My Store',
+            store_name: result.seller?.name || result.seller?.store_name || 'My Store',
+            email: result.seller?.email || email,
+            phone: result.seller?.phone || '+91 9876543210',
+            role: result.seller?.role || 'seller'
           };
-          localStorage.setItem('super_inventory_token', 'local-token-' + Date.now());
-          activateMerchantSession(localSeller);
+          saveNewUser({
+            storeName: sellerObj.name,
+            phone: sellerObj.phone,
+            email: sellerObj.email,
+            password: pw,
+            createdAt: new Date().toISOString()
+          });
+          isLoggedIn = true;
+          activateMerchantSession(sellerObj);
 
-          // Clear inputs on success
-          if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = '';
-          if (document.getElementById('authPasswordInput')) document.getElementById('authPasswordInput').value = '';
+          if (emailInput) emailInput.value = '';
+          if (pwInput) pwInput.value = '';
 
-          // Sync backend login in background if available
-          fetch(`${BACKEND_API_BASE}/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ identifier: identifier, password: pw })
-          }).then(res => res.json()).then(r => {
-            if (r.success && r.token) localStorage.setItem('super_inventory_token', r.token);
-          }).catch(() => {});
-
-          showAppToast(`✓ Welcome back, ${matchedUser.storeName}!`, 'verified');
+          showAppToast(`✓ ${result.message || 'Authenticated successfully!'}`, 'verified');
           if (submitBtn) submitBtn.disabled = false;
           if (submitText) submitText.innerText = originalText;
           switchScreen('dashboard');
           return;
-        }
-
-        // 2. Fallback: Query Node.js Backend API
-        try {
-          const response = await fetch(`${BACKEND_API_BASE}/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ identifier: identifier, password: pw })
-          });
-          const result = await response.json();
-
-          if (result.success && result.token) {
-            localStorage.setItem('super_inventory_token', result.token);
-
-            const sellerObj = {
-              id: result.seller.id || result.seller.uuid || 1,
-              name: result.seller.name || result.seller.store_name || 'My Store',
-              store_name: result.seller.name || result.seller.store_name || 'My Store',
-              email: result.seller.email || identifier,
-              phone: result.seller.phone || '+91 9876543210',
-              role: result.seller.role || 'seller'
-            };
-
-            saveNewUser({
-              storeName: sellerObj.name,
-              phone: sellerObj.phone,
-              email: sellerObj.email,
-              password: pw,
-              createdAt: new Date().toISOString()
-            });
-
-            isLoggedIn = true;
-            activateMerchantSession(sellerObj);
-
-            // Clear inputs
-            if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = '';
-            if (document.getElementById('authPasswordInput')) document.getElementById('authPasswordInput').value = '';
-
-            showAppToast(`✓ ${result.message}`, 'verified');
-            if (submitBtn) submitBtn.disabled = false;
-            if (submitText) submitText.innerText = originalText;
-            switchScreen('dashboard');
-            return;
-          } else {
-            showAppToast(result.message || 'Invalid email or password. Please try again.', 'error', true);
-            if (submitBtn) submitBtn.disabled = false;
-            if (submitText) submitText.innerText = originalText;
-            return;
-          }
-        } catch (apiErr) {
-          showAppToast('No account found with this email. Please click Sign Up.', 'error', true);
+        } else {
           if (submitBtn) submitBtn.disabled = false;
           if (submitText) submitText.innerText = originalText;
-          return;
-        }
-      }
-
-      // -------------------------------------------------------------
-      // 2. SIGN UP MODE: REGISTER ACCOUNT AND VANISH INPUT FIELDS
-      // -------------------------------------------------------------
-      if (currentAuthMode === 'signup') {
-        const storeName = document.getElementById('authStoreName')?.value.trim();
-        const phone = document.getElementById('authSignupPhone')?.value?.trim() || '';
-        
-        // 1. Validate Store Name
-        if (!storeName || storeName.length < 2) {
-          showAppToast('Please enter your store / business name', 'warning', true);
-          document.getElementById('authStoreName')?.focus();
-          return;
-        }
-
-        // 2. Validate Email
-        if (!identifier || !identifier.includes('@') || !identifier.includes('.')) {
-          showAppToast('Please enter a valid email address', 'warning', true);
-          document.getElementById('authEmailInput')?.focus();
-          return;
-        }
-
-        // 3. Validate Strong Password
-        if (!pw || pw.length < 6) {
-          showAppToast('Please set a secure password (at least 6 characters)', 'warning', true);
-          document.getElementById('authPasswordInput')?.focus();
-          return;
-        }
-
-        const submitBtn = document.getElementById('authSubmitBtn');
-        const submitText = document.getElementById('authSubmitBtnText');
-        const originalText = submitText ? submitText.innerText : 'SIGN UP';
-        if (submitBtn) submitBtn.disabled = true;
-        if (submitText) submitText.innerText = 'Creating account...';
-
-        // 4. Check if user is already registered locally
-        const existingUsers = getStoredUsers();
-        const alreadyExists = existingUsers.some(u => u.email && u.email.toLowerCase() === identifier.toLowerCase());
-        if (alreadyExists) {
-          showAppToast('An account with this email is already registered. Please Sign In.', 'warning', true);
-          setAuthView('login');
-          if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = '';
-          if (document.getElementById('authPasswordInput')) document.getElementById('authPasswordInput').value = '';
-          if (submitBtn) submitBtn.disabled = false;
-          if (submitText) submitText.innerText = 'SIGN IN';
-          return;
-        }
-
-        // 5. Register with Node.js Backend API
-        try {
-          const regRes = await fetch(`${BACKEND_API_BASE}/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              storeName: storeName,
-              email: identifier,
-              phone: phone || '+91 9876543210',
-              password: pw
-            })
+          showAuthSenseError({
+            field: 'signInPasswordInput',
+            title: 'Authentication Failed',
+            message: result.message || 'Incorrect email or password. Please verify your credentials.',
+            tagText: 'Verification Failed',
+            actionText: 'Try Again'
           });
-          const regData = await regRes.json();
-          if (regRes.status === 409 || (regData && !regData.success && regData.message && regData.message.includes('already exists'))) {
-            showAppToast(regData.message || 'An account with this email already exists. Please Sign In.', 'warning', true);
-            setAuthView('login');
-            if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = '';
-            if (document.getElementById('authPasswordInput')) document.getElementById('authPasswordInput').value = '';
-            if (submitBtn) submitBtn.disabled = false;
-            if (submitText) submitText.innerText = 'SIGN IN';
-            return;
-          }
-        } catch (apiErr) {
-          console.warn('Backend register note, using local store sync:', apiErr);
+          return;
         }
-
-        // 6. Save new user credentials locally for authentication
-        const newUser = {
-          storeName: storeName,
-          phone: phone || '+91 9876543210',
-          email: identifier,
-          password: pw,
-          createdAt: new Date().toISOString()
-        };
-        saveNewUser(newUser);
-
-        // 7. SECURITY ENFORCEMENT:
-        // Do NOT log the user in immediately! Require explicit credential verification (email + password).
-        isLoggedIn = false;
-        localStorage.removeItem('super_inventory_token');
-        localStorage.removeItem('super_inventory_seller');
-
-        // 8. VANISH ALL INPUT FIELD DATA COMPLETELY (nothing remains intact)
-        if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = '';
-        if (document.getElementById('authPasswordInput')) document.getElementById('authPasswordInput').value = '';
-        if (document.getElementById('authStoreName')) document.getElementById('authStoreName').value = '';
-        if (document.getElementById('authSignupPhone')) document.getElementById('authSignupPhone').value = '';
-        if (document.getElementById('authNewPasswordInput')) document.getElementById('authNewPasswordInput').value = '';
-
-        // 9. Redirect directly to Sign In tab with a clean slate
-        setAuthView('login');
-        document.getElementById('authEmailInput')?.focus();
-
+      } catch (apiErr) {
+        // 8. Account Not Found anywhere
         if (submitBtn) submitBtn.disabled = false;
-        if (submitText) submitText.innerText = 'SIGN IN';
+        if (submitText) submitText.innerText = originalText;
+        showAuthSenseError({
+          field: 'signInEmailInput',
+          title: 'Account Not Found',
+          message: `No registered account found with email "<b>${escapeHtml(email)}</b>".<br><br>Would you like to register a new account now?`,
+          tagText: 'Unregistered Email',
+          actionText: 'Check Email',
+          secondaryText: 'Sign Up (Create Account)',
+          onSecondary: () => {
+            setAuthView('signup');
+            const sEmail = document.getElementById('signUpEmailInput');
+            if (sEmail) sEmail.value = email;
+          }
+        });
+      }
+    }
 
-        showAppToast('✓ Account registered! Please enter your email and password to sign in.', 'verified', true);
-        switchScreen('login');
+    async function handleSignUpSubmit() {
+      clearAuthFieldHighlights();
+      const storeInput = document.getElementById('signUpStoreName');
+      const emailInput = document.getElementById('signUpEmailInput');
+      const phoneInput = document.getElementById('signUpPhoneInput');
+      const pwInput = document.getElementById('signUpPasswordInput');
+
+      const storeName = (storeInput?.value || '').trim();
+      const email = (emailInput?.value || '').trim();
+      const phone = (phoneInput?.value || '').trim();
+      const pw = (pwInput?.value || '').trim();
+
+      // 1. Sense Missing / Invalid Store Name
+      if (!storeName || storeName.length < 2) {
+        showAuthSenseError({
+          field: 'signUpStoreName',
+          title: 'Store Name Required',
+          message: 'Please enter your Store or Business Name (at least 2 characters) to set up your billing profile.',
+          tagText: 'Store Name Missing',
+          actionText: 'Enter Store Name'
+        });
         return;
       }
 
-      // -------------------------------------------------------------
-      // 3. FORGOT PASSWORD MODE: VERIFIES IDENTITY WITH OTP
-      // -------------------------------------------------------------
-      if (currentAuthMode === 'forgot') {
-        const newPw = document.getElementById('authNewPasswordInput').value.trim();
-        if (!newPw || newPw.length < 6) {
-          showAppToast('Please enter a new password (min 6 chars)', 'warning', true);
+      // 2. Sense Missing / Invalid Email
+      if (!email || !email.includes('@') || !email.includes('.') || email.length < 5) {
+        showAuthSenseError({
+          field: 'signUpEmailInput',
+          title: 'Valid Email Address Required',
+          message: 'Please enter a valid business email address for account security and digital receipts.',
+          tagText: 'Invalid Email',
+          actionText: 'Enter Valid Email'
+        });
+        return;
+      }
+
+      // 3. Sense Email Already Registered
+      const cleanEmail = email.toLowerCase();
+      const existingUsers = getStoredUsers();
+      const alreadyExists = existingUsers.some(u => u.email && u.email.trim().toLowerCase() === cleanEmail);
+      if (alreadyExists) {
+        showAuthSenseError({
+          field: 'signUpEmailInput',
+          title: 'Account Already Exists',
+          message: `An account with email "<b>${escapeHtml(email)}</b>" is already registered.<br><br>Please switch to Sign In to access your store.`,
+          tagText: 'Email Registered',
+          actionText: 'Go to Sign In',
+          onAction: () => {
+            setAuthView('login');
+            const lEmail = document.getElementById('signInEmailInput');
+            if (lEmail) lEmail.value = email;
+          }
+        });
+        return;
+      }
+
+      // 4. Sense Weak Password
+      if (!pw || pw.length < 6) {
+        showAuthSenseError({
+          field: 'signUpPasswordInput',
+          title: 'Password Too Short',
+          message: 'Your password must be at least 6 characters long to keep your retail terminal secure.',
+          tagText: 'Password Security',
+          actionText: 'Create 6+ Character Password'
+        });
+        return;
+      }
+
+      const submitBtn = document.getElementById('signUpSubmitBtn');
+      const submitText = document.getElementById('signUpSubmitBtnText');
+      const originalText = submitText ? submitText.innerText : 'CREATE ACCOUNT';
+      if (submitBtn) submitBtn.disabled = true;
+      if (submitText) submitText.innerText = 'Creating account...';
+
+      // 5. Try Node.js Backend API
+      try {
+        const regRes = await fetch(`${BACKEND_API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            storeName: storeName,
+            email: email,
+            phone: phone || '+91 9876543210',
+            password: pw
+          })
+        });
+        const regData = await regRes.json();
+        if (regRes.status === 409 || (regData && !regData.success && regData.message && regData.message.includes('already exists'))) {
+          if (submitBtn) submitBtn.disabled = false;
+          if (submitText) submitText.innerText = originalText;
+          showAuthSenseError({
+            field: 'signUpEmailInput',
+            title: 'Account Already Exists',
+            message: regData.message || 'An account with this email already exists. Please Sign In.',
+            tagText: 'Email Registered',
+            actionText: 'Go to Sign In',
+            onAction: () => setAuthView('login')
+          });
           return;
         }
+      } catch (apiErr) {
+        console.warn('Backend register note, stored locally:', apiErr);
+      }
 
-        pendingRegistration = {
-          resetEmail: identifier,
-          newPassword: newPw
-        };
+      // 6. Save locally
+      const newUser = {
+        storeName: storeName,
+        phone: phone || '+91 9876543210',
+        email: email,
+        password: pw,
+        createdAt: new Date().toISOString()
+      };
+      saveNewUser(newUser);
 
-        const targetEl2 = document.getElementById('otpTargetEmail');
-        if (targetEl2) targetEl2.innerText = identifier;
-        document.getElementById('otpModal').classList.remove('hidden');
-        generateAndSendDualOtp();
+      // 7. Security Enforcement: DO NOT auto-log in. Require explicit credentials matching.
+      isLoggedIn = false;
+      localStorage.removeItem('super_inventory_token');
+      localStorage.removeItem('super_inventory_seller');
+
+      // 8. VANISH ALL SIGN UP FIELDS COMPLETELY (Nothing retained in input fields)
+      if (storeInput) storeInput.value = '';
+      if (emailInput) emailInput.value = '';
+      if (phoneInput) phoneInput.value = '';
+      if (pwInput) pwInput.value = '';
+
+      // 9. Switch cleanly to Sign In
+      setAuthView('login');
+      if (submitBtn) submitBtn.disabled = false;
+      if (submitText) submitText.innerText = originalText;
+
+      // Show professional modal alerting user that account was created and to sign in with their credentials!
+      showAuthSenseError({
+        field: 'signInEmailInput',
+        title: 'Account Created Successfully! 🎉',
+        message: `Your store <b>${escapeHtml(storeName)}</b> is registered!<br><br>Please enter your email and password to securely sign into your POS terminal.`,
+        tagText: 'Registration Complete',
+        actionText: 'Proceed to Sign In',
+        onAction: () => {
+          document.getElementById('signInEmailInput')?.focus();
+        }
+      });
+    }
+
+    async function handleForgotSubmit() {
+      const email = document.getElementById('forgotEmailInput')?.value.trim();
+      const newPw = document.getElementById('forgotNewPasswordInput')?.value.trim();
+
+      if (!email || !email.includes('@')) {
+        showAuthSenseError({
+          field: 'forgotEmailInput',
+          title: 'Email Required',
+          message: 'Please enter your registered email address to reset your password.',
+          tagText: 'Email Missing',
+          actionText: 'Enter Email'
+        });
+        return;
+      }
+
+      if (!newPw || newPw.length < 6) {
+        showAuthSenseError({
+          field: 'forgotNewPasswordInput',
+          title: 'New Password Required',
+          message: 'Please enter a new password (at least 6 characters).',
+          tagText: 'Password Length',
+          actionText: 'Set Password'
+        });
+        return;
+      }
+
+      pendingRegistration = {
+        resetEmail: email,
+        newPassword: newPw
+      };
+
+      const targetEl = document.getElementById('otpTargetEmail');
+      if (targetEl) targetEl.innerText = email;
+      document.getElementById('otpModal')?.classList.remove('hidden');
+      generateAndSendDualOtp();
+    }
+
+    // Legacy bridge
+    function handlePrimaryAuthSubmit() {
+      if (currentAuthMode === 'signup') {
+        return handleSignUpSubmit();
+      } else if (currentAuthMode === 'forgot') {
+        return handleForgotSubmit();
+      } else {
+        return handleSignInSubmit();
       }
     }
 
     function triggerEmailOtpVerification() {
-      const email = document.getElementById('authEmailInput')?.value.trim();
-      const pw = document.getElementById('authPasswordInput')?.value.trim();
-      const storeName = document.getElementById('authStoreName')?.value.trim() || 'Super Inventory Store';
-      const phone = document.getElementById('authSignupPhone')?.value?.trim() || '';
+      const email = document.getElementById('signUpEmailInput')?.value.trim();
+      const pw = document.getElementById('signUpPasswordInput')?.value.trim();
+      const storeName = document.getElementById('signUpStoreName')?.value.trim() || 'Super Inventory Store';
+      const phone = document.getElementById('signUpPhoneInput')?.value?.trim() || '';
 
       if (!email || !email.includes('@') || !email.includes('.')) {
         showAppToast('Please enter a valid email address first to verify', 'warning', true);
-        document.getElementById('authEmailInput')?.focus();
+        document.getElementById('signUpEmailInput')?.focus();
         return;
       }
 
@@ -4112,19 +4394,19 @@
           verifyBtn.innerText = 'Verify & Continue to Sign In';
         }
 
-        // Clear signup fields
-        if (document.getElementById('authSignupPhone')) document.getElementById('authSignupPhone').value = '';
-        if (document.getElementById('authStoreName')) document.getElementById('authStoreName').value = '';
+        // Clear all fields
+        if (document.getElementById('signInEmailInput')) document.getElementById('signInEmailInput').value = '';
+        if (document.getElementById('signInPasswordInput')) document.getElementById('signInPasswordInput').value = '';
+        if (document.getElementById('signUpStoreName')) document.getElementById('signUpStoreName').value = '';
+        if (document.getElementById('signUpEmailInput')) document.getElementById('signUpEmailInput').value = '';
+        if (document.getElementById('signUpPhoneInput')) document.getElementById('signUpPhoneInput').value = '';
+        if (document.getElementById('signUpPasswordInput')) document.getElementById('signUpPasswordInput').value = '';
 
-        // Switch to Sign In tab, pre-fill email, and clear password
+        // Switch to Sign In tab cleanly
         setAuthView('login');
-        if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = regEmail;
-        if (document.getElementById('authPasswordInput')) {
-          document.getElementById('authPasswordInput').value = '';
-          document.getElementById('authPasswordInput').focus();
-        }
+        document.getElementById('signInEmailInput')?.focus();
 
-        showAppToast('✓ Account registered! Enter your password to sign in.', 'verified', true);
+        showAppToast('✓ Account registered! Please enter your email and password to sign in.', 'verified', true);
         switchScreen('login');
         return;
       } else if (currentAuthMode === 'forgot' && pendingRegistration) {
@@ -4224,7 +4506,7 @@
           cancelText: 'Cancel',
           onConfirm: () => {
             setAuthView('signup');
-            const emailInput = document.getElementById('authEmailInput');
+            const emailInput = document.getElementById('signUpEmailInput');
             if (emailInput) emailInput.value = email;
           }
         });
@@ -4236,10 +4518,12 @@
 
       setTimeout(() => {
         // Clear all fields on auth page
-        if (document.getElementById('authEmailInput')) document.getElementById('authEmailInput').value = '';
-        if (document.getElementById('authPasswordInput')) document.getElementById('authPasswordInput').value = '';
-        if (document.getElementById('authSignupPhone')) document.getElementById('authSignupPhone').value = '';
-        if (document.getElementById('authStoreName')) document.getElementById('authStoreName').value = '';
+        if (document.getElementById('signInEmailInput')) document.getElementById('signInEmailInput').value = '';
+        if (document.getElementById('signInPasswordInput')) document.getElementById('signInPasswordInput').value = '';
+        if (document.getElementById('signUpEmailInput')) document.getElementById('signUpEmailInput').value = '';
+        if (document.getElementById('signUpPasswordInput')) document.getElementById('signUpPasswordInput').value = '';
+        if (document.getElementById('signUpPhoneInput')) document.getElementById('signUpPhoneInput').value = '';
+        if (document.getElementById('signUpStoreName')) document.getElementById('signUpStoreName').value = '';
 
         // Save session
         const mockToken = 'google_session_' + Date.now();

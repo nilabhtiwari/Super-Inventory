@@ -18,9 +18,18 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   
-  final _identifierController = TextEditingController(text: 'merchant@gmail.com');
-  final _passwordController = TextEditingController(text: 'Merchant@1234');
-  final _storeNameController = TextEditingController(text: 'Super Inventory');
+  // Dedicated Separate Controllers for Sign In
+  final _signInEmailController = TextEditingController();
+  final _signInPasswordController = TextEditingController();
+
+  // Dedicated Separate Controllers for Sign Up
+  final _signUpStoreNameController = TextEditingController();
+  final _signUpEmailController = TextEditingController();
+  final _signUpPasswordController = TextEditingController();
+  final _signUpPhoneController = TextEditingController();
+
+  // Dedicated Separate Controllers for Forgot Password
+  final _forgotEmailController = TextEditingController();
   final _newPasswordController = TextEditingController();
 
   AuthViewMode _viewMode = AuthViewMode.login;
@@ -29,17 +38,270 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
-    _identifierController.dispose();
-    _passwordController.dispose();
-    _storeNameController.dispose();
+    _signInEmailController.dispose();
+    _signInPasswordController.dispose();
+    _signUpStoreNameController.dispose();
+    _signUpEmailController.dispose();
+    _signUpPasswordController.dispose();
+    _signUpPhoneController.dispose();
+    _forgotEmailController.dispose();
     _newPasswordController.dispose();
     super.dispose();
   }
 
-  void _triggerAuthWithOtp() {
-    if (!_formKey.currentState!.validate()) return;
-    final identifier = _identifierController.text.trim();
-    _showOtpModal(identifier);
+  void _showSenseErrorDialog({
+    required String title,
+    required String message,
+    required IconData icon,
+    required Color iconColor,
+    required String tagText,
+    required String actionText,
+    VoidCallback? onAction,
+    String? secondaryText,
+    VoidCallback? onSecondary,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: const BorderSide(color: AppTheme.surfaceBorder)),
+        contentPadding: const EdgeInsets.all(24),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: iconColor.withOpacity(0.3)),
+              ),
+              child: Icon(icon, color: iconColor, size: 28),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                tagText.toUpperCase(),
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: iconColor, letterSpacing: 0.8),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
+            const SizedBox(height: 8),
+            Text(message, style: const TextStyle(fontSize: 12, color: AppTheme.textMuted, height: 1.4), textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  onAction?.call();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                child: Text(actionText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              ),
+            ),
+            if (secondaryText != null) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    onSecondary?.call();
+                  },
+                  child: Text(secondaryText, style: const TextStyle(color: AppTheme.primaryContainer, fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleDirectAuth() async {
+    if (_viewMode == AuthViewMode.login) {
+      final email = _signInEmailController.text.trim();
+      final password = _signInPasswordController.text.trim();
+
+      if (email.isEmpty) {
+        _showSenseErrorDialog(
+          title: 'Email Address Required',
+          message: 'Please enter your registered email address to sign into your terminal.',
+          icon: Icons.alternate_email_rounded,
+          iconColor: Colors.amber,
+          tagText: 'Email Missing',
+          actionText: 'Enter Email',
+        );
+        return;
+      }
+      if (!email.contains('@') || !email.contains('.')) {
+        _showSenseErrorDialog(
+          title: 'Invalid Email Format',
+          message: 'Please check your email address for spelling mistakes.',
+          icon: Icons.alternate_email_rounded,
+          iconColor: Colors.amber,
+          tagText: 'Invalid Email',
+          actionText: 'Fix Email',
+        );
+        return;
+      }
+      if (password.isEmpty) {
+        _showSenseErrorDialog(
+          title: 'Password Required',
+          message: 'Please enter your account password to verify your identity.',
+          icon: Icons.lock_outline_rounded,
+          iconColor: Colors.roseAccent,
+          tagText: 'Password Missing',
+          actionText: 'Enter Password',
+        );
+        return;
+      }
+
+      setState(() => _isLoading = true);
+      final success = await ref.read(authProvider.notifier).login(
+            email: email,
+            password: password,
+          );
+      setState(() => _isLoading = false);
+
+      if (!mounted) return;
+
+      if (success) {
+        _signInEmailController.clear();
+        _signInPasswordController.clear();
+        context.go('/');
+      } else {
+        final errorMsg = ref.read(authProvider).errorMessage ?? '';
+        if (errorMsg.toLowerCase().contains('password')) {
+          _showSenseErrorDialog(
+            title: 'Incorrect Password',
+            message: 'The password you entered is incorrect. Please re-enter your password or reset it.',
+            icon: Icons.lock_reset_rounded,
+            iconColor: Colors.roseAccent,
+            tagText: 'Wrong Password',
+            actionText: 'Try Again',
+            secondaryText: 'Forgot Password?',
+            onSecondary: () => setState(() => _viewMode = AuthViewMode.forgotPassword),
+          );
+        } else {
+          _showSenseErrorDialog(
+            title: 'Account Not Found',
+            message: 'No registered merchant account found matching this email address.',
+            icon: Icons.person_off_rounded,
+            iconColor: Colors.amber,
+            tagText: 'Unregistered Email',
+            actionText: 'Check Email',
+            secondaryText: 'Sign Up (Create Account)',
+            onSecondary: () => setState(() => _viewMode = AuthViewMode.signup),
+          );
+        }
+      }
+    } else if (_viewMode == AuthViewMode.signup) {
+      final storeName = _signUpStoreNameController.text.trim();
+      final email = _signUpEmailController.text.trim();
+      final password = _signUpPasswordController.text.trim();
+
+      if (storeName.length < 2) {
+        _showSenseErrorDialog(
+          title: 'Store Name Required',
+          message: 'Please enter your business or store name (at least 2 characters).',
+          icon: Icons.storefront_rounded,
+          iconColor: Colors.indigoAccent,
+          tagText: 'Store Name Missing',
+          actionText: 'Enter Store Name',
+        );
+        return;
+      }
+      if (!email.contains('@') || !email.contains('.')) {
+        _showSenseErrorDialog(
+          title: 'Valid Email Required',
+          message: 'Please enter a valid business email address for registration.',
+          icon: Icons.alternate_email_rounded,
+          iconColor: Colors.amber,
+          tagText: 'Invalid Email',
+          actionText: 'Fix Email',
+        );
+        return;
+      }
+      if (password.length < 6) {
+        _showSenseErrorDialog(
+          title: 'Password Too Short',
+          message: 'Your password must be at least 6 characters long for security.',
+          icon: Icons.lock_outline_rounded,
+          iconColor: Colors.roseAccent,
+          tagText: 'Weak Password',
+          actionText: 'Set Stronger Password',
+        );
+        return;
+      }
+
+      setState(() => _isLoading = true);
+      await ref.read(authProvider.notifier).signup(
+            email: email,
+            password: password,
+            fullName: storeName,
+          );
+      setState(() => _isLoading = false);
+
+      if (!mounted) return;
+
+      // VANISH ALL INPUT FIELDS
+      _signUpStoreNameController.clear();
+      _signUpEmailController.clear();
+      _signUpPasswordController.clear();
+      _signUpPhoneController.clear();
+
+      // SWITCH TO SIGN IN
+      setState(() => _viewMode = AuthViewMode.login);
+
+      _showSenseErrorDialog(
+        title: 'Account Created Successfully! 🎉',
+        message: 'Your store "$storeName" is registered! Please sign in with your email and password.',
+        icon: Icons.verified_rounded,
+        iconColor: AppTheme.secondary,
+        tagText: 'Registration Complete',
+        actionText: 'Proceed to Sign In',
+      );
+    } else {
+      final email = _forgotEmailController.text.trim();
+      final newPw = _newPasswordController.text.trim();
+      if (!email.contains('@')) {
+        _showSenseErrorDialog(
+          title: 'Email Address Required',
+          message: 'Please enter your registered email address to reset password.',
+          icon: Icons.alternate_email_rounded,
+          iconColor: Colors.amber,
+          tagText: 'Email Missing',
+          actionText: 'Enter Email',
+        );
+        return;
+      }
+      if (newPw.length < 6) {
+        _showSenseErrorDialog(
+          title: 'Password Too Short',
+          message: 'New password must be at least 6 characters long.',
+          icon: Icons.lock_outline_rounded,
+          iconColor: Colors.roseAccent,
+          tagText: 'Weak Password',
+          actionText: 'Set 6+ Char Password',
+        );
+        return;
+      }
+      _showOtpModal(email);
+    }
   }
 
   void _showOtpModal(String identifier) {
@@ -396,39 +658,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                           const SizedBox(height: 16),
 
-                          // Signup Extra Fields
-                          if (_viewMode == AuthViewMode.signup) ...[
+                          // ==============================================
+                          // 1. SIGN IN FIELDS (SEPARATE FROM SIGN UP)
+                          // ==============================================
+                          if (_viewMode == AuthViewMode.login) ...[
                             TextFormField(
-                              controller: _storeNameController,
+                              controller: _signInEmailController,
                               style: const TextStyle(color: Colors.white, fontSize: 13),
                               decoration: const InputDecoration(
-                                labelText: 'Store / Business Name',
-                                hintText: 'Enter Store Name',
-                                prefixIcon: Icon(Icons.storefront_rounded, size: 20),
+                                labelText: 'Registered Email Address',
+                                hintText: 'Enter registered email',
+                                prefixIcon: Icon(Icons.alternate_email_rounded, size: 20),
                               ),
-                              validator: (v) => v == null || v.trim().isEmpty ? 'Enter business name' : null,
+                              keyboardType: TextInputType.emailAddress,
                             ),
                             const SizedBox(height: 12),
-                          ],
-
-                          // Identifier Field (Email / Phone Number)
-                          TextFormField(
-                            controller: _identifierController,
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
-                            decoration: const InputDecoration(
-                              labelText: 'Email / Phone Number',
-                              hintText: 'Enter Email / Phone Number',
-                              prefixIcon: Icon(Icons.alternate_email_rounded, size: 20),
-                            ),
-                            validator: (v) => v == null || v.trim().isEmpty ? 'Enter email or phone number' : null,
-                          ),
-
-                          const SizedBox(height: 12),
-
-                          // Password Field
-                          if (_viewMode != AuthViewMode.forgotPassword) ...[
                             TextFormField(
-                              controller: _passwordController,
+                              controller: _signInPasswordController,
                               obscureText: _obscurePassword,
                               style: const TextStyle(color: Colors.white, fontSize: 13),
                               decoration: InputDecoration(
@@ -439,10 +685,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                                 ),
                               ),
-                              validator: (v) => v == null || v.length < 6 ? 'Password must be at least 6 characters' : null,
                             ),
                             const SizedBox(height: 6),
-                            // Forgot Password Link
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
@@ -454,13 +698,106 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ),
                             ),
-                          ] else ...[
+                            const SizedBox(height: 14),
+                            ElevatedButton(
+                              onPressed: _isLoading ? null : _handleDirectAuth,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                elevation: 4,
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                  : const Text('SIGN IN', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+                            ),
+                          ]
+                          // ==============================================
+                          // 2. SIGN UP FIELDS (INDEPENDENT CONTROLLERS)
+                          // ==============================================
+                          else if (_viewMode == AuthViewMode.signup) ...[
+                            TextFormField(
+                              controller: _signUpStoreNameController,
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              decoration: const InputDecoration(
+                                labelText: 'Store / Business Name *',
+                                hintText: 'E.g. My Fresh Supermarket',
+                                prefixIcon: Icon(Icons.storefront_rounded, size: 20),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _signUpEmailController,
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              decoration: const InputDecoration(
+                                labelText: 'Business Email Address *',
+                                hintText: 'owner@store.com',
+                                prefixIcon: Icon(Icons.alternate_email_rounded, size: 20),
+                              ),
+                              keyboardType: TextInputType.emailAddress,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _signUpPhoneController,
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              decoration: const InputDecoration(
+                                labelText: 'Mobile / WhatsApp Number (Optional)',
+                                hintText: '+91 98765 43210',
+                                prefixIcon: Icon(Icons.phone_rounded, size: 20),
+                              ),
+                              keyboardType: TextInputType.phone,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _signUpPasswordController,
+                              obscureText: _obscurePassword,
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              decoration: InputDecoration(
+                                labelText: 'Create Password * (min 6 chars)',
+                                prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                                suffixIcon: IconButton(
+                                  icon: Icon(_obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 18),
+                                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            ElevatedButton(
+                              onPressed: _isLoading ? null : _handleDirectAuth,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                elevation: 4,
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                  : const Text('CREATE ACCOUNT', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+                            ),
+                          ]
+                          // ==============================================
+                          // 3. FORGOT PASSWORD FIELDS
+                          // ==============================================
+                          else ...[
+                            TextFormField(
+                              controller: _forgotEmailController,
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              decoration: const InputDecoration(
+                                labelText: 'Registered Email Address',
+                                hintText: 'Enter registered email',
+                                prefixIcon: Icon(Icons.alternate_email_rounded, size: 20),
+                              ),
+                              keyboardType: TextInputType.emailAddress,
+                            ),
+                            const SizedBox(height: 12),
                             TextFormField(
                               controller: _newPasswordController,
                               obscureText: _obscurePassword,
                               style: const TextStyle(color: Colors.white, fontSize: 13),
                               decoration: InputDecoration(
-                                labelText: 'New Password',
+                                labelText: 'New Password (min 6 chars)',
                                 prefixIcon: const Icon(Icons.lock_reset_rounded, size: 20),
                                 suffixIcon: IconButton(
                                   icon: Icon(_obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 18),
@@ -468,29 +805,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ),
                             ),
-                          ],
-
-                          const SizedBox(height: 14),
-
-                          // Submit Action Button (Triggers OTP verification)
-                          ElevatedButton(
-                            onPressed: _isLoading ? null : _triggerAuthWithOtp,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              elevation: 4,
+                            const SizedBox(height: 14),
+                            ElevatedButton(
+                              onPressed: _isLoading ? null : _handleDirectAuth,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                elevation: 4,
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                  : const Text('RESET PASSWORD', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
                             ),
-                            child: _isLoading
-                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                : Text(
-                                    _viewMode == AuthViewMode.login
-                                        ? 'Send OTP & Sign In'
-                                        : (_viewMode == AuthViewMode.signup ? 'Send OTP & Create Account' : 'Send OTP & Reset Password'),
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                                  ),
-                          ),
+                          ],
 
                           const SizedBox(height: 12),
 
