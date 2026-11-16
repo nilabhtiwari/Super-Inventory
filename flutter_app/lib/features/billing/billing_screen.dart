@@ -642,7 +642,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        "${Formatters.currency(item.unitPrice)} • GST ${(item.cgstRate + item.sgstRate).toStringAsFixed(0)}% (₹${item.totalTax.toStringAsFixed(1)})",
+                                        "Rate: ${Formatters.currency(item.unitPrice)}",
                                         style: const TextStyle(
                                           fontSize: 11,
                                           color: AppTheme.textSecondary,
@@ -782,7 +782,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Subtotal: ${Formatters.currency(cart.subtotal)} • GST: ${Formatters.currency(cart.taxTotal)}",
+                          "Subtotal: ${Formatters.currency(cart.subtotal)}",
                           style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                         ),
                         GestureDetector(

@@ -281,7 +281,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                                 style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                               ),
                               Text(
-                                "GST ${(item.cgstRate + item.sgstRate).toStringAsFixed(0)}% (₹${item.totalTax.toStringAsFixed(1)})",
+                                Formatters.currency(item.unitPrice * item.quantity),
                                 style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
                               ),
                             ],

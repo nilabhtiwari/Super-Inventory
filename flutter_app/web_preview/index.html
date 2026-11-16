@@ -942,8 +942,8 @@
                 <span class="text-brand-muted text-[10px] block leading-none">Subtotal</span>
                 <span id="cartSubtotalText" class="text-white font-bold text-xs mt-0.5">₹0.00</span>
               </div>
-              <div class="h-5 w-[1px] bg-brand-surfaceBorder"></div>
-              <div>
+              <div class="hidden h-5 w-[1px] bg-brand-surfaceBorder"></div>
+              <div class="hidden">
                 <span class="text-brand-muted text-[10px] block leading-none">GST Tax</span>
                 <span id="cartGstText" class="text-white font-bold text-xs mt-0.5">₹0.00</span>
               </div>
@@ -993,7 +993,7 @@
               <span>Subtotal:</span>
               <span id="rcptSubtotal" class="font-bold text-white">₹0.00</span>
             </div>
-            <div class="flex justify-between text-brand-muted">
+            <div id="rcptTaxRow" class="hidden flex justify-between text-brand-muted">
               <span>Tax (GST):</span>
               <span id="rcptTax" class="font-bold text-white">₹0.00</span>
             </div>
@@ -5542,7 +5542,10 @@
       if (headerPriceEl) headerPriceEl.innerText = `₹${product.price.toFixed(2)}`;
 
       const gstTagEl = document.getElementById('modalGstTag');
-      if (gstTagEl) gstTagEl.innerText = `(GST: ${product.gst}%)`;
+      if (gstTagEl) {
+        gstTagEl.innerText = '';
+        gstTagEl.classList.add('hidden');
+      }
 
       // Set Editable Price Input to the product price
       const priceInput = document.getElementById('modalPriceInput');
@@ -5802,10 +5805,9 @@
 
       // Total payable is EXACTLY single pack price multiplied by count
       const totalAmount = singlePackPrice * pcsCount;
-      const gstRate = currentModalProduct.gst || 0;
-      // Tax is included inside the MRP: Tax = Total - (Total / (1 + GST/100))
-      const taxAmount = (gstRate > 0) ? (totalAmount - (totalAmount / (1 + (gstRate / 100)))) : 0;
-      const baseAmount = totalAmount - taxAmount;
+      const gstRate = 0;
+      const taxAmount = 0;
+      const baseAmount = totalAmount;
 
       const calcTotal = document.getElementById('modalCalcTotal');
       if (calcTotal) calcTotal.innerText = `₹${totalAmount.toFixed(2)}`;
@@ -5813,7 +5815,7 @@
       const breakdown = document.getElementById('modalBreakdown');
       if (breakdown) {
         if (isFixed) {
-          breakdown.innerText = `${pcsCount} Pack${pcsCount > 1 ? 's' : ''} × ₹${singlePackPrice.toFixed(2)} (${lineWeightLabel} MRP)`;
+          breakdown.innerText = `${pcsCount} Pack${pcsCount > 1 ? 's' : ''} × ₹${singlePackPrice.toFixed(2)} (${lineWeightLabel})`;
         } else {
           breakdown.innerText = `${pcsCount} × ${lineWeightLabel} (@ ₹${singlePackPrice.toFixed(2)}/pack)`;
         }
@@ -5821,9 +5823,8 @@
 
       const taxText = document.getElementById('modalTaxText');
       if (taxText) {
-        taxText.innerText = (gstRate > 0)
-          ? `GST (${gstRate}% incl.): ₹${taxAmount.toFixed(2)}`
-          : `GST (0% exempt): ₹0.00`;
+        taxText.innerText = '';
+        taxText.classList.add('hidden');
       }
 
       const confirmBtnText = document.getElementById('modalConfirmBtnText');
@@ -7311,9 +7312,7 @@
           if (item.unit === 'g' || item.unit === 'ml') normalizedQty = item.quantity / 1000;
           
           const lineTotal = item.price * normalizedQty;
-          const gstRate = item.gst || 0;
-          const lineTax = (gstRate > 0) ? (lineTotal - (lineTotal / (1 + (gstRate / 100)))) : 0;
-          const lineNet = lineTotal - lineTax;
+          const lineNet = lineTotal;
 
           return `
             <div class="p-3 bg-white border border-slate-200 rounded-2xl flex items-center justify-between gap-2 shadow-xs hover:border-emerald-300 transition group">
@@ -7324,7 +7323,7 @@
                     ${item.quantity} ${item.unit || 'pcs'}
                   </button>
                 </div>
-                <p class="text-[10px] text-slate-500 mt-0.5 font-medium">Rate: ₹${item.price.toFixed(2)} • GST ${item.gst}% incl. (₹${lineTax.toFixed(2)})</p>
+                <p class="text-[10px] text-slate-500 mt-0.5 font-medium">Rate: ₹${item.price.toFixed(2)}</p>
               </div>
 
               <!-- Action Controls: Steppers, Line Total & 1-Tap Remove Trash Button -->
@@ -7346,27 +7345,20 @@
       }
 
       // Update Subtotal and Grand Total in checkout footer
-      let subtotal = 0;
-      let totalGst = 0;
       let grandTotal = 0;
       cart.forEach(i => {
         let normalizedQty = i.quantity;
         if (i.unit === 'g' || i.unit === 'ml') normalizedQty = i.quantity / 1000;
         const lineTotal = i.price * normalizedQty;
-        const gstRate = i.gst || 0;
-        const lineTax = (gstRate > 0) ? (lineTotal - (lineTotal / (1 + (gstRate / 100)))) : 0;
-        const lineNet = lineTotal - lineTax;
         grandTotal += lineTotal;
-        subtotal += lineNet;
-        totalGst += lineTax;
       });
 
       const subtotalEl = document.getElementById('cartSubtotalText');
       const gstEl = document.getElementById('cartGstText');
       const grandTotalEl = document.getElementById('cartGrandTotalText');
 
-      if (subtotalEl) subtotalEl.innerText = `₹${subtotal.toFixed(2)}`;
-      if (gstEl) gstEl.innerText = `₹${totalGst.toFixed(2)}`;
+      if (subtotalEl) subtotalEl.innerText = `₹${grandTotal.toFixed(2)}`;
+      if (gstEl) gstEl.innerText = `₹0.00`;
       if (grandTotalEl) grandTotalEl.innerText = `₹${grandTotal.toFixed(2)}`;
     }
 
@@ -7384,19 +7376,12 @@
         stopCameraBarcodeScanner();
       }
 
-      let subtotal = 0;
-      let totalGst = 0;
       let grandTotal = 0;
       cart.forEach(i => {
         let normalizedQty = i.quantity;
         if (i.unit === 'g' || i.unit === 'ml') normalizedQty = i.quantity / 1000;
         const lineTotal = i.price * normalizedQty;
-        const gstRate = i.gst || 0;
-        const lineTax = (gstRate > 0) ? (lineTotal - (lineTotal / (1 + (gstRate / 100)))) : 0;
-        const lineNet = lineTotal - lineTax;
         grandTotal += lineTotal;
-        subtotal += lineNet;
-        totalGst += lineTax;
       });
       currentPayableGrandTotal = grandTotal;
 
@@ -7567,8 +7552,8 @@
       
       const invNo = inv.id || 'INV-UNKNOWN';
       const grandTotal = Number(inv.total) || 0;
-      const subtotal = inv.subtotal !== undefined ? Number(inv.subtotal) : (grandTotal * 0.82);
-      const totalGst = inv.tax !== undefined ? Number(inv.tax) : (grandTotal - subtotal);
+      const subtotal = inv.subtotal !== undefined ? Number(inv.subtotal) : grandTotal;
+      const totalGst = 0;
       const payMode = inv.payMode || 'CASH';
 
       const invoiceDate = inv.date ? new Date(inv.date) : new Date();
@@ -7586,7 +7571,7 @@
       if (subtotalEl) subtotalEl.innerText = `₹${subtotal.toFixed(2)}`;
 
       const taxEl = document.getElementById('rcptTax');
-      if (taxEl) taxEl.innerText = `₹${totalGst.toFixed(2)}`;
+      if (taxEl) taxEl.innerText = `₹0.00`;
 
       const grandTotalEl = document.getElementById('rcptGrandTotal');
       if (grandTotalEl) grandTotalEl.innerText = `₹${grandTotal.toFixed(2)}`;
@@ -7607,9 +7592,7 @@
             let normalizedQty = i.quantity;
             if (i.unit === 'g' || i.unit === 'ml') normalizedQty = i.quantity / 1000;
             const lineTotal = (Number(i.price) || 0) * (Number(normalizedQty) || 1);
-            const gstRate = Number(i.gst) || 0;
-            const lineTax = (gstRate > 0) ? (lineTotal - (lineTotal / (1 + (gstRate / 100)))) : 0;
-            const lineNet = lineTotal - lineTax;
+            const lineNet = lineTotal;
 
             return `
               <div class="py-1.5 border-b border-dashed border-brand-surfaceBorder/70 text-left">
@@ -7619,7 +7602,7 @@
                 </div>
                 <div class="flex justify-between text-[10px] text-brand-muted mt-0.5">
                   <span>Qty: <b class="text-white">${i.quantity} ${i.unit || 'pcs'}</b> @ ₹${Number(i.price).toFixed(2)}/${i.unit || 'unit'}</span>
-                  <span>Net: ₹${lineNet.toFixed(2)} + GST ${gstRate}% incl. (₹${lineTax.toFixed(2)})</span>
+                  <span>Amount: ₹${lineTotal.toFixed(2)}</span>
                 </div>
               </div>
             `;
@@ -7638,7 +7621,7 @@
               </div>
               <div class="flex justify-between text-[10px] text-brand-muted mt-0.5">
                 <span>Total Items: <b class="text-white">${inv.items || 1}</b></span>
-                <span>GST Included</span>
+                <span></span>
               </div>
             </div>
           `;
@@ -7687,20 +7670,15 @@
         alert('Please scan products first!');
         return;
       }
-      let subtotal = 0;
-      let totalGst = 0;
       let grandTotal = 0;
       cart.forEach(item => {
         let normalizedQty = item.quantity;
         if (item.unit === 'g' || item.unit === 'ml') normalizedQty = item.quantity / 1000;
         const lineTotal = item.price * normalizedQty;
-        const gstRate = item.gst || 0;
-        const lineTax = (gstRate > 0) ? (lineTotal - (lineTotal / (1 + (gstRate / 100)))) : 0;
-        const lineNet = lineTotal - lineTax;
         grandTotal += lineTotal;
-        subtotal += lineNet;
-        totalGst += lineTax;
       });
+      let subtotal = grandTotal;
+      let totalGst = 0;
 
       const now = new Date();
       const dateCode = now.toISOString().slice(0, 10).replace(/-/g, '');

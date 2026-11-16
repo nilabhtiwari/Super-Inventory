@@ -141,7 +141,7 @@ class PdfReceiptService {
                         ],
                       ),
                       pw.Text(
-                        'HSN: ${item.product.hsnCode ?? "-"} | GST: ${(item.cgstRate + item.sgstRate).toStringAsFixed(0)}%',
+                        'HSN: ${item.product.hsnCode ?? "-"}',
                         style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700),
                       ),
                     ],

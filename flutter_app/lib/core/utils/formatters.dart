@@ -63,39 +63,13 @@ class Formatters {
     required double igstRate,
     required int quantity,
   }) {
-    final totalGstRate = (igstRate > 0) ? igstRate : (cgstRate + sgstRate);
-    final isTaxInclusive = false; // By default POS pricing is base price + GST
-
-    double subtotal = 0.0;
-    double cgstAmount = 0.0;
-    double sgstAmount = 0.0;
-    double igstAmount = 0.0;
-    double totalTax = 0.0;
-    double grandTotal = 0.0;
-
-    if (isTaxInclusive) {
-      final basePricePerUnit = sellingPrice / (1 + (totalGstRate / 100));
-      subtotal = basePricePerUnit * quantity;
-      totalTax = (sellingPrice * quantity) - subtotal;
-      if (igstRate > 0) {
-        igstAmount = totalTax;
-      } else {
-        cgstAmount = totalTax / 2;
-        sgstAmount = totalTax / 2;
-      }
-      grandTotal = sellingPrice * quantity;
-    } else {
-      subtotal = sellingPrice * quantity;
-      if (igstRate > 0) {
-        igstAmount = (subtotal * igstRate) / 100;
-        totalTax = igstAmount;
-      } else {
-        cgstAmount = (subtotal * cgstRate) / 100;
-        sgstAmount = (subtotal * sgstRate) / 100;
-        totalTax = cgstAmount + sgstAmount;
-      }
-      grandTotal = subtotal + totalTax;
-    }
+    // For now, GST rate is removed - GST is not included in rates
+    final subtotal = sellingPrice * quantity;
+    const cgstAmount = 0.0;
+    const sgstAmount = 0.0;
+    const igstAmount = 0.0;
+    const totalTax = 0.0;
+    final grandTotal = subtotal;
 
     return {
       'subtotal': double.parse(subtotal.toStringAsFixed(2)),
