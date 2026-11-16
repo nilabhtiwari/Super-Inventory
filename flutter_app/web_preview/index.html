@@ -2579,15 +2579,11 @@
           </div>
 
           <!-- Action Buttons for Barcode -->
-          <div class="flex items-center gap-2 pt-0.5">
-            <input type="file" id="modalBarcodeSnapFile" accept="image/*" capture="environment" class="hidden" onchange="handleModalSnapPhoto(event)">
-            <button type="button" onclick="document.getElementById('modalBarcodeSnapFile')?.click()" class="flex-1 py-1.5 px-3 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
-              <span class="material-symbols-outlined text-sm text-brand-primary">camera_alt</span>
-              <span>Snap Photo</span>
-            </button>
-            <button type="button" onclick="generateRandomBarcodeForAdd()" class="flex-1 py-1.5 px-3 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
-              <span class="material-symbols-outlined text-sm text-amber-400">bolt</span>
-              <span>Auto-Code</span>
+          <div class="pt-0.5">
+            <input type="file" id="modalBarcodeSnapFile" accept="image/*" class="hidden" onchange="handleModalSnapPhoto(event)">
+            <button type="button" onclick="document.getElementById('modalBarcodeSnapFile')?.click()" class="w-full py-2 px-3 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
+              <span class="material-symbols-outlined text-sm text-brand-primary">upload_file</span>
+              <span>UPLOAD BARCODE IMAGE</span>
             </button>
           </div>
 
@@ -6677,7 +6673,7 @@
       const file = event.target.files && event.target.files[0];
       if (!file) return;
 
-      showAppToast('Scanning barcode photo...', 'search');
+      showAppToast('Processing barcode image...', 'search');
       try {
         if (!modalCameraScannerInstance && window.Html5Qrcode) {
           modalCameraScannerInstance = new Html5Qrcode("modalLiveScannerContainer");
@@ -6687,12 +6683,12 @@
           if (decodedText) {
             onModalBarcodeDetected(decodedText);
           } else {
-            showAppToast('No barcode found in picture. Please write down barcode number.', 'warning', true);
+            showAppToast('No barcode found in image. Please write down barcode number.', 'warning', true);
           }
         }
       } catch (err) {
-        console.warn('Snap photo scan notice:', err);
-        showAppToast('Could not read barcode in photo. Please write down barcode number.', 'warning', true);
+        console.warn('Barcode image scan notice:', err);
+        showAppToast('Could not read barcode in image. Please write down barcode number.', 'warning', true);
       } finally {
         event.target.value = '';
       }
