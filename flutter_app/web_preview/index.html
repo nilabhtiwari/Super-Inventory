@@ -1803,9 +1803,6 @@
             <h3 class="text-xs font-bold text-brand-secondary flex items-center gap-1.5">
               <span class="material-symbols-outlined text-base text-emerald-400">qr_code_2</span> Bank UPI for Customer Bill QR
             </h3>
-            <span id="upiLockStatusBadge" class="text-[9px] text-amber-400 font-bold bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <span class="material-symbols-outlined text-xs">lock</span> Protected
-            </span>
           </div>
 
           <!-- Explanation box -->
@@ -1815,34 +1812,24 @@
           </div>
 
           <!-- Security Lock Banner (Shown by default when locked) -->
-          <div id="upiLockedBanner" class="p-3.5 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0 shadow-inner">
-                <span class="material-symbols-outlined text-xl">lock</span>
-              </div>
-              <div class="min-w-0">
-                <p class="text-xs font-black text-white tracking-wide">Settlement Account Protected</p>
-                <p class="text-[10px] text-brand-muted font-medium mt-0.5 leading-snug">Requires Store Password or Security PIN to edit</p>
-              </div>
+          <div id="upiLockedBanner" class="p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl flex items-center justify-between gap-3 shadow-sm">
+            <div class="min-w-0">
+              <p class="text-xs font-black text-white tracking-wide">Settlement Account Protected</p>
+              <p class="text-[10px] text-brand-muted font-medium mt-0.5 leading-snug">Requires Store Password or Security PIN to edit</p>
             </div>
-            <button type="button" onclick="openUpiBankModal()" class="shrink-0 self-start sm:self-center px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:opacity-95 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 group">
-              <span class="material-symbols-outlined text-base font-black transition-transform group-hover:scale-110">lock_open</span>
+            <button type="button" onclick="openUpiBankModal()" class="shrink-0 px-3.5 py-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:opacity-95 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 group">
+              <span class="material-symbols-outlined text-sm font-black">lock</span>
               <span class="tracking-wide">Unlock to Edit</span>
             </button>
           </div>
 
           <!-- Security Unlocked Banner (Shown when authenticated) -->
-          <div id="upiUnlockedBanner" class="hidden p-3.5 bg-gradient-to-r from-emerald-500/15 via-emerald-500/[0.05] to-transparent border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 shadow-inner">
-                <span class="material-symbols-outlined text-xl">verified_user</span>
-              </div>
-              <div>
-                <p class="text-xs font-black text-white tracking-wide">Owner Verified & Unlocked</p>
-                <p class="text-[10px] text-emerald-300/80 font-medium mt-0.5">Editing enabled • Re-locks after saving</p>
-              </div>
+          <div id="upiUnlockedBanner" class="hidden p-3 bg-gradient-to-r from-emerald-500/15 via-emerald-500/[0.05] to-transparent border border-emerald-500/30 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
+            <div class="min-w-0">
+              <p class="text-xs font-black text-white tracking-wide">Owner Verified & Unlocked</p>
+              <p class="text-[10px] text-emerald-300/80 font-medium mt-0.5">Editing enabled • Re-locks after saving</p>
             </div>
-            <button type="button" onclick="lockUpiSettings()" class="shrink-0 self-start sm:self-center px-3.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white font-bold text-xs rounded-xl transition flex items-center gap-1 active:scale-95">
+            <button type="button" onclick="lockUpiSettings()" class="shrink-0 px-3.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white font-bold text-xs rounded-xl transition flex items-center gap-1 active:scale-95">
               <span class="material-symbols-outlined text-sm">lock</span>
               <span>Lock Now</span>
             </button>
@@ -4657,10 +4644,6 @@
       }
       if (lockedBanner) lockedBanner.classList.add('hidden');
       if (unlockedBanner) unlockedBanner.classList.remove('hidden');
-      if (badge) {
-        badge.className = 'text-[9px] text-emerald-400 font-bold bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full flex items-center gap-1';
-        badge.innerHTML = '<span class="material-symbols-outlined text-xs">verified_user</span> Owner Verified';
-      }
     }
 
     function applyUpiLockedState() {
@@ -4669,7 +4652,6 @@
       const saveBtn = document.getElementById('profileUpiSaveBtn');
       const lockedBanner = document.getElementById('upiLockedBanner');
       const unlockedBanner = document.getElementById('upiUnlockedBanner');
-      const badge = document.getElementById('upiLockStatusBadge');
 
       if (upiInput) {
         upiInput.disabled = true;
@@ -4687,10 +4669,6 @@
       }
       if (lockedBanner) lockedBanner.classList.remove('hidden');
       if (unlockedBanner) unlockedBanner.classList.add('hidden');
-      if (badge) {
-        badge.className = 'text-[9px] text-amber-400 font-bold bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full flex items-center gap-1';
-        badge.innerHTML = '<span class="material-symbols-outlined text-xs">lock</span> Protected';
-      }
     }
 
     function unlockUpiSettings() {
