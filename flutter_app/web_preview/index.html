@@ -2549,18 +2549,63 @@
             <span>2. Name of Product *</span>
           </label>
           <input type="text" id="addProdName" 
-                 placeholder="Enter product name (e.g. Parle-G Gold Biscuits 100g)" 
-                 class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition" />
+                 placeholder="Enter product name (e.g. Parle-G, Amul Butter, Tata Salt)" 
+                 class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition" 
+                 oninput="updateAddProdVariantPreview()" />
         </div>
 
-        <!-- SECTION 3: SEPARATE BOX FOR PRICE -->
+        <!-- SECTION 3: QUANTITY SIZE & MEASUREMENT UNIT (Gram, Kg, Litre, ML, Pcs) -->
+        <div class="space-y-2 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
+          <div class="flex items-center justify-between">
+            <label class="text-[10px] font-black uppercase tracking-wider text-brand-secondary flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">scale</span>
+              <span>3. Product Quantity / Size & Unit *</span>
+            </label>
+            <span class="text-[9.5px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20" id="addProdVariantBadge">100 g</span>
+          </div>
+
+          <!-- Quantity Amount & Unit Selection -->
+          <div class="grid grid-cols-12 gap-2">
+            <!-- Numeric Quantity Size (e.g. 100, 250, 500, 1) -->
+            <div class="col-span-5 relative">
+              <input type="number" id="addProdNetQty" step="any" min="0.01" value="100" placeholder="100"
+                     class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition font-mono"
+                     oninput="updateAddProdVariantPreview()" />
+            </div>
+
+            <!-- Unit Selector Dropdown -->
+            <div class="col-span-7">
+              <select id="addProdUnit" onchange="setAddProdUnitFromSelect(this.value)" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2.5 py-2 text-xs font-bold text-white outline-none focus:border-brand-primary transition">
+                <option value="g" class="bg-slate-900 text-white">g (Grams)</option>
+                <option value="kg" class="bg-slate-900 text-white">kg (Kilograms)</option>
+                <option value="ml" class="bg-slate-900 text-white">ml (Millilitres)</option>
+                <option value="L" class="bg-slate-900 text-white">L (Litres)</option>
+                <option value="pcs" class="bg-slate-900 text-white">pcs (Pieces / Unit)</option>
+                <option value="pack" class="bg-slate-900 text-white">pack (Pack)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quick 1-Tap Unit Pills for Fast Selection -->
+          <div class="flex items-center gap-1.5 pt-0.5 overflow-x-auto no-scrollbar">
+            <span class="text-[9px] font-bold text-brand-muted uppercase shrink-0">Unit:</span>
+            <button type="button" onclick="selectAddProdUnitPill('g')" class="add-prod-unit-pill px-2.5 py-1 rounded-lg text-[10px] font-black border transition active:scale-95 bg-emerald-500/20 text-emerald-300 border-emerald-500/40" data-unit="g">g (Gram)</button>
+            <button type="button" onclick="selectAddProdUnitPill('kg')" class="add-prod-unit-pill px-2.5 py-1 rounded-lg text-[10px] font-black border transition active:scale-95 bg-brand-surface text-slate-300 border-brand-surfaceBorder hover:border-slate-400" data-unit="kg">kg (Kilogram)</button>
+            <button type="button" onclick="selectAddProdUnitPill('ml')" class="add-prod-unit-pill px-2.5 py-1 rounded-lg text-[10px] font-black border transition active:scale-95 bg-brand-surface text-slate-300 border-brand-surfaceBorder hover:border-slate-400" data-unit="ml">ml (Millilitre)</button>
+            <button type="button" onclick="selectAddProdUnitPill('L')" class="add-prod-unit-pill px-2.5 py-1 rounded-lg text-[10px] font-black border transition active:scale-95 bg-brand-surface text-slate-300 border-brand-surfaceBorder hover:border-slate-400" data-unit="L">L (Litre)</button>
+            <button type="button" onclick="selectAddProdUnitPill('pcs')" class="add-prod-unit-pill px-2.5 py-1 rounded-lg text-[10px] font-black border transition active:scale-95 bg-brand-surface text-slate-300 border-brand-surfaceBorder hover:border-slate-400" data-unit="pcs">pcs (Piece)</button>
+          </div>
+          <p class="text-[9.5px] text-brand-muted leading-tight">Specify exact quantity/weight so different sizes (e.g. 100g vs 500g) have their own correct prices.</p>
+        </div>
+
+        <!-- SECTION 4: SEPARATE BOX FOR PRICE -->
         <div class="space-y-1.5 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
           <div class="flex items-center justify-between">
             <label class="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1">
               <span class="material-symbols-outlined text-sm">payments</span>
-              <span>3. Price of Item (₹) *</span>
+              <span id="addProdPriceLabel">4. Price for 100 g (₹) *</span>
             </label>
-            <span class="text-[9px] font-bold text-brand-muted">Selling Price</span>
+            <span class="text-[9px] font-bold text-brand-muted" id="addProdPriceUnitHint">Selling Price</span>
           </div>
           <div class="relative flex items-center">
             <span class="absolute left-3 text-sm font-black text-emerald-400">₹</span>
@@ -2569,33 +2614,17 @@
           </div>
         </div>
 
-        <!-- SECTION 4: STOCK QUANTITY & MEASUREMENT UNIT -->
-        <div class="grid grid-cols-2 gap-2 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
-          <div class="space-y-1">
+        <!-- SECTION 5: STOCK QUANTITY IN STORE -->
+        <div class="space-y-1 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder rounded-2xl">
+          <div class="flex items-center justify-between">
             <label class="text-[10px] font-black uppercase tracking-wider text-slate-300 flex items-center gap-1">
               <span class="material-symbols-outlined text-sm text-brand-secondary">inventory_2</span>
-              <span>4. Stock Qty</span>
+              <span>5. Available Stock in Store</span>
             </label>
-            <input type="number" id="addProdQty" step="1" min="0" value="100" 
-                   class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition font-mono" />
+            <span class="text-[9px] font-bold text-brand-muted">Number of packs on shelf</span>
           </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-black uppercase tracking-wider text-slate-300 flex items-center gap-1">
-              <span class="material-symbols-outlined text-sm text-brand-secondary">straighten</span>
-              <span>5. Unit</span>
-            </label>
-            <select id="addProdUnit" class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-2.5 py-2 text-xs font-bold text-white outline-none focus:border-brand-primary transition">
-              <option value="pcs" class="bg-slate-900 text-white">pcs (Pieces)</option>
-              <option value="kg" class="bg-slate-900 text-white">kg (Kilogram)</option>
-              <option value="g" class="bg-slate-900 text-white">g (Gram)</option>
-              <option value="litre" class="bg-slate-900 text-white">litre (Litre)</option>
-              <option value="ml" class="bg-slate-900 text-white">ml (Millilitre)</option>
-              <option value="pack" class="bg-slate-900 text-white">pack (Pack)</option>
-              <option value="box" class="bg-slate-900 text-white">box (Box)</option>
-              <option value="can" class="bg-slate-900 text-white">can (Can)</option>
-              <option value="bottle" class="bg-slate-900 text-white">bottle (Bottle)</option>
-            </select>
-          </div>
+          <input type="number" id="addProdQty" step="1" min="0" value="100" 
+                 class="w-full bg-brand-surface border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs font-bold text-white placeholder:text-brand-muted outline-none focus:border-brand-primary transition font-mono" />
         </div>
 
       </div>
@@ -6583,6 +6612,40 @@
     let pendingAutoFillData = null;
     let editingProductOriginalBarcode = null;
 
+    function selectAddProdUnitPill(unit) {
+      const select = document.getElementById('addProdUnit');
+      if (select) select.value = unit;
+      // Update pills styling
+      document.querySelectorAll('.add-prod-unit-pill').forEach(btn => {
+        if (btn.getAttribute('data-unit') === unit) {
+          btn.className = 'add-prod-unit-pill px-2.5 py-1 rounded-lg text-[10px] font-black border transition active:scale-95 bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-xs';
+        } else {
+          btn.className = 'add-prod-unit-pill px-2.5 py-1 rounded-lg text-[10px] font-black border transition active:scale-95 bg-brand-surface text-slate-300 border-brand-surfaceBorder hover:border-slate-400';
+        }
+      });
+      updateAddProdVariantPreview();
+    }
+
+    function setAddProdUnitFromSelect(unit) {
+      selectAddProdUnitPill(unit);
+    }
+
+    function updateAddProdVariantPreview() {
+      const netQtyInput = document.getElementById('addProdNetQty');
+      const unitSelect = document.getElementById('addProdUnit');
+      const badge = document.getElementById('addProdVariantBadge');
+      const priceLabel = document.getElementById('addProdPriceLabel');
+      const priceHint = document.getElementById('addProdPriceUnitHint');
+
+      const netQty = (netQtyInput?.value || '').trim() || '1';
+      const unit = (unitSelect?.value || 'pcs').trim();
+      const variantStr = `${netQty} ${unit}`;
+
+      if (badge) badge.innerText = variantStr;
+      if (priceLabel) priceLabel.innerText = `4. Price for ${variantStr} (₹) *`;
+      if (priceHint) priceHint.innerText = `Per ${variantStr}`;
+    }
+
     function openAddProductModal(prefillQueryOrBarcode) {
       editingProductOriginalBarcode = null;
 
@@ -6596,13 +6659,14 @@
       const deleteBtn = document.getElementById('deleteProdModalBtn');
 
       if (titleEl) titleEl.innerText = 'Add Product to Inventory';
-      if (subEl) subEl.innerText = 'Scan barcode or enter name & price';
+      if (subEl) subEl.innerText = 'Scan barcode or enter name, size & price';
       if (saveBtnText) saveBtnText.innerText = 'ADD TO INVENTORY';
       if (saveBtnIcon) saveBtnIcon.innerText = 'check_circle';
       if (deleteBtn) deleteBtn.classList.add('hidden');
 
       const barcodeInput = document.getElementById('addProdBarcode');
       const nameInput = document.getElementById('addProdName');
+      const netQtyInput = document.getElementById('addProdNetQty');
       const priceInput = document.getElementById('addProdPrice');
       const qtyInput = document.getElementById('addProdQty');
       const unitSelect = document.getElementById('addProdUnit');
@@ -6610,8 +6674,10 @@
       if (barcodeInput) barcodeInput.value = '';
       if (nameInput) nameInput.value = '';
       if (priceInput) priceInput.value = '';
+      if (netQtyInput) netQtyInput.value = '100';
       if (qtyInput) qtyInput.value = '100';
-      if (unitSelect) unitSelect.value = 'pcs';
+      selectAddProdUnitPill('g');
+      updateAddProdVariantPreview();
 
       const hintEl = document.getElementById('addProdBarcodeMatchHint');
       if (hintEl) hintEl.classList.add('hidden');
@@ -6667,6 +6733,7 @@
 
       const barcodeInput = document.getElementById('addProdBarcode');
       const nameInput = document.getElementById('addProdName');
+      const netQtyInput = document.getElementById('addProdNetQty');
       const priceInput = document.getElementById('addProdPrice');
       const qtyInput = document.getElementById('addProdQty');
       const unitSelect = document.getElementById('addProdUnit');
@@ -6675,7 +6742,22 @@
       if (nameInput) nameInput.value = prod.name || '';
       if (priceInput) priceInput.value = prod.price !== undefined ? prod.price : '';
       if (qtyInput) qtyInput.value = prod.qty !== undefined ? prod.qty : 100;
-      if (unitSelect) unitSelect.value = prod.unit || 'pcs';
+      
+      let prodNetQty = prod.netQty;
+      let prodUnit = prod.unit || 'pcs';
+      if (!prodNetQty) {
+        const m = (prod.name || '').match(/(\d+(?:\.\d+)?)\s*(g|kg|ml|l|pcs|pack)\b/i);
+        if (m) {
+          prodNetQty = m[1];
+          const u = m[2].toLowerCase();
+          prodUnit = (u === 'l' ? 'L' : u);
+        } else {
+          prodNetQty = '100';
+        }
+      }
+      if (netQtyInput) netQtyInput.value = prodNetQty;
+      selectAddProdUnitPill(prodUnit);
+      updateAddProdVariantPreview();
 
       const hintEl = document.getElementById('addProdBarcodeMatchHint');
       if (hintEl) hintEl.classList.add('hidden');
@@ -7084,6 +7166,17 @@
           nameInput.classList.add('border-emerald-500');
           setTimeout(() => nameInput.classList.remove('border-emerald-500'), 1500);
         }
+        // Auto-detect unit & packaging quantity size
+        const m = detectedName.match(/(\d+(?:\.\d+)?)\s*(g|kg|ml|l|grams|gm)\b/i);
+        if (m) {
+          const val = m[1];
+          let u = m[2].toLowerCase();
+          if (u === 'gm' || u === 'grams') u = 'g';
+          if (u === 'l') u = 'L';
+          const netQtyInput = document.getElementById('addProdNetQty');
+          if (netQtyInput) netQtyInput.value = val;
+          selectAddProdUnitPill(u);
+        }
         if (hintEl && textEl) {
           textEl.innerHTML = `✓ Identified: <strong class="text-white">${detectedName}</strong> (Enter your price below)`;
           hintEl.classList.remove('hidden');
@@ -7142,6 +7235,19 @@
                 nameInput.classList.add('border-emerald-500');
                 setTimeout(() => nameInput.classList.remove('border-emerald-500'), 1500);
               }
+
+              // Auto-detect packaging quantity size & unit from online title / quantity
+              const m = fullTitle.match(/(\d+(?:\.\d+)?)\s*(g|kg|ml|l|grams|gm)\b/i);
+              if (m) {
+                const val = m[1];
+                let u = m[2].toLowerCase();
+                if (u === 'gm' || u === 'grams') u = 'g';
+                if (u === 'l') u = 'L';
+                const netQtyInput = document.getElementById('addProdNetQty');
+                if (netQtyInput) netQtyInput.value = val;
+                selectAddProdUnitPill(u);
+              }
+
               if (hintEl && textEl) {
                 textEl.innerHTML = `✓ Identified: <strong class="text-white">${fullTitle}</strong> (Enter your price below)`;
                 hintEl.classList.remove('hidden');
@@ -7203,11 +7309,13 @@
 
     function saveProductToInventory(addToActiveBill = false) {
       const barcode = (document.getElementById('addProdBarcode')?.value || '').trim();
-      const name = (document.getElementById('addProdName')?.value || '').trim();
+      const rawName = (document.getElementById('addProdName')?.value || '').trim();
       const price = parseFloat(document.getElementById('addProdPrice')?.value || '0');
+      const netQtyVal = parseFloat(document.getElementById('addProdNetQty')?.value || '100');
+      const netQty = isNaN(netQtyVal) ? 100 : netQtyVal;
+      const unit = document.getElementById('addProdUnit')?.value || 'g';
       const qtyInputVal = parseFloat(document.getElementById('addProdQty')?.value || '100');
       const qty = isNaN(qtyInputVal) ? 100 : qtyInputVal;
-      const unit = document.getElementById('addProdUnit')?.value || 'pcs';
       const gst = 5.0;
       const hsn = '1905';
 
@@ -7216,7 +7324,7 @@
         document.getElementById('addProdBarcode')?.focus();
         return;
       }
-      if (!name) {
+      if (!rawName) {
         showAppToast('Please enter the product name', 'warning', true);
         document.getElementById('addProdName')?.focus();
         return;
@@ -7225,6 +7333,14 @@
         showAppToast('Please enter a valid item selling price', 'warning', true);
         document.getElementById('addProdPrice')?.focus();
         return;
+      }
+
+      // Format product name cleanly with size/unit if not already explicitly included
+      let name = rawName;
+      const sizeTag = `${netQty}${unit}`;
+      const sizeTagSpace = `${netQty} ${unit}`;
+      if (!name.toLowerCase().includes(sizeTag.toLowerCase()) && !name.toLowerCase().includes(sizeTagSpace.toLowerCase())) {
+        name = `${rawName} (${netQty}${unit})`;
       }
 
       let existingIdx = -1;
@@ -7241,6 +7357,7 @@
         prod.name = name;
         prod.price = price;
         prod.qty = qty;
+        prod.netQty = netQty;
         prod.unit = unit;
         prod.gst = gst;
         prod.hsn = hsn;
@@ -7253,7 +7370,7 @@
             fetch(`/api/products/${prod.id}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.AUTH_TOKEN}` },
-              body: JSON.stringify({ name, barcode, price, stock_qty: qty, unit })
+              body: JSON.stringify({ name, barcode, price, stock_qty: qty, unit, net_quantity: netQty })
             }).catch(() => {});
           }
         } catch (e) {}
@@ -7264,6 +7381,7 @@
           name,
           price,
           qty,
+          netQty,
           unit,
           gst,
           hsn
@@ -8045,8 +8163,11 @@
                 <span class="text-[9.5px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                   ${p.barcode}
                 </span>
+                <span class="text-[9.5px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                  ${p.netQty ? `${p.netQty} ${p.unit || ''}` : (p.unit || 'pcs')}
+                </span>
                 <span class="text-[9.5px] font-medium ${isOutOfStock ? 'text-rose-600 font-bold' : 'text-slate-500'}">
-                  Stock: <b class="${isOutOfStock ? 'text-rose-600 font-black' : 'text-slate-700 font-bold'}">${stockQtyNum} ${p.unit || 'pcs'}</b>
+                  Stock: <b class="${isOutOfStock ? 'text-rose-600 font-black' : 'text-slate-700 font-bold'}">${stockQtyNum} packs</b>
                 </span>
                 <span class="text-[9px] font-bold ${isOutOfStock ? 'text-rose-600 bg-rose-50 border-rose-200' : 'text-emerald-700 bg-emerald-50 border-emerald-200'} px-1.5 py-0.5 rounded border">
                   Val: ₹${itemStockVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
