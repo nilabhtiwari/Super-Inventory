@@ -2401,16 +2401,16 @@
   </div>
 
   <!-- 4. FULL-SCREEN WHATSAPP BILL DISPATCH & PREVIEW DIALOG -->
-  <div id="whatsappModal" style="display: none;" onclick="if(event.target === this) closeWhatsAppModal();" class="hidden absolute inset-0 bg-slate-900/65 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-all">
-    <div class="bg-white border border-slate-200 rounded-[30px] p-5 w-full max-w-[348px] shadow-2xl text-left space-y-3.5 animate-in fade-in zoom-in-95 duration-150">
-      <div class="flex items-start justify-between border-b border-slate-100 pb-2.5">
+  <div id="whatsappModal" style="display: none;" onclick="if(event.target === this) closeWhatsAppModal();" class="hidden absolute inset-0 bg-slate-900/70 backdrop-blur-md z-[100] flex items-center justify-center p-3 transition-all overflow-y-auto custom-scroll">
+    <div class="bg-white border border-slate-200 rounded-[28px] p-4.5 w-full max-w-[360px] shadow-2xl text-left space-y-3 animate-in fade-in zoom-in-95 duration-150 my-auto">
+      <div class="flex items-start justify-between border-b border-slate-100 pb-2">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
             <span class="material-symbols-outlined text-lg">chat</span>
           </div>
           <div>
             <h3 class="text-xs font-black text-slate-900">Send WhatsApp Bill</h3>
-            <p class="text-[10px] text-emerald-600 font-bold">● Instant Direct WhatsApp Dispatch</p>
+            <p class="text-[10px] text-emerald-600 font-bold">● High-Resolution Image Receipt</p>
           </div>
         </div>
         <button onclick="closeWhatsAppModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition flex items-center justify-center active:scale-95">
@@ -2418,36 +2418,55 @@
         </button>
       </div>
 
-      <div class="space-y-1.5">
+      <div class="space-y-1">
         <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Customer Mobile (WhatsApp Number)</label>
         <div class="relative flex items-center">
           <span class="absolute left-3 text-xs font-black text-slate-400">+91</span>
           <input type="tel" id="whatsappMobileInput" maxlength="10" placeholder="9876543210 (Optional)" 
-                 onkeydown="if(event.key === 'Enter') dispatchWhatsAppInvoiceNow();"
+                 onkeydown="if(event.key === 'Enter') dispatchWhatsAppInvoiceImage();"
                  class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-emerald-500 focus:bg-white transition" />
         </div>
-        <p class="text-[9.5px] text-slate-400 font-medium leading-tight">Type 10-digit number to open chat directly, or leave empty to choose contact in WhatsApp.</p>
+        <p class="text-[9px] text-slate-400 font-medium leading-tight">Optional. Leave empty to choose contact directly in WhatsApp.</p>
       </div>
 
+      <!-- Live Receipt Image Preview -->
       <div class="space-y-1">
         <div class="flex items-center justify-between">
-          <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Invoice Preview</label>
-          <button type="button" onclick="copyWhatsAppBillText()" id="copyBillBtn" class="text-[10px] font-bold text-emerald-600 hover:underline flex items-center gap-0.5">
-            <span class="material-symbols-outlined text-xs">content_copy</span>
-            <span>Copy Text</span>
-          </button>
+          <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Receipt Image Preview</label>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="downloadReceiptImage()" class="text-[9.5px] font-bold text-slate-600 hover:text-emerald-600 flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-xs">download</span> Download
+            </button>
+            <button type="button" onclick="copyReceiptImageToClipboard()" id="copyImageBtn" class="text-[9.5px] font-bold text-emerald-600 hover:underline flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-xs">content_copy</span> Copy Image
+            </button>
+          </div>
         </div>
-        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[10.5px] font-mono text-slate-700 whitespace-pre-line max-h-36 overflow-y-auto custom-scroll leading-relaxed" id="whatsappMessagePreview"></div>
+        <div class="p-2 bg-slate-100 border border-slate-200 rounded-xl max-h-44 overflow-y-auto custom-scroll flex items-center justify-center">
+          <img id="receiptImagePreviewEl" class="w-full rounded-lg shadow-sm border border-slate-200 bg-white" alt="Tax Invoice Receipt Preview" />
+        </div>
+        <!-- Desktop helper tip banner -->
+        <div id="desktopWhatsappHint" class="hidden text-[9px] text-slate-600 bg-emerald-50 border border-emerald-200 rounded-lg p-1.5 flex items-center gap-1.5 leading-snug">
+          <span class="material-symbols-outlined text-xs text-emerald-600">info</span>
+          <span><b>Desktop tip:</b> Image is auto-copied to clipboard. Press <b>Ctrl+V</b> in WhatsApp chat to paste!</span>
+        </div>
+        <div class="hidden" id="whatsappMessagePreview"></div>
       </div>
 
-      <div class="space-y-2 pt-1">
-        <button type="button" onclick="dispatchWhatsAppInvoiceNow()" class="w-full py-3.5 bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 active:scale-95 transition flex items-center justify-center gap-1.5 uppercase tracking-wider">
-          <span class="material-symbols-outlined text-base">send</span>
-          <span>SEND ON WHATSAPP</span>
+      <!-- Action Buttons -->
+      <div class="space-y-1.5 pt-1">
+        <button type="button" onclick="dispatchWhatsAppInvoiceImage()" class="w-full py-3.5 bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 active:scale-95 transition flex items-center justify-center gap-2 uppercase tracking-wider">
+          <span class="material-symbols-outlined text-base">image</span>
+          <span>SEND RECEIPT IMAGE ON WHATSAPP</span>
         </button>
-        <button type="button" onclick="closeWhatsAppModal()" class="w-full py-2 bg-slate-100 border border-slate-200 text-slate-600 text-[10.5px] font-bold rounded-xl hover:text-slate-900 transition">
-          Dismiss
-        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="dispatchWhatsAppInvoiceNow()" class="w-1/2 py-2 bg-slate-50 border border-slate-200 text-slate-700 text-[10px] font-bold rounded-xl hover:bg-slate-100 transition flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined text-xs">chat</span> Send Text Bill
+          </button>
+          <button type="button" onclick="closeWhatsAppModal()" class="w-1/2 py-2 bg-slate-100 border border-slate-200 text-slate-600 text-[10px] font-bold rounded-xl hover:text-slate-900 transition">
+            Dismiss
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -8966,8 +8985,343 @@
 
     let lastCompletedInvoiceData = null;
     let currentFormattedWhatsAppText = '';
+    let currentReceiptBlob = null;
+    let currentReceiptDataUrl = null;
 
-    function openWhatsAppModal() {
+    async function generateReceiptCanvas() {
+      const shopName = document.getElementById('rcptShopName')?.innerText || 'Super Inventory Store';
+      const shopAddress = document.getElementById('rcptShopAddress')?.innerText || 'Main Branch • City Centre Road';
+      const gstin = document.getElementById('rcptGstin')?.innerText || 'GSTIN: 27AAAAA0000A1Z5';
+      const invNo = document.getElementById('rcptInvoiceNo')?.innerText || ('INV-' + Date.now().toString().slice(-8));
+      const dateStr = document.getElementById('rcptDate')?.innerText || new Date().toLocaleString('en-IN');
+      const subtotal = document.getElementById('rcptSubtotal')?.innerText || '₹0.00';
+      const tax = document.getElementById('rcptTax')?.innerText || '₹0.00';
+      const grandTotal = document.getElementById('rcptGrandTotal')?.innerText || '₹0.00';
+      const payMode = document.getElementById('rcptPayMode')?.innerText || 'PAID VIA UPI';
+      const helpline = document.getElementById('rcptHelpline')?.innerText || '9876543210';
+      const timings = document.getElementById('rcptTimings')?.innerText || '8:00 AM - 10:30 PM';
+      const offerBanner = document.getElementById('rcptOfferBanner')?.innerText || '';
+
+      const items = (lastCompletedInvoiceData && lastCompletedInvoiceData.items && lastCompletedInvoiceData.items.length > 0)
+        ? lastCompletedInvoiceData.items
+        : [{ name: 'Store Purchase', price: parseFloat(grandTotal.replace(/[^0-9.]/g, '')) || 0, quantity: 1, unit: 'pcs', gst: 0 }];
+
+      // Canvas dimensions (640px wide for ultra-sharp typography on mobile screens)
+      const width = 640;
+      let estimatedHeight = 540 + (items.length * 48);
+      if (offerBanner) estimatedHeight += 40;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = estimatedHeight;
+      const ctx = canvas.getContext('2d');
+
+      // 1. Clean paper background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, width, estimatedHeight);
+
+      // Subtle thermal receipt edge border
+      ctx.strokeStyle = '#E2E8F0';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(10, 10, width - 20, estimatedHeight - 20);
+
+      // 2. Header banner
+      ctx.fillStyle = '#0F172A';
+      ctx.fillRect(10, 10, width - 20, 100);
+
+      // Store Title
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '900 26px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(shopName.toUpperCase(), width / 2, 52);
+
+      // Store Location
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '500 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(shopAddress, width / 2, 75);
+
+      // GSTIN Badge
+      ctx.fillStyle = '#38BDF8';
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText(gstin, width / 2, 94);
+
+      let y = 140;
+
+      // 3. Invoice Meta
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#0F172A';
+      ctx.font = 'bold 13.5px monospace';
+      ctx.fillText(`BILL: ${invNo}`, 32, y);
+
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#64748B';
+      ctx.font = '12.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(dateStr, width - 32, y);
+
+      y += 20;
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#059669';
+      ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(`● STATUS: ${payMode.toUpperCase()}`, 32, y);
+
+      y += 16;
+      // Dashed separator line
+      ctx.setLineDash([6, 5]);
+      ctx.strokeStyle = '#CBD5E1';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(30, y);
+      ctx.lineTo(width - 30, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      y += 26;
+      // 4. Table Header
+      ctx.fillStyle = '#F1F5F9';
+      ctx.fillRect(30, y - 20, width - 60, 30);
+
+      ctx.fillStyle = '#334155';
+      ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('ITEM', 44, y);
+      ctx.textAlign = 'center';
+      ctx.fillText('QTY', 360, y);
+      ctx.textAlign = 'right';
+      ctx.fillText('RATE', 480, y);
+      ctx.fillText('AMOUNT', width - 44, y);
+
+      y += 24;
+
+      // 5. Items List
+      items.forEach((it, idx) => {
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#0F172A';
+        ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        
+        let itName = `${idx + 1}. ${it.name}`;
+        if (itName.length > 32) itName = itName.substring(0, 30) + '...';
+        ctx.fillText(itName, 44, y);
+
+        // Qty with unit
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#475569';
+        ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.fillText(`${it.quantity} ${it.unit || 'pcs'}`, 360, y);
+
+        // Rate
+        ctx.textAlign = 'right';
+        ctx.fillText(`₹${parseFloat(it.price).toFixed(2)}`, 480, y);
+
+        // Amount
+        const lineTotal = (it.price * it.quantity) * (1 + (it.gst || 0) / 100);
+        ctx.fillStyle = '#0F172A';
+        ctx.font = 'bold 13px monospace';
+        ctx.fillText(`₹${lineTotal.toFixed(2)}`, width - 44, y);
+
+        y += 14;
+        ctx.setLineDash([2, 4]);
+        ctx.strokeStyle = '#E2E8F0';
+        ctx.beginPath();
+        ctx.moveTo(44, y);
+        ctx.lineTo(width - 44, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        y += 22;
+      });
+
+      y += 10;
+      // Divider
+      ctx.strokeStyle = '#CBD5E1';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(30, y);
+      ctx.lineTo(width - 30, y);
+      ctx.stroke();
+
+      y += 24;
+      // 6. Subtotal & GST
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#475569';
+      ctx.font = '13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('Subtotal (Taxable):', 44, y);
+      ctx.textAlign = 'right';
+      ctx.fillText(subtotal, width - 44, y);
+
+      if (tax && tax !== '₹0.00') {
+        y += 22;
+        ctx.textAlign = 'left';
+        ctx.fillText('GST Tax Total:', 44, y);
+        ctx.textAlign = 'right';
+        ctx.fillText(tax, width - 44, y);
+      }
+
+      y += 28;
+      // 7. High-Contrast Grand Total Banner
+      ctx.fillStyle = '#0F172A';
+      if (typeof ctx.roundRect === 'function') {
+        ctx.beginPath();
+        ctx.roundRect(30, y - 22, width - 60, 52, 12);
+        ctx.fill();
+      } else {
+        ctx.fillRect(30, y - 22, width - 60, 52);
+      }
+
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('FINAL TOTAL AMOUNT:', 48, y + 10);
+
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#34D399';
+      ctx.font = '900 24px monospace';
+      ctx.fillText(grandTotal, width - 48, y + 12);
+
+      y += 54;
+
+      // 8. Support helpline & timings
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#475569';
+      ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(`📞 Support: ${helpline}   •   ⏱ Hours: ${timings}`, width / 2, y);
+
+      y += 22;
+      if (offerBanner) {
+        ctx.fillStyle = '#059669';
+        ctx.font = 'bold 11.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.fillText(offerBanner, width / 2, y);
+        y += 22;
+      }
+
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '11.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('Thank you for shopping with us! Visit again.', width / 2, y);
+
+      y += 18;
+      ctx.fillStyle = '#CBD5E1';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText('⚡ Verified Digital Invoice • Powered by Super Inventory POS', width / 2, y);
+
+      // Convert to Blob and Data URL
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+          currentReceiptBlob = blob;
+          currentReceiptDataUrl = canvas.toDataURL('image/png');
+          const previewImg = document.getElementById('receiptImagePreviewEl');
+          if (previewImg) previewImg.src = currentReceiptDataUrl;
+          resolve({ blob, dataUrl: currentReceiptDataUrl });
+        }, 'image/png');
+      });
+    }
+
+    function downloadReceiptImage() {
+      if (!currentReceiptDataUrl) return;
+      const invNo = document.getElementById('rcptInvoiceNo')?.innerText || 'Receipt';
+      const a = document.createElement('a');
+      a.href = currentReceiptDataUrl;
+      a.download = `Invoice_${invNo}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showAppToast('✓ Receipt image downloaded (.png)', 'download');
+    }
+
+    async function copyReceiptImageToClipboard() {
+      if (!currentReceiptBlob) await generateReceiptCanvas();
+      try {
+        if (navigator.clipboard && window.ClipboardItem && currentReceiptBlob) {
+          const item = new ClipboardItem({ 'image/png': currentReceiptBlob });
+          await navigator.clipboard.write([item]);
+          const btn = document.getElementById('copyImageBtn');
+          if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-xs">done</span> Copied!';
+          showAppToast('✓ Receipt image copied to clipboard! Paste in WhatsApp', 'check');
+          setTimeout(() => {
+            if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-xs">content_copy</span> Copy Image';
+          }, 2500);
+        } else {
+          downloadReceiptImage();
+        }
+      } catch (err) {
+        downloadReceiptImage();
+      }
+    }
+
+    async function dispatchWhatsAppInvoiceImage() {
+      if (!currentReceiptBlob) {
+        await generateReceiptCanvas();
+      }
+
+      const phoneInput = document.getElementById('whatsappMobileInput');
+      let rawPhone = (phoneInput ? phoneInput.value : '').trim();
+      let cleanPhone = rawPhone.replace(/\D/g, '');
+
+      if (cleanPhone.length === 10) {
+        cleanPhone = '91' + cleanPhone;
+      } else if (cleanPhone.length === 11 && cleanPhone.startsWith('0')) {
+        cleanPhone = '91' + cleanPhone.substring(1);
+      }
+
+      const invNo = document.getElementById('rcptInvoiceNo')?.innerText || 'Receipt';
+      const shopName = document.getElementById('rcptShopName')?.innerText || 'Super Inventory';
+      const fileName = `Invoice_${invNo}.png`;
+
+      // 1. Mobile Web Share API with Files (Android & iOS)
+      // When available, this automatically opens WhatsApp with the PNG IMAGE attached!
+      if (navigator.share && navigator.canShare && currentReceiptBlob) {
+        try {
+          const file = new File([currentReceiptBlob], fileName, { type: 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: `Tax Invoice - ${invNo}`,
+              text: `🧾 Tax Invoice from ${shopName} - Invoice #${invNo}`
+            });
+            showAppToast('✓ Receipt Image sent via WhatsApp', 'check');
+            closeWhatsAppModal();
+            return;
+          }
+        } catch (shareErr) {
+          if (shareErr.name === 'AbortError') return; // User dismissed share sheet
+          console.warn('Web Share API fallback:', shareErr);
+        }
+      }
+
+      // 2. Desktop WhatsApp Web / Clipboard Fallback
+      // Copy receipt image to clipboard so merchant can press Ctrl+V directly into WhatsApp
+      try {
+        if (navigator.clipboard && window.ClipboardItem && currentReceiptBlob) {
+          const item = new ClipboardItem({ 'image/png': currentReceiptBlob });
+          await navigator.clipboard.write([item]);
+          showAppToast('✓ Receipt Image copied! Press Ctrl+V in WhatsApp to send image', 'content_copy', true);
+        }
+      } catch (clipErr) {
+        console.warn('Clipboard image copy fallback:', clipErr);
+      }
+
+      // Download image so user has file on hand
+      downloadReceiptImage();
+
+      // Open WhatsApp chat directly
+      const encodedCaption = encodeURIComponent(`🧾 *TAX INVOICE - ${shopName.toUpperCase()}*\nInvoice: ${invNo}\n(Receipt image copied to clipboard & downloaded. Press Ctrl+V to paste!)`);
+      const waUrl = cleanPhone 
+        ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedCaption}`
+        : `https://api.whatsapp.com/send?text=${encodedCaption}`;
+
+      closeWhatsAppModal();
+      showAppToast(cleanPhone ? `Opening WhatsApp for +${cleanPhone}...` : 'Opening WhatsApp...', 'chat');
+
+      const link = document.createElement('a');
+      link.href = waUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        try { document.body.removeChild(link); } catch (e) {}
+      }, 500);
+    }
+
+    async function openWhatsAppModal() {
       const shopName = document.getElementById('rcptShopName')?.innerText || 'Super Inventory Store';
       const shopAddress = document.getElementById('rcptShopAddress')?.innerText || 'Main Branch • City Centre';
       const gstin = document.getElementById('rcptGstin')?.innerText || 'GSTIN: 27AAAAA0000A1Z5';
@@ -8980,7 +9334,7 @@
       const helpline = document.getElementById('rcptHelpline')?.innerText || '9876543210';
       const timings = document.getElementById('rcptTimings')?.innerText || '8:00 AM - 10:30 PM';
 
-      // Extract item lines with statutory HSN and CGST/SGST split
+      // Extract item lines
       let itemsListText = '';
       if (lastCompletedInvoiceData && lastCompletedInvoiceData.items && lastCompletedInvoiceData.items.length > 0) {
         itemsListText = lastCompletedInvoiceData.items.map((it, idx) => {
@@ -9018,6 +9372,17 @@ ${itemsListText}
       const previewEl = document.getElementById('whatsappMessagePreview');
       if (previewEl) previewEl.innerText = currentFormattedWhatsAppText;
 
+      // Show Desktop Hint if on non-mobile platform
+      const desktopHint = document.getElementById('desktopWhatsappHint');
+      if (desktopHint) {
+        const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (!isMobileDevice) {
+          desktopHint.classList.remove('hidden');
+        } else {
+          desktopHint.classList.add('hidden');
+        }
+      }
+
       const modal = document.getElementById('whatsappModal');
       if (modal) {
         modal.classList.remove('hidden');
@@ -9029,6 +9394,9 @@ ${itemsListText}
         input.value = '';
         setTimeout(() => input.focus(), 150);
       }
+
+      // Generate the high-resolution receipt image immediately
+      await generateReceiptCanvas();
     }
 
     function closeWhatsAppModal() {
@@ -9044,7 +9412,6 @@ ${itemsListText}
       let rawPhone = (phoneInput ? phoneInput.value : '').trim();
       let cleanPhone = rawPhone.replace(/\D/g, '');
 
-      // Standardize Indian phone number format (prefix 91 for 10-digit mobile)
       if (cleanPhone.length === 10) {
         cleanPhone = '91' + cleanPhone;
       } else if (cleanPhone.length === 11 && cleanPhone.startsWith('0')) {
@@ -9053,8 +9420,6 @@ ${itemsListText}
 
       const encodedMsg = encodeURIComponent(currentFormattedWhatsAppText || 'Invoice from Super Inventory');
       
-      // If phone number is specified, open chat directly with that person on WhatsApp.
-      // If left blank, open WhatsApp so the merchant can pick any contact / chat.
       const waUrl = cleanPhone 
         ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`
         : `https://api.whatsapp.com/send?text=${encodedMsg}`;
@@ -9062,7 +9427,6 @@ ${itemsListText}
       closeWhatsAppModal();
       showAppToast(cleanPhone ? `Opening WhatsApp for +${cleanPhone}...` : 'Opening WhatsApp...', 'chat');
 
-      // Seamlessly open WhatsApp app on mobile or desktop
       try {
         const link = document.createElement('a');
         link.href = waUrl;
