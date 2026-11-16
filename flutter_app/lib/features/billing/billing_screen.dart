@@ -111,15 +111,28 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           ),
         );
       } else {
-        // Method 3: Not Found -> Open Quick Add Modal
+        // Not Found in Inventory -> Show PRODUCT NOT FOUND IN INVENTORY for 4 seconds and return to scanning
         HapticFeedback.heavyImpact();
-        try {
-          if (_isCameraVisible) {
-            await _scannerController.stop();
-          }
-        } catch (_) {}
-
-        await _showQuickAddProductDialog(barcode);
+        if (mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.error_outline_rounded, color: AppTheme.error),
+                  SizedBox(width: 8),
+                  Text(
+                    'PRODUCT NOT FOUND IN INVENTORY',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ],
+              ),
+              duration: const Duration(seconds: 4),
+              backgroundColor: AppTheme.surfaceElevated,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
 
         try {
           if (_isCameraVisible && mounted) {

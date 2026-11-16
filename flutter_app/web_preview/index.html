@@ -928,48 +928,7 @@
           <div id="billingSearchResultsDropdown" class="hidden absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-2xl shadow-2xl z-40 max-h-56 overflow-y-auto custom-scroll divide-y divide-slate-100"></div>
         </div>
 
-        <!-- 📦 QUICK BARCODE TEST SHELF (POPULAR FMCG BARCODES) -->
-        <div class="bg-white border border-slate-200 p-3 rounded-2xl shadow-xs">
-          <div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
-            <span class="flex items-center gap-1">
-              <span class="material-symbols-outlined text-sm text-emerald-600">qr_code_2</span> Quick Barcode Shelf
-            </span>
-            <span class="text-emerald-700 font-bold text-[9.5px] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">3-Tier Lookup Active</span>
-          </div>
-          <div class="flex gap-1.5 overflow-x-auto custom-scroll pb-1">
-            <button onclick="processScannedBarcode('8901030762100')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 border border-slate-200 rounded-xl text-left whitespace-nowrap transition group">
-              <p class="text-[11px] font-bold text-slate-800 group-hover:text-emerald-700">Parle-G 100g (₹10)</p>
-              <p class="text-[9px] font-mono text-slate-400">8901030762100</p>
-            </button>
-            <button onclick="processScannedBarcode('8901063141010')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 border border-slate-200 rounded-xl text-left whitespace-nowrap transition group">
-              <p class="text-[11px] font-bold text-slate-800 group-hover:text-emerald-700">Marie Gold 100g (₹15)</p>
-              <p class="text-[9px] font-mono text-slate-400">8901063141010</p>
-            </button>
-            <button onclick="processScannedBarcode('8901058000100')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 border border-slate-200 rounded-xl text-left whitespace-nowrap transition group">
-              <p class="text-[11px] font-bold text-slate-800 group-hover:text-emerald-700">Amul Butter 100g (₹58)</p>
-              <p class="text-[9px] font-mono text-slate-400">8901058000100</p>
-            </button>
-            <button onclick="processScannedBarcode('8901058852070')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 border border-slate-200 rounded-xl text-left whitespace-nowrap transition group">
-              <p class="text-[11px] font-bold text-slate-800 group-hover:text-emerald-700">Maggi 2-Min (₹14)</p>
-              <p class="text-[9px] font-mono text-slate-400">8901058852070</p>
-            </button>
-            <button onclick="processScannedBarcode('8901719106361')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 border border-slate-200 rounded-xl text-left whitespace-nowrap transition group">
-              <p class="text-[11px] font-bold text-slate-800 group-hover:text-emerald-700">Tata Tea Gold (₹155)</p>
-              <p class="text-[9px] font-mono text-slate-400">8901719106361</p>
-            </button>
-            <button onclick="processScannedBarcode('8901030383847')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 border border-slate-200 rounded-xl text-left whitespace-nowrap transition group">
-              <p class="text-[11px] font-bold text-slate-800 group-hover:text-emerald-700">Dettol 200ml (₹99)</p>
-              <p class="text-[9px] font-mono text-slate-400">8901030383847</p>
-            </button>
-            <button onclick="processScannedBarcode('8901234567890')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 border border-slate-200 rounded-xl text-left whitespace-nowrap transition group">
-              <p class="text-[11px] font-bold text-slate-800 group-hover:text-emerald-700">Basmati Rice (₹95/kg)</p>
-              <p class="text-[9px] font-mono text-slate-400">8901234567890</p>
-            </button>
-            <button onclick="promptCustomScan()" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left whitespace-nowrap transition flex items-center justify-center">
-              <span class="text-xs font-bold text-slate-700">+ Custom Item</span>
-            </button>
-          </div>
-        </div>
+
 
         <div>
           <div class="flex justify-between items-center mb-1">
@@ -3215,7 +3174,7 @@
         // --- ON-SCREEN NOTIFICATION & MODAL ENGINE (REPLACES BROWSER ALERTS/CONFIRMS) ---
     let toastTimeout = null;
 
-    function showAppToast(msg, icon = 'check_circle', isError = false) {
+    function showAppToast(msg, icon = 'check_circle', isError = false, duration = 2600) {
       const toast = document.getElementById('appToast');
       const toastMsg = document.getElementById('appToastMsg');
       const toastIcon = document.getElementById('appToastIcon');
@@ -3238,7 +3197,7 @@
       toastTimeout = setTimeout(() => {
         toast.classList.remove('opacity-100', 'translate-y-0');
         toast.classList.add('opacity-0', '-translate-y-4');
-      }, 2600);
+      }, duration);
     }
 
     // Override native browser alert with smooth on-screen toast
@@ -5494,12 +5453,15 @@
 
       if (matches.length === 0) {
         dropdown.innerHTML = `
-          <div class="p-3 text-center text-xs text-brand-muted">
-            <p>No store products found matching "<b>${query}</b>"</p>
-            <button onclick="promptCustomScan(); clearBillingSearch();" class="mt-1.5 text-brand-primaryContainer font-bold text-[11px] underline">+ Create & Add New Product</button>
+          <div class="p-3 text-center text-xs text-rose-500 font-bold flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-sm text-rose-500">error</span>
+            <span>PRODUCT NOT FOUND IN INVENTORY</span>
           </div>
         `;
         dropdown.classList.remove('hidden');
+        setTimeout(() => {
+          if (dropdown) dropdown.classList.add('hidden');
+        }, 4000);
         return;
       }
 
@@ -6368,41 +6330,70 @@
         // Backend lookup fallback
       }
 
-      // Tier 3: Universal Global Barcode Open Database Lookup (OpenFoodFacts API - over 3M FMCG/Retail items)
-      showAppToast(`Looking up universal barcode [${cleanCode}]...`, 'search');
+      // PRODUCT NOT FOUND IN INVENTORY:
+      // Show notice for 4 seconds and return to page for scanning
+      showProductNotFoundInInventory(cleanCode);
+    }
+
+    function showProductNotFoundInInventory(barcode) {
+      // Audio cue for error / not found
       try {
-        const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(cleanCode)}.json`);
-        const result = await response.json();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch (e) {}
 
-        if (result && result.status === 1 && result.product) {
-          const brand = result.product.brands || '';
-          const pName = result.product.product_name_en || result.product.product_name || 'Retail Item';
-          const fullName = brand ? `${brand} ${pName}` : pName;
-          
-          // Estimate price or prompt quickly
-          const estimatedPrice = 45.0; // Standard nominal retail default
+      // 1. Prominent toast notification for 4 seconds
+      showAppToast('PRODUCT NOT FOUND IN INVENTORY', 'warning', true, 4000);
 
-          const recognizedProd = {
-            id: Date.now(),
-            barcode: cleanCode,
-            name: fullName,
-            price: estimatedPrice,
-            gst: 5.0,
-            qty: 100,
-            unit: 'pcs'
-          };
-          sampleProducts.push(recognizedProd);
-          saveMerchantProducts();
-          showAppToast(`✓ Recognized: ${fullName}`, 'check_circle');
-          openQtyUnitModal(recognizedProd);
-          return;
-        }
-      } catch (apiErr) {
-        console.warn('Universal barcode lookup error:', apiErr);
+      // 2. Viewfinder instruction badge update
+      const badge = document.getElementById('scannerInstructionBadge');
+      if (badge) {
+        badge.innerHTML = `
+          <span class="material-symbols-outlined text-xs text-rose-400">error</span>
+          <span class="text-rose-400 font-black tracking-wider">PRODUCT NOT FOUND IN INVENTORY</span>
+        `;
+        badge.classList.add('border-rose-500/50', 'bg-rose-950/90');
       }
 
-      // Fallback: If not in local, backend, or universal database -> Open single smooth modal to store to inventory & bill
-      openQuickAddScannedProductModal(cleanCode);
+      // 3. Status text update
+      const statusText = document.getElementById('cameraStatusText');
+      if (statusText) statusText.innerText = 'Item Not In Inventory';
+
+      // 4. Return to page for scanning after 4 seconds
+      setTimeout(async () => {
+        if (badge) {
+          badge.innerHTML = `
+            <span class="material-symbols-outlined text-xs text-emerald-400" style="color: #34D399 !important;">qr_code_scanner</span>
+            <span style="color: #FFFFFF !important;">Point camera at any product barcode to auto-scan</span>
+          `;
+          badge.classList.remove('border-rose-500/50', 'bg-rose-950/90');
+        }
+        if (statusText) statusText.innerText = 'Camera Active';
+
+        // Clear manual input if it was used
+        const directInput = document.getElementById('billingDirectBarcodeInput');
+        if (directInput) {
+          directInput.value = '';
+          directInput.focus();
+        }
+
+        // Ensure camera scanner is active and ready for scanning next item
+        const billingScreen = document.getElementById('screen-billing');
+        if (billingScreen && !billingScreen.classList.contains('hidden')) {
+          if (!isCameraScanningActive) {
+            await startCameraBarcodeScanner();
+          }
+        }
+      }, 4000);
     }
 
     // --- SINGLE-PAGE QUICK ADD SCANNED PRODUCT TO INVENTORY & BILL CONTROLLER ---
