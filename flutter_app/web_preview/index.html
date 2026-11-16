@@ -3143,7 +3143,15 @@
         const key = getMerchantStorageKey('super_inventory_products');
         const stored = localStorage.getItem(key);
         if (stored) {
-          sampleProducts = JSON.parse(stored);
+          let loaded = JSON.parse(stored);
+          // Purge any legacy dummy items that were auto-created with nominal price 45 and pcs from old online fallback
+          const cleaned = loaded.filter(p => !(p.price === 45.0 && p.qty === 100 && p.unit === 'pcs' && !DEFAULT_INITIAL_PRODUCTS.some(dp => dp.barcode === p.barcode)));
+          if (cleaned.length !== loaded.length) {
+            sampleProducts = cleaned;
+            saveMerchantProducts();
+          } else {
+            sampleProducts = loaded;
+          }
           updateTotalStockValueUI();
           return sampleProducts;
         }
@@ -7038,31 +7046,12 @@
         return;
       }
 
-      // Check existing in sampleProducts
+      // ONLY check existing products in the store's inventory database
       const existing = sampleProducts.find(p => p.barcode === clean);
       if (existing) {
         pendingAutoFillData = existing;
         if (hintEl && textEl) {
           textEl.innerText = `Existing in stock: ${existing.name} (₹${existing.price.toFixed(2)})`;
-          hintEl.classList.remove('hidden');
-        }
-        return;
-      }
-
-      // FMCG catalog quick match
-      const fmcgCatalog = {
-        '8901030762100': { name: 'Parle-G Glucose Biscuits 100g', price: 10, gst: 18, unit: 'pcs', hsn: '1905' },
-        '8901063141010': { name: 'Britannia Marie Gold Biscuits 100g', price: 15, gst: 18, unit: 'pcs', hsn: '1905' },
-        '8901058852070': { name: 'Nestle Maggi 2-Minute Noodles 70g', price: 14, gst: 12, unit: 'pcs', hsn: '1902' },
-        '8901058000100': { name: 'Amul Salted Butter 100g', price: 58, gst: 12, unit: 'pcs', hsn: '0405' },
-        '8901207040409': { name: 'Tata Salt Vacuum Evaporated 1kg', price: 28, gst: 0, unit: 'kg', hsn: '2501' },
-        '8901030383701': { name: 'Dettol Antiseptic Liquid 125ml', price: 82, gst: 18, unit: 'ml', hsn: '3004' }
-      };
-
-      if (fmcgCatalog[clean]) {
-        pendingAutoFillData = fmcgCatalog[clean];
-        if (hintEl && textEl) {
-          textEl.innerText = `Verified FMCG item: ${fmcgCatalog[clean].name}`;
           hintEl.classList.remove('hidden');
         }
         return;

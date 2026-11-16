@@ -4,7 +4,6 @@ class AppConstants {
 
   // API Default Fallback
   static const String defaultApiBaseUrl = 'http://10.0.2.2:5000/api'; // Android emulator localhost
-  static const String openFoodFactsApi = 'https://world.openfoodfacts.org/api/v2/product';
 
   // Storage Keys
   static const String keyToken = 'auth_token';
