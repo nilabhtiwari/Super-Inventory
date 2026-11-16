@@ -393,6 +393,7 @@
       color: #0F172A !important;
     }
     #smartphoneWrapper.theme-light #otpModal > div,
+    #smartphoneWrapper.theme-light #upiBankModal > div,
     #smartphoneWrapper.theme-light #googleAccountModal > div,
     #smartphoneWrapper.theme-light #paymentModal > div,
     #smartphoneWrapper.theme-light #appConfirmModal > div,
@@ -412,6 +413,7 @@
     #smartphoneWrapper #whatsappModal,
     #smartphoneWrapper #qtyUnitModal,
     #smartphoneWrapper #otpModal,
+    #smartphoneWrapper #upiBankModal,
     #smartphoneWrapper #googleAccountModal,
     #smartphoneWrapper #mobileConnectModal {
       position: absolute !important;
@@ -1795,13 +1797,15 @@
           </div>
         </div>
 
-        <!-- 4. Bank UPI Settlement for Bill QR Code (Password / PIN Protected) -->
-        <!-- 4. Bank UPI Settlement for Bill QR Code -->
+        <!-- 4. Bank UPI Settlement for Bill QR Code (Security Protected) -->
         <div class="p-4 bg-brand-surface border border-brand-surfaceBorder rounded-2xl space-y-3.5 shadow-md">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-bold text-brand-secondary flex items-center gap-1.5">
               <span class="material-symbols-outlined text-base text-emerald-400">qr_code_2</span> Bank UPI for Customer Bill QR
             </h3>
+            <span id="upiLockStatusBadge" class="text-[9px] text-amber-400 font-bold bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs">lock</span> Protected
+            </span>
           </div>
 
           <!-- Explanation box -->
@@ -1810,12 +1814,46 @@
             <span class="leading-tight"><b>No bank details required!</b> Only enter your bank's UPI ID. Customer bill QR scans send money directly into your bank account.</span>
           </div>
 
+          <!-- Security Lock Banner (Shown by default when locked) -->
+          <div id="upiLockedBanner" class="p-3.5 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0 shadow-inner">
+                <span class="material-symbols-outlined text-xl">lock</span>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-black text-white tracking-wide">Settlement Account Protected</p>
+                <p class="text-[10px] text-brand-muted font-medium mt-0.5 leading-snug">Requires Store Password or Security PIN to edit</p>
+              </div>
+            </div>
+            <button type="button" onclick="openUpiBankModal()" class="shrink-0 self-start sm:self-center px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:opacity-95 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 group">
+              <span class="material-symbols-outlined text-base font-black transition-transform group-hover:scale-110">lock_open</span>
+              <span class="tracking-wide">Unlock to Edit</span>
+            </button>
+          </div>
+
+          <!-- Security Unlocked Banner (Shown when authenticated) -->
+          <div id="upiUnlockedBanner" class="hidden p-3.5 bg-gradient-to-r from-emerald-500/15 via-emerald-500/[0.05] to-transparent border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 shadow-inner">
+                <span class="material-symbols-outlined text-xl">verified_user</span>
+              </div>
+              <div>
+                <p class="text-xs font-black text-white tracking-wide">Owner Verified & Unlocked</p>
+                <p class="text-[10px] text-emerald-300/80 font-medium mt-0.5">Editing enabled • Re-locks after saving</p>
+              </div>
+            </div>
+            <button type="button" onclick="lockUpiSettings()" class="shrink-0 self-start sm:self-center px-3.5 py-1.5 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white font-bold text-xs rounded-xl transition flex items-center gap-1 active:scale-95">
+              <span class="material-symbols-outlined text-sm">lock</span>
+              <span>Lock Now</span>
+            </button>
+          </div>
+
           <!-- Direct Input for UPI ID -->
           <div class="space-y-1">
             <label class="text-[10px] font-bold text-brand-muted block">Bank UPI ID (VPA) *</label>
             <div class="relative">
               <span class="material-symbols-outlined absolute left-3 top-2 text-emerald-400 text-base">alternate_email</span>
-              <input type="text" id="profileDirectUpiInput" value="superinventory@upi" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl pl-9 pr-3 py-2 text-xs text-white outline-none focus:border-emerald-500 font-mono transition" placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm" />
+              <input type="text" id="profileDirectUpiInput" disabled value="superinventory@upi" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl pl-9 pr-3 py-2 text-xs text-white outline-none focus:border-emerald-500 font-mono transition disabled:opacity-50 disabled:cursor-not-allowed" placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm" />
             </div>
             <p class="text-[9.5px] text-brand-muted">Compatible with PhonePe, Google Pay, Paytm, BHIM, Cred & all banking apps.</p>
           </div>
@@ -1823,11 +1861,11 @@
           <!-- Direct Input for Payee Name -->
           <div class="space-y-1">
             <label class="text-[10px] font-bold text-brand-muted block">Store / Account Display Name</label>
-            <input type="text" id="profileDirectPayeeInput" value="Super Inventory Store" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary transition" placeholder="Store or Merchant Name" />
+            <input type="text" id="profileDirectPayeeInput" disabled value="Super Inventory Store" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary transition disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Store or Merchant Name" />
           </div>
 
           <div class="pt-1">
-            <button id="profileUpiSaveBtn" type="button" onclick="saveProfileDirectUpi()" class="w-full py-2.5 bg-gradient-to-r from-teal-500 to-emerald-600 hover:opacity-95 text-white font-black text-xs rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-1.5">
+            <button id="profileUpiSaveBtn" disabled type="button" onclick="saveProfileDirectUpi()" class="w-full py-2.5 bg-gradient-to-r from-teal-500 to-emerald-600 hover:opacity-95 text-white font-black text-xs rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
               <span class="material-symbols-outlined text-sm font-bold">save</span>
               <span>Save Settlement UPI</span>
             </button>
@@ -2074,7 +2112,76 @@
         </div>
       </div>
 
+      <!-- ============================================================ -->
+      <!-- SECURITY VERIFICATION MODAL: STORE OWNER AUTHENTICATION FOR UPI -->
+      <!-- ============================================================ -->
+      <div id="upiBankModal" class="hidden absolute inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="w-full max-w-[360px] bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 space-y-4 text-left shadow-2xl text-slate-800 animate-in zoom-in-95 duration-200 my-auto">
+          
+          <!-- Header -->
+          <div class="flex items-center justify-between border-b border-brand-surfaceBorder pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center shadow-md">
+                <span class="material-symbols-outlined text-xl">security</span>
+              </div>
+              <div>
+                <h3 class="text-xs sm:text-sm font-black text-white flex items-center gap-1">
+                  Store Owner Verification
+                </h3>
+                <p class="text-[10px] text-amber-300 font-bold">Security Authentication</p>
+              </div>
+            </div>
+            <button type="button" onclick="closeUpiBankModal()" class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white flex items-center justify-center transition">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+          </div>
 
+          <div class="p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl space-y-1">
+            <p class="text-xs font-bold text-white flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs text-amber-400">lock</span> Security Verification
+            </p>
+            <p class="text-[10.5px] text-brand-muted leading-tight">
+              Enter your <b>Store Password</b> or <b>Security PIN</b> to edit your settlement account details.
+            </p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-bold text-brand-muted block">Store Owner Password or PIN</label>
+            <div class="relative">
+              <input type="password" id="upiAdminPasswordVerify" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs text-slate-800 outline-none focus:border-amber-500 transition" placeholder="Enter password or 4-digit PIN" />
+              <button type="button" onclick="togglePasswordVisibility('upiAdminPasswordVerify', 'upiEyeIcon')" class="absolute right-3 top-2.5 text-brand-muted hover:text-white">
+                <span class="material-symbols-outlined text-base" id="upiEyeIcon">visibility_off</span>
+              </button>
+            </div>
+            <p class="text-[9.5px] text-brand-muted">Accepted: Account login password, default <b class="text-white">Merchant@1234</b>, or PIN <b class="text-white">1234</b>.</p>
+          </div>
+
+          <div id="upiAuthError" class="hidden text-[10.5px] text-red-400 font-bold flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">error</span>
+            <span id="upiAuthErrorMsg">Incorrect password or PIN. Please try again.</span>
+          </div>
+
+          <button type="button" onclick="verifyUpiAdminPassword()" class="w-full py-2.5 bg-gradient-to-r from-teal-500 to-emerald-600 hover:opacity-95 text-white font-extrabold text-xs rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-sm font-bold">verified_user</span>
+            <span>Verify & Unlock for Editing</span>
+          </button>
+
+          <!-- Set custom PIN accordion -->
+          <div class="pt-2 border-t border-white/10 text-center">
+            <button type="button" onclick="toggleCustomPinSection()" class="text-[10.5px] text-brand-secondary hover:underline font-bold flex items-center justify-center gap-1 mx-auto">
+              <span class="material-symbols-outlined text-xs">pin</span>
+              <span id="customPinToggleText">Set / Change 4-Digit Security PIN</span>
+            </button>
+            <div id="customPinBox" class="hidden mt-2 p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2 text-left">
+              <label class="text-[9.5px] font-bold text-brand-muted block">New 4 to 6 Digit PIN</label>
+              <input type="password" id="newUpiSecurityPin" maxlength="6" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-brand-primary font-mono text-center tracking-widest" placeholder="e.g. 4829" />
+              <button type="button" onclick="saveCustomUpiPin()" class="w-full py-1.5 bg-brand-surfaceElevated hover:bg-white/10 border border-brand-surfaceBorder text-white text-[10px] font-bold rounded-lg transition">
+                Save Security PIN
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div id="otpModal" class="hidden absolute inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div class="w-full max-w-[360px] bg-brand-surface border border-brand-surfaceBorder p-5 sm:p-6 rounded-[28px] space-y-4 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200 my-auto">
@@ -4436,19 +4543,176 @@
         profileActiveUpi.innerText = vpa;
       }
 
+      if (isBankUpiUnlocked) {
+        applyUpiUnlockedState();
+      } else {
+        applyUpiLockedState();
+      }
     }
 
-    function openUpiBankModal() {}
-    function closeUpiBankModal() {}
-    function toggleCustomPinSection() {}
-    function saveCustomUpiPin() {}
-    function verifyUpiAdminPassword() {}
-    function applyUpiUnlockedState() {}
-    function applyUpiLockedState() {}
-    function unlockUpiSettings() {}
-    function lockUpiSettings() {}
+    function openUpiBankModal() {
+      const modal = document.getElementById('upiBankModal');
+      const pwdInput = document.getElementById('upiAdminPasswordVerify');
+      const errorEl = document.getElementById('upiAuthError');
+      if (!modal) return;
+      if (pwdInput) pwdInput.value = '';
+      if (errorEl) errorEl.classList.add('hidden');
+      modal.classList.remove('hidden');
+      setTimeout(() => pwdInput && pwdInput.focus(), 100);
+    }
+
+    function closeUpiBankModal() {
+      const modal = document.getElementById('upiBankModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function toggleCustomPinSection() {
+      const box = document.getElementById('customPinBox');
+      const text = document.getElementById('customPinToggleText');
+      if (!box) return;
+      if (box.classList.contains('hidden')) {
+        box.classList.remove('hidden');
+        if (text) text.innerText = 'Hide PIN Setup';
+      } else {
+        box.classList.add('hidden');
+        if (text) text.innerText = 'Set / Change 4-Digit Security PIN';
+      }
+    }
+
+    function saveCustomUpiPin() {
+      const pin = (document.getElementById('newUpiSecurityPin')?.value || '').trim();
+      if (!pin || pin.length < 4 || !/^\d+$/.test(pin)) {
+        showAppToast('PIN must be 4 to 6 numbers (e.g. 1234 or 4829)', 'warning', true);
+        return;
+      }
+      localStorage.setItem(UPI_PIN_STORAGE_KEY, pin);
+      showAppToast('✓ Security PIN saved! You can now use it to unlock.', 'verified');
+      toggleCustomPinSection();
+      const pwdInput = document.getElementById('upiAdminPasswordVerify');
+      if (pwdInput) pwdInput.value = pin;
+    }
+
+    function verifyUpiAdminPassword() {
+      const entered = (document.getElementById('upiAdminPasswordVerify')?.value || '').trim();
+      const errorEl = document.getElementById('upiAuthError');
+      const errorMsg = document.getElementById('upiAuthErrorMsg');
+
+      if (!entered) {
+        if (errorEl) errorEl.classList.remove('hidden');
+        if (errorMsg) errorMsg.innerText = 'Please enter your password or PIN.';
+        return;
+      }
+
+      let isValid = false;
+
+      // 1. Check custom Security PIN if set
+      const savedPin = localStorage.getItem(UPI_PIN_STORAGE_KEY);
+      if (savedPin && savedPin.trim() === entered) isValid = true;
+
+      // 2. Check current logged-in seller password
+      try {
+        const currentSeller = JSON.parse(localStorage.getItem('super_inventory_seller') || '{}');
+        if (currentSeller.password && currentSeller.password === entered) isValid = true;
+      } catch (e) {}
+
+      // 3. Check registered users in storage
+      const users = getStoredUsers();
+      if (users.some(u => u.password === entered)) isValid = true;
+
+      // 4. Check default store passwords & PINs
+      if (entered === 'Merchant@1234' || entered === '1234') isValid = true;
+
+      if (isValid) {
+        if (errorEl) errorEl.classList.add('hidden');
+        closeUpiBankModal();
+        unlockUpiSettings();
+      } else {
+        if (errorEl) errorEl.classList.remove('hidden');
+        if (errorMsg) errorMsg.innerText = 'Incorrect password or PIN. Try store password or PIN 1234.';
+        showAppToast('Incorrect password or PIN', 'lock', true);
+      }
+    }
+
+    function applyUpiUnlockedState() {
+      const upiInput = document.getElementById('profileDirectUpiInput');
+      const payeeInput = document.getElementById('profileDirectPayeeInput');
+      const saveBtn = document.getElementById('profileUpiSaveBtn');
+      const lockedBanner = document.getElementById('upiLockedBanner');
+      const unlockedBanner = document.getElementById('upiUnlockedBanner');
+      const badge = document.getElementById('upiLockStatusBadge');
+
+      if (upiInput) {
+        upiInput.disabled = false;
+        upiInput.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed');
+        upiInput.classList.add('border-emerald-500', 'ring-1', 'ring-emerald-500/40');
+      }
+      if (payeeInput) {
+        payeeInput.disabled = false;
+        payeeInput.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed');
+        payeeInput.classList.add('border-brand-primary', 'ring-1', 'ring-brand-primary/40');
+      }
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.classList.remove('disabled:opacity-40', 'disabled:cursor-not-allowed');
+      }
+      if (lockedBanner) lockedBanner.classList.add('hidden');
+      if (unlockedBanner) unlockedBanner.classList.remove('hidden');
+      if (badge) {
+        badge.className = 'text-[9px] text-emerald-400 font-bold bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full flex items-center gap-1';
+        badge.innerHTML = '<span class="material-symbols-outlined text-xs">verified_user</span> Owner Verified';
+      }
+    }
+
+    function applyUpiLockedState() {
+      const upiInput = document.getElementById('profileDirectUpiInput');
+      const payeeInput = document.getElementById('profileDirectPayeeInput');
+      const saveBtn = document.getElementById('profileUpiSaveBtn');
+      const lockedBanner = document.getElementById('upiLockedBanner');
+      const unlockedBanner = document.getElementById('upiUnlockedBanner');
+      const badge = document.getElementById('upiLockStatusBadge');
+
+      if (upiInput) {
+        upiInput.disabled = true;
+        upiInput.classList.add('disabled:opacity-50', 'disabled:cursor-not-allowed');
+        upiInput.classList.remove('border-emerald-500', 'ring-1', 'ring-emerald-500/40');
+      }
+      if (payeeInput) {
+        payeeInput.disabled = true;
+        payeeInput.classList.add('disabled:opacity-50', 'disabled:cursor-not-allowed');
+        payeeInput.classList.remove('border-brand-primary', 'ring-1', 'ring-brand-primary/40');
+      }
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.classList.add('disabled:opacity-40', 'disabled:cursor-not-allowed');
+      }
+      if (lockedBanner) lockedBanner.classList.remove('hidden');
+      if (unlockedBanner) unlockedBanner.classList.add('hidden');
+      if (badge) {
+        badge.className = 'text-[9px] text-amber-400 font-bold bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full flex items-center gap-1';
+        badge.innerHTML = '<span class="material-symbols-outlined text-xs">lock</span> Protected';
+      }
+    }
+
+    function unlockUpiSettings() {
+      isBankUpiUnlocked = true;
+      applyUpiUnlockedState();
+      showAppToast('✓ Security Verified: You may now change your settlement UPI ID', 'lock_open');
+      const upiInput = document.getElementById('profileDirectUpiInput');
+      if (upiInput) upiInput.focus();
+    }
+
+    function lockUpiSettings() {
+      isBankUpiUnlocked = false;
+      applyUpiLockedState();
+      showAppToast('🔒 Settlement account is locked', 'lock');
+    }
 
     function saveProfileDirectUpi() {
+      if (!isBankUpiUnlocked) {
+        openUpiBankModal();
+        return false;
+      }
+
       const upiInput = document.getElementById('profileDirectUpiInput');
       const payeeInput = document.getElementById('profileDirectPayeeInput');
       const vpa = (upiInput?.value || '').trim();
@@ -4463,8 +4727,9 @@
       const settings = { payeeName, vpa, accountNo: '', ifsc: '', bankName: '' };
       localStorage.setItem(getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY), JSON.stringify(settings));
 
+      lockUpiSettings();
       refreshUpiDisplays();
-      showAppToast(`✓ Settlement UPI updated to "${vpa}"!`, 'verified');
+      showAppToast(`✓ Settlement UPI updated to "${vpa}" & locked!`, 'verified');
       return true;
     }
 
