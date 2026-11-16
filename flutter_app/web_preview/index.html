@@ -3408,8 +3408,17 @@
 
     function saveNewUser(newUser) {
       const users = getStoredUsers();
-      // Remove any duplicate
-      const filtered = users.filter(u => u.email.toLowerCase() !== newUser.email.toLowerCase() && cleanPhoneNum(u.phone) !== cleanPhoneNum(newUser.phone));
+      const newEmail = (newUser.email || '').toLowerCase().trim();
+      const newPhone = cleanPhoneNum(newUser.phone);
+      const filtered = users.filter(u => {
+        const uEmail = (u.email || '').toLowerCase().trim();
+        if (uEmail === newEmail) return false;
+        if (newPhone && newPhone.length >= 10) {
+          const uPhone = cleanPhoneNum(u.phone);
+          if (uPhone && uPhone.length >= 10 && uPhone === newPhone) return false;
+        }
+        return true;
+      });
       filtered.push(newUser);
       localStorage.setItem(DEFAULT_USERS_KEY, JSON.stringify(filtered));
     }
@@ -3718,13 +3727,23 @@
         return;
       }
 
-      // 3. Email Already Exists
-      const cleanEmail = email.toLowerCase();
+      // 3. Email Already Exists Locally
+      const cleanEmail = email.toLowerCase().trim();
       const existingUsers = getStoredUsers();
-      const alreadyExists = existingUsers.some(u => u.email && u.email.trim().toLowerCase() === cleanEmail);
-      if (alreadyExists) {
+      const emailAlreadyExists = existingUsers.some(u => u.email && u.email.trim().toLowerCase() === cleanEmail);
+      if (emailAlreadyExists) {
         setInlineAuthError('signUpEmailInput', 'An account with this email already exists. Please Sign In.');
         return;
+      }
+
+      // Check Phone if provided
+      const cleanPh = cleanPhoneNum(phone);
+      if (cleanPh && cleanPh.length >= 10) {
+        const phoneAlreadyExists = existingUsers.some(u => u.phone && cleanPhoneNum(u.phone) === cleanPh);
+        if (phoneAlreadyExists) {
+          setInlineAuthError('signUpPhoneInput', 'An account with this phone number already exists.');
+          return;
+        }
       }
 
       // 4. Password Too Short
@@ -3739,43 +3758,64 @@
       if (submitBtn) submitBtn.disabled = true;
       if (submitText) submitText.innerText = 'Creating account...';
 
-      // 5. Try Node.js Backend API
+      // 5. Try Node.js Backend API Sync (Non-blocking: offline-first resilience)
       try {
         const regRes = await fetch(`${BACKEND_API_BASE}/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             storeName: storeName,
-            email: email,
-            phone: phone || '+91 9876543210',
+            email: cleanEmail,
+            phone: (cleanPh && cleanPh.length >= 10) ? phone : null,
             password: pw
           })
         });
-        const regData = await regRes.json();
-        if (regRes.status === 409 || (regData && !regData.success && regData.message && regData.message.includes('already exists'))) {
+
+        if (regRes.status === 409) {
+          const regData = await regRes.json().catch(() => ({}));
+          const msg = (regData && regData.message) || 'An account with this email already exists.';
           if (submitBtn) submitBtn.disabled = false;
           if (submitText) submitText.innerText = originalText;
-          setInlineAuthError('signUpEmailInput', regData.message || 'An account with this email already exists. Please Sign In.');
-          return;
-        } else if (regRes.status >= 500) {
-          if (submitBtn) submitBtn.disabled = false;
-          if (submitText) submitText.innerText = originalText;
-          setInlineAuthError('signUpPasswordInput', 'Registration failed. Please try again.');
+          if (msg.toLowerCase().includes('phone')) {
+            setInlineAuthError('signUpPhoneInput', msg);
+          } else {
+            setInlineAuthError('signUpEmailInput', msg);
+          }
           return;
         }
+
+        const regData = await regRes.json().catch(() => ({}));
+        if (regData && regData.token) {
+          localStorage.setItem('super_inventory_token', regData.token);
+        }
       } catch (apiErr) {
-        console.warn('Backend register note, stored locally:', apiErr);
+        console.warn('Backend register sync note (saving to resilient offline storage):', apiErr);
       }
 
-      // 6. Save locally
+      // 6. Save locally permanently (offline-first resilience)
       const newUser = {
         storeName: storeName,
-        phone: phone || '+91 9876543210',
-        email: email,
+        phone: phone || '',
+        email: cleanEmail,
         password: pw,
         createdAt: new Date().toISOString()
       };
       saveNewUser(newUser);
+
+      // Save lifetime profile
+      try {
+        const initialProfile = {
+          name: storeName,
+          email: cleanEmail,
+          phone: phone || '',
+          taxId: '27AABCU9603R1ZM',
+          address: 'Store Address',
+          currency: 'INR',
+          timings: '09:00 AM - 10:00 PM',
+          savedAt: new Date().toISOString()
+        };
+        localStorage.setItem('super_inventory_user_profile_' + cleanEmail, JSON.stringify(initialProfile));
+      } catch (e) {}
 
       isLoggedIn = false;
       localStorage.removeItem('super_inventory_token');
@@ -3787,12 +3827,22 @@
       if (phoneInput) phoneInput.value = '';
       if (pwInput) pwInput.value = '';
 
-      // 8. Redirect cleanly to Sign In
+      // 8. Redirect cleanly to Sign In and auto-fill email
       setAuthView('login');
       if (submitBtn) submitBtn.disabled = false;
       if (submitText) submitText.innerText = originalText;
 
-      showAppToast('✓ Account registered! Please enter your email and password to sign in.', 'verified', true);
+      const signInEmail = document.getElementById('signInEmailInput');
+      if (signInEmail) {
+        signInEmail.value = cleanEmail;
+      }
+      const signInPw = document.getElementById('signInPasswordInput');
+      if (signInPw) {
+        signInPw.value = '';
+        setTimeout(() => signInPw.focus(), 150);
+      }
+
+      showAppToast('✓ Account registered successfully! Please enter your password to sign in.', 'verified', true);
     }
 
     async function handleForgotSubmit() {

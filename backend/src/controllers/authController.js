@@ -144,7 +144,7 @@ const register = async (req, res, next) => {
       return res.status(409).json({ success: false, message: 'An account with this email address already exists. Please sign in.' });
     }
 
-    if (phone) {
+    if (phone && String(phone).replace(/[^0-9]/g, '').length >= 10) {
       const existingPhone = await sellerModel.findByPhone(phone);
       if (existingPhone) {
         return res.status(409).json({ success: false, message: 'An account with this phone number already exists. Please sign in.' });

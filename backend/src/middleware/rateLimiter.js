@@ -8,6 +8,7 @@ const createLimiter = (windowMs, max, message) =>
     message: { success: false, message },
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { trustProxy: false },
     handler: (req, res, next, options) => {
       logger.warn(`Rate limit hit: ${req.ip} → ${req.originalUrl}`);
       res.status(429).json(options.message);
