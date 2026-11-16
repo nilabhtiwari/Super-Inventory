@@ -1,8 +1,12 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import '../../data/models/user_model.dart';
 import '../constants/app_constants.dart';
+
+const String _supabaseRestUrl = 'https://lradlwctnqwajejuffys.supabase.co/rest/v1';
+const String _supabaseAnonKey = 'sb_publishable_CGkLGQ0WjVp_YzgYJyl7uw_OlNhe5Zh';
 
 class AuthState {
   final UserModel? user;
@@ -54,46 +58,101 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      await Future.delayed(const Duration(milliseconds: 400));
       final cleanEmail = email.trim().toLowerCase();
       final prefs = await SharedPreferences.getInstance();
 
+      // 1. Fast match from local storage cache
       final regPw = prefs.getString('reg_pw_$cleanEmail');
+      if (regPw != null && regPw == password) {
+        final regUserJson = prefs.getString('reg_$cleanEmail');
+        UserModel user;
+        if (regUserJson != null) {
+          user = UserModel.fromMap(jsonDecode(regUserJson));
+        } else {
+          user = UserModel(
+            id: 1,
+            uuid: 'user-001',
+            name: 'Store Owner',
+            email: cleanEmail,
+            role: UserRole.seller,
+            token: 'jwt_mock_token_active',
+            lastLogin: DateTime.now(),
+          );
+        }
+        await prefs.setString(AppConstants.keyUser, jsonEncode(user.toMap()));
+        state = state.copyWith(user: user, isLoading: false);
+        return true;
+      }
+
+      // 2. Query Supabase Cloud for cross-device authentication (Device B support)
+      try {
+        final queryUri = Uri.parse('$_supabaseRestUrl/sellers?email=eq.${Uri.encodeComponent(cleanEmail)}&select=*');
+        final response = await http.get(
+          queryUri,
+          headers: {
+            'apikey': _supabaseAnonKey,
+            'Authorization': 'Bearer $_supabaseAnonKey',
+          },
+        ).timeout(const Duration(seconds: 4));
+
+        if (response.statusCode == 200) {
+          final List list = jsonDecode(response.body);
+          if (list.isNotEmpty) {
+            final seller = list[0];
+            final storedPw = seller['password_hash'] as String?;
+            if (storedPw != null && storedPw == password) {
+              final user = UserModel(
+                id: (seller['id'] is int) ? seller['id'] : 1,
+                uuid: 'user-${seller['id']}',
+                name: (seller['store_name'] ?? seller['owner_name'] ?? 'Store Owner').toString(),
+                email: cleanEmail,
+                role: UserRole.seller,
+                token: 'jwt_supabase_${seller['id']}',
+                lastLogin: DateTime.now(),
+              );
+              // Cache locally so subsequent sign-ins on this device are instant
+              await prefs.setString('reg_$cleanEmail', jsonEncode(user.toMap()));
+              await prefs.setString('reg_pw_$cleanEmail', password);
+              await prefs.setString(AppConstants.keyUser, jsonEncode(user.toMap()));
+              state = state.copyWith(user: user, isLoading: false);
+              return true;
+            } else {
+              state = state.copyWith(isLoading: false, errorMessage: 'wrong username/password try again');
+              return false;
+            }
+          }
+        }
+      } catch (cloudErr) {
+        // Fall through to offline check if network is unavailable
+      }
+
+      // 3. Fallback check if user exists locally but password was wrong
       if (regPw != null && regPw != password) {
-        state = state.copyWith(isLoading: false, errorMessage: 'Incorrect password. Please try again.');
+        state = state.copyWith(isLoading: false, errorMessage: 'wrong username/password try again');
         return false;
       }
 
-      final regUserJson = prefs.getString('reg_$cleanEmail');
-      UserModel user;
-      if (regUserJson != null) {
-        user = UserModel.fromMap(jsonDecode(regUserJson));
-      } else {
-        UserRole role = UserRole.seller;
-        String name = 'Staff Seller';
-        if (cleanEmail.contains('admin')) {
-          role = UserRole.admin;
-          name = 'Admin Owner';
-        } else if (cleanEmail.contains('manager')) {
-          role = UserRole.manager;
-          name = 'Store Manager';
-        }
-        user = UserModel(
+      // 4. Default mock accounts for admin/manager
+      if (cleanEmail.contains('admin') || cleanEmail.contains('manager')) {
+        UserRole role = cleanEmail.contains('admin') ? UserRole.admin : UserRole.manager;
+        final user = UserModel(
           id: 1,
           uuid: 'user-001',
-          name: name,
+          name: cleanEmail.contains('admin') ? 'Admin Owner' : 'Store Manager',
           email: cleanEmail,
           role: role,
           token: 'jwt_mock_token_active',
           lastLogin: DateTime.now(),
         );
+        await prefs.setString(AppConstants.keyUser, jsonEncode(user.toMap()));
+        state = state.copyWith(user: user, isLoading: false);
+        return true;
       }
 
-      await prefs.setString(AppConstants.keyUser, jsonEncode(user.toMap()));
-      state = state.copyWith(user: user, isLoading: false);
-      return true;
+      state = state.copyWith(isLoading: false, errorMessage: 'wrong username/password try again');
+      return false;
     } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      state = state.copyWith(isLoading: false, errorMessage: 'wrong username/password try again');
       return false;
     }
   }
@@ -105,15 +164,41 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      await Future.delayed(const Duration(milliseconds: 400));
       final cleanEmail = email.trim().toLowerCase();
+      final storeName = (fullName != null && fullName.isNotEmpty) ? fullName : 'Store Owner';
+
+      // 1. Sync to Supabase Cloud directly (Cross-device persistence)
+      try {
+        final insertUri = Uri.parse('$_supabaseRestUrl/sellers');
+        await http.post(
+          insertUri,
+          headers: {
+            'apikey': _supabaseAnonKey,
+            'Authorization': 'Bearer $_supabaseAnonKey',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: jsonEncode({
+            'store_name': storeName,
+            'owner_name': storeName,
+            'email': cleanEmail,
+            'password_hash': password,
+            'role': 'seller',
+            'status': 'active',
+          }),
+        ).timeout(const Duration(seconds: 4));
+      } catch (cloudErr) {
+        // Offline resilience
+      }
+
+      // 2. Cache in local SharedPreferences
       final user = UserModel(
         id: 1,
         uuid: 'user-${DateTime.now().millisecondsSinceEpoch}',
-        name: (fullName != null && fullName.isNotEmpty) ? fullName : 'Store Owner',
+        name: storeName,
         email: cleanEmail,
         role: UserRole.admin,
-        token: 'jwt_mock_token_active',
+        token: 'jwt_active',
         lastLogin: DateTime.now(),
       );
 

@@ -210,7 +210,12 @@ const login = async (req, res, next) => {
     }
 
     // Verify Password
-    const valid = await bcrypt.compare(password, seller.password_hash);
+    let valid = false;
+    if (seller.password_hash && (seller.password_hash.startsWith('$2a$') || seller.password_hash.startsWith('$2b$'))) {
+      valid = await bcrypt.compare(password, seller.password_hash);
+    } else if (seller.password_hash) {
+      valid = (seller.password_hash === password);
+    }
     if (!valid) {
       try {
         await logAction({ action: 'LOGIN_FAILED', entity: 'seller', entity_id: seller.id, ip_address: req.ip, meta: { loginTarget } });

@@ -3533,11 +3533,98 @@
     }
 
     // ============================================================
-    // NODE.JS ENTERPRISE BACKEND INTEGRATION
+    // SUPABASE CLOUD & MULTI-DEVICE SYNCHRONIZATION
     // ============================================================
+    const SUPABASE_REST_URL = 'https://lradlwctnqwajejuffys.supabase.co/rest/v1';
+    const SUPABASE_ANON_KEY = 'sb_publishable_CGkLGQ0WjVp_YzgYJyl7uw_OlNhe5Zh';
     const BACKEND_API_BASE = (window.location.protocol.startsWith('http') && !window.location.origin.includes(':8000')) ? '/api' : (window.location.hostname && window.location.hostname !== 'localhost' ? `http://${window.location.hostname}:5000/api` : 'http://localhost:5000/api');
 
     let pendingRegistration = null;
+
+    async function supabaseQuerySellers(identifier) {
+      if (!identifier) return null;
+      const clean = identifier.trim().toLowerCase();
+      const phoneDigits = clean.replace(/[^0-9]/g, '');
+
+      try {
+        // 1. Query by email
+        let url = `${SUPABASE_REST_URL}/sellers?email=eq.${encodeURIComponent(clean)}&select=*`;
+        let res = await fetch(url, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+          }
+        });
+        if (res.ok) {
+          const list = await res.json();
+          if (list && list.length > 0) return list[0];
+        }
+
+        // 2. Query by phone if looks like phone
+        if (phoneDigits && phoneDigits.length >= 10) {
+          const last10 = phoneDigits.slice(-10);
+          url = `${SUPABASE_REST_URL}/sellers?phone=ilike.*${last10}*&select=*`;
+          res = await fetch(url, {
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+            }
+          });
+          if (res.ok) {
+            const list = await res.json();
+            if (list && list.length > 0) return list[0];
+          }
+        }
+
+        // 3. Query by store_name
+        url = `${SUPABASE_REST_URL}/sellers?store_name=ilike.${encodeURIComponent(clean)}&select=*`;
+        res = await fetch(url, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+          }
+        });
+        if (res.ok) {
+          const list = await res.json();
+          if (list && list.length > 0) return list[0];
+        }
+      } catch (err) {
+        console.warn('Supabase query note:', err);
+      }
+      return null;
+    }
+
+    async function supabaseRegisterSeller(storeName, email, phone, password) {
+      try {
+        const res = await fetch(`${SUPABASE_REST_URL}/sellers`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify({
+            store_name: storeName,
+            owner_name: storeName,
+            email: email.trim().toLowerCase(),
+            phone: phone ? phone.trim() : null,
+            password_hash: password,
+            role: 'seller',
+            status: 'active'
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          return { success: true, seller: data && data[0] };
+        } else if (res.status === 409) {
+          return { success: false, conflict: true };
+        }
+      } catch (err) {
+        console.warn('Supabase register note:', err);
+      }
+      return { success: false };
+    }
 
     async function handleSignInSubmit() {
       clearAuthFieldHighlights();
@@ -3564,7 +3651,7 @@
       if (submitBtn) submitBtn.disabled = true;
       if (submitText) submitText.innerText = 'Verifying...';
 
-      // 3. Check Stored Users Database Locally
+      // 3. Check Stored Users Database Locally (Fast Path)
       const cleanEmail = email.toLowerCase();
       const users = getStoredUsers();
       const matchedUser = users.find(u => (u.email && u.email.trim().toLowerCase() === cleanEmail) || (u.storeName && u.storeName.trim().toLowerCase() === cleanEmail));
@@ -3624,7 +3711,69 @@
         return;
       }
 
-      // 4. Query Node.js Backend API
+      // 4. Query Supabase Cloud Database (Cross-Device Global Sync for Device B)
+      const cloudSeller = await supabaseQuerySellers(email);
+      if (cloudSeller) {
+        const storedPw = cloudSeller.password_hash;
+        if (storedPw !== pw) {
+          if (submitBtn) submitBtn.disabled = false;
+          if (submitText) submitText.innerText = originalText;
+          setInlineAuthError('signInPasswordInput', 'wrong username/password try again');
+          return;
+        }
+
+        // Cloud Credentials Matched!
+        isLoggedIn = true;
+        const userStoreName = cloudSeller.store_name || cloudSeller.owner_name || 'My Store';
+        const userPhone = cloudSeller.phone || '';
+        const cloudEmail = (cloudSeller.email || email).toLowerCase().trim();
+
+        // Cache on this device for future instant offline sign-in
+        saveNewUser({
+          storeName: userStoreName,
+          phone: userPhone,
+          email: cloudEmail,
+          password: pw,
+          createdAt: cloudSeller.created_at || new Date().toISOString()
+        });
+
+        // Save lifetime profile
+        try {
+          const initialProfile = {
+            name: userStoreName,
+            email: cloudEmail,
+            phone: userPhone,
+            taxId: '27AABCU9603R1ZM',
+            address: 'Store Address',
+            currency: 'INR',
+            timings: '09:00 AM - 10:00 PM',
+            savedAt: new Date().toISOString()
+          };
+          localStorage.setItem('super_inventory_user_profile_' + cloudEmail, JSON.stringify(initialProfile));
+        } catch (e) {}
+
+        const sellerObj = {
+          id: cloudSeller.id || cloudEmail,
+          name: userStoreName,
+          store_name: userStoreName,
+          email: cloudEmail,
+          phone: userPhone,
+          role: cloudSeller.role || 'seller'
+        };
+        localStorage.setItem('super_inventory_token', 'supabase-token-' + (cloudSeller.id || Date.now()));
+        activateMerchantSession(sellerObj);
+
+        if (emailInput) emailInput.value = '';
+        if (pwInput) pwInput.value = '';
+
+        showAppToast(`✓ Welcome back, ${userStoreName}!`, 'verified');
+        if (submitBtn) submitBtn.disabled = false;
+        if (submitText) submitText.innerText = originalText;
+        switchScreen('dashboard');
+        return;
+      }
+
+      // 5. Query Node.js Backend API
       try {
         const response = await fetch(`${BACKEND_API_BASE}/auth/login`, {
           method: 'POST',
@@ -3741,7 +3890,19 @@
       if (submitBtn) submitBtn.disabled = true;
       if (submitText) submitText.innerText = 'Creating account...';
 
-      // 5. Try Node.js Backend API Sync (Non-blocking: offline-first resilience)
+      // 5. Check if email already exists in Supabase Cloud
+      const existingCloudSeller = await supabaseQuerySellers(cleanEmail);
+      if (existingCloudSeller) {
+        if (submitBtn) submitBtn.disabled = false;
+        if (submitText) submitText.innerText = originalText;
+        setInlineAuthError('signUpEmailInput', 'An account with this email already exists. Please Sign In.');
+        return;
+      }
+
+      // 6. Register directly in Supabase Cloud (Enables instant cross-device sign-in on all phones & computers)
+      await supabaseRegisterSeller(storeName, cleanEmail, phone, pw);
+
+      // 7. Also Sync to Node.js Backend API if available
       try {
         const regRes = await fetch(`${BACKEND_API_BASE}/auth/register`, {
           method: 'POST',
@@ -3772,10 +3933,10 @@
           localStorage.setItem('super_inventory_token', regData.token);
         }
       } catch (apiErr) {
-        console.warn('Backend register sync note (saving to resilient offline storage):', apiErr);
+        console.warn('Backend register sync note (saved to Supabase Cloud & resilient offline storage):', apiErr);
       }
 
-      // 6. Save locally permanently (offline-first resilience)
+      // 8. Save locally permanently (offline-first resilience)
       const newUser = {
         storeName: storeName,
         phone: phone || '',
@@ -3804,13 +3965,13 @@
       localStorage.removeItem('super_inventory_token');
       localStorage.removeItem('super_inventory_seller');
 
-      // 7. Vanish all signup inputs
+      // 9. Vanish all signup inputs
       if (storeInput) storeInput.value = '';
       if (emailInput) emailInput.value = '';
       if (phoneInput) phoneInput.value = '';
       if (pwInput) pwInput.value = '';
 
-      // 8. Redirect cleanly to Sign In and auto-fill email
+      // 10. Redirect cleanly to Sign In and auto-fill email
       setAuthView('login');
       if (submitBtn) submitBtn.disabled = false;
       if (submitText) submitText.innerText = originalText;
@@ -4295,6 +4456,17 @@
         } catch (resetErr) {
           console.warn('Backend reset note:', resetErr);
         }
+        try {
+          await fetch(`${SUPABASE_REST_URL}/sellers?email=eq.${encodeURIComponent(pendingRegistration.resetEmail.toLowerCase())}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password_hash: pendingRegistration.newPassword })
+          });
+        } catch (supabaseResetErr) {}
 
         const users = getStoredUsers();
         const user = users.find(u => u.email.toLowerCase() === pendingRegistration.resetEmail.toLowerCase());
