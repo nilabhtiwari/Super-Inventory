@@ -438,7 +438,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       child: Scaffold(
         backgroundColor: AppTheme.background,
         appBar: AppBar(
-          title: const Text('Express POS Billing'),
+          title: const Text('Create Bill'),
           actions: [
             // Flashlight Toggle
             IconButton(

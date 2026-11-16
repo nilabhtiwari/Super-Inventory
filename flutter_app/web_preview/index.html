@@ -803,19 +803,15 @@
         -->
 
         <!-- HERO "CREATE BILL" BUTTON -->
-        <div onclick="switchScreen('billing')" class="w-full h-44 rounded-3xl bg-gradient-to-br from-brand-primary via-brand-primaryGlow to-brand-tertiary p-5 flex flex-col justify-between cursor-pointer hero-glow hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden group">
+        <div onclick="switchScreen('billing')" class="w-full h-36 rounded-3xl bg-gradient-to-br from-brand-primary via-brand-primaryGlow to-brand-tertiary p-5 flex flex-col justify-center cursor-pointer hero-glow hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden group">
           <div class="absolute -right-6 -bottom-6 opacity-15 group-hover:scale-110 transition-transform">
             <span class="material-symbols-outlined text-[150px]">barcode_scanner</span>
           </div>
-          <div class="flex justify-between items-center z-10">
-            <span class="bg-black/30 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider text-white flex items-center gap-1" style="color: #FFFFFF !important;">
-              <span class="material-symbols-outlined text-xs text-yellow-300">bolt</span>
-              <span style="color: #FFFFFF !important;">EXPRESS POS BILLING</span>
-            </span>
-          </div>
-          <div class="z-10">
+          <div class="z-10 flex items-center justify-between">
             <h2 class="text-3xl font-black tracking-tight text-white">CREATE BILL</h2>
-            <p class="text-xs text-white/90 font-medium mt-1">Instant barcode scan • Fast checkout &lt; 30s</p>
+            <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow">
+              <span class="material-symbols-outlined text-2xl">arrow_forward</span>
+            </div>
           </div>
         </div>
 
