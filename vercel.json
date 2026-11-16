@@ -10,20 +10,8 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/manifest.json",
-      "destination": "/flutter_app/web_preview/manifest.json"
-    },
-    {
-      "source": "/logo.png",
-      "destination": "/flutter_app/web_preview/logo.png"
-    },
-    {
-      "source": "/assets/(.*)",
-      "destination": "/flutter_app/web_preview/assets/$1"
-    },
-    {
       "source": "/(.*)",
-      "destination": "/flutter_app/web_preview/index.html"
+      "destination": "/index.html"
     }
   ],
   "headers": [

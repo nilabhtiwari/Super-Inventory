@@ -76,7 +76,12 @@ app.get('*', (req, res, next) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
-  res.sendFile(path.join(webPreviewDir, 'index.html'));
+  const indexPath = path.join(webPreviewDir, 'index.html');
+  const fs = require('fs');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  res.status(200).send('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=/"></head><body>Loading...</body></html>');
 });
 
 // ── 404 + Error handlers ──────────────────────────────────────────────────────
