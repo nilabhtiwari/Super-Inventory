@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/providers/product_provider.dart';
@@ -35,6 +37,55 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
   double _selectedGstSlab = 18.0;
   bool _isLoading = false;
   bool _isInit = true;
+  bool _isFetchingOnlineName = false;
+
+  Future<void> _fetchOnlineProductName(String barcode) async {
+    final clean = barcode.trim();
+    if (clean.length < 8) return;
+    if (_nameController.text.trim().isNotEmpty) return; // Don't overwrite if merchant already entered a name
+
+    setState(() => _isFetchingOnlineName = true);
+    try {
+      final url = Uri.parse('https://world.openfoodfacts.org/api/v2/product/$clean.json');
+      final res = await http.get(url).timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data['status'] == 1 && data['product'] != null) {
+          final p = data['product'];
+          final brand = ((p['brands'] as String?) ?? '').split(',').first.trim();
+          final pName = (p['product_name'] ?? p['product_name_en'] ?? p['generic_name'] ?? '') as String;
+          final qty = (p['quantity'] as String?)?.trim() ?? '';
+          
+          String title = pName;
+          if (brand.isNotEmpty && !title.toLowerCase().contains(brand.toLowerCase())) {
+            title = '$brand - $title';
+          }
+          if (qty.isNotEmpty && !title.toLowerCase().contains(qty.toLowerCase())) {
+            title = '$title $qty';
+          }
+          title = title.trim();
+
+          if (title.isNotEmpty && mounted) {
+            setState(() {
+              _nameController.text = title;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('✓ Identified: $title\nPlease enter your selling price below.'),
+                duration: const Duration(seconds: 3),
+                backgroundColor: AppTheme.surfaceElevated,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        }
+      }
+    } catch (_) {
+      // Ignore network timeout
+    } finally {
+      if (mounted) setState(() => _isFetchingOnlineName = false);
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -167,11 +218,26 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                   children: [
                     TextFormField(
                       controller: _barcodeController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Barcode (EAN / UPC / Code 128) *',
-                        prefixIcon: Icon(Icons.qr_code_rounded, color: AppTheme.primary),
+                        prefixIcon: const Icon(Icons.qr_code_rounded, color: AppTheme.primary),
+                        suffixIcon: _isFetchingOnlineName
+                            ? const Padding(
+                                padding: EdgeInsets.all(12),
+                                child: SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primary),
+                                ),
+                              )
+                            : null,
                         hintText: '8901030762512',
                       ),
+                      onChanged: (val) {
+                        if (val.trim().length >= 8) {
+                          _fetchOnlineProductName(val);
+                        }
+                      },
                       validator: (v) => (v == null || v.trim().isEmpty) ? 'Barcode is required' : null,
                     ),
                     const SizedBox(height: 12),

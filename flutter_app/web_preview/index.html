@@ -7035,10 +7035,14 @@
       }
     }
 
+    let addProductOnlineLookupAbortCtrl = null;
+    let addProductOnlineLookupDebounce = null;
+
     function checkAddProductBarcodeLookup(barcode) {
       const clean = (barcode || '').trim();
       const hintEl = document.getElementById('addProdBarcodeMatchHint');
       const textEl = document.getElementById('addProdBarcodeMatchText');
+      const nameInput = document.getElementById('addProdName');
       pendingAutoFillData = null;
 
       if (!clean || clean.length < 4) {
@@ -7046,18 +7050,118 @@
         return;
       }
 
-      // ONLY check existing products in the store's inventory database
+      // 1. Check if already existing in the store's inventory database
       const existing = sampleProducts.find(p => p.barcode === clean);
       if (existing) {
         pendingAutoFillData = existing;
         if (hintEl && textEl) {
-          textEl.innerText = `Existing in stock: ${existing.name} (₹${existing.price.toFixed(2)})`;
+          textEl.innerHTML = `Existing in store: <strong class="text-white">${existing.name}</strong> (₹${existing.price.toFixed(2)})`;
           hintEl.classList.remove('hidden');
+        }
+        if (nameInput && !nameInput.value.trim()) {
+          nameInput.value = existing.name;
         }
         return;
       }
 
-      if (hintEl) hintEl.classList.add('hidden');
+      // 2. Offline fast dictionary for instant product name auto-fill (name only, no price/qty)
+      const fmcgProductNames = {
+        '8901030762100': 'Parle-G Glucose Biscuits 100g',
+        '8901063141010': 'Britannia Marie Gold Biscuits 100g',
+        '8901058852070': 'Nestle Maggi 2-Minute Noodles 70g',
+        '8901058852236': 'Nestle Maggi 2-Min Noodles 280g (4-Pack)',
+        '8901058000100': 'Amul Salted Butter 100g',
+        '8901207040409': 'Tata Salt Vacuum Evaporated 1kg',
+        '8901030383701': 'Dettol Antiseptic Liquid 125ml',
+        '8901719106361': 'Tata Tea Gold 250g',
+        '8901030383847': 'Dettol Liquid Handwash 200ml'
+      };
+
+      if (fmcgProductNames[clean]) {
+        const detectedName = fmcgProductNames[clean];
+        if (nameInput) {
+          nameInput.value = detectedName;
+          nameInput.classList.add('border-emerald-500');
+          setTimeout(() => nameInput.classList.remove('border-emerald-500'), 1500);
+        }
+        if (hintEl && textEl) {
+          textEl.innerHTML = `✓ Identified: <strong class="text-white">${detectedName}</strong> (Enter your price below)`;
+          hintEl.classList.remove('hidden');
+        }
+        showAppToast(`Product Identified: ${detectedName}`, 'check_circle');
+        setTimeout(() => { document.getElementById('addProdPrice')?.focus(); }, 250);
+        return;
+      }
+
+      // 3. Online database lookup (Fetches ONLY product name, never price or quantity)
+      fetchOnlineProductName(clean);
+    }
+
+    function fetchOnlineProductName(barcode) {
+      if (addProductOnlineLookupDebounce) clearTimeout(addProductOnlineLookupDebounce);
+      addProductOnlineLookupDebounce = setTimeout(async () => {
+        const hintEl = document.getElementById('addProdBarcodeMatchHint');
+        const textEl = document.getElementById('addProdBarcodeMatchText');
+        const nameInput = document.getElementById('addProdName');
+
+        if (addProductOnlineLookupAbortCtrl) {
+          try { addProductOnlineLookupAbortCtrl.abort(); } catch (e) {}
+        }
+        addProductOnlineLookupAbortCtrl = new AbortController();
+
+        try {
+          if (hintEl && textEl) {
+            textEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></span> Finding product name online...</span>`;
+            hintEl.classList.remove('hidden');
+          }
+
+          const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`, {
+            signal: addProductOnlineLookupAbortCtrl.signal
+          });
+          if (!res.ok) throw new Error('Not found online');
+          const data = await res.json();
+          if (data && data.status === 1 && data.product) {
+            const p = data.product;
+            const brand = (p.brands || '').split(',')[0].trim();
+            const pName = p.product_name || p.product_name_en || p.generic_name || '';
+            const qtyStr = p.quantity ? ` ${p.quantity.trim()}` : '';
+            
+            let fullTitle = pName;
+            if (brand && !fullTitle.toLowerCase().includes(brand.toLowerCase())) {
+              fullTitle = `${brand} - ${fullTitle}`;
+            }
+            if (qtyStr && !fullTitle.toLowerCase().includes(qtyStr.toLowerCase())) {
+              fullTitle += qtyStr;
+            }
+            fullTitle = fullTitle.trim();
+
+            if (fullTitle) {
+              // Write ONLY the product name in the field
+              if (nameInput) {
+                nameInput.value = fullTitle;
+                nameInput.classList.add('border-emerald-500');
+                setTimeout(() => nameInput.classList.remove('border-emerald-500'), 1500);
+              }
+              if (hintEl && textEl) {
+                textEl.innerHTML = `✓ Identified: <strong class="text-white">${fullTitle}</strong> (Enter your price below)`;
+                hintEl.classList.remove('hidden');
+              }
+              showAppToast(`Product Identified: ${fullTitle}`, 'check_circle');
+
+              // Move focus to the price field so merchant enters their own store price
+              setTimeout(() => {
+                document.getElementById('addProdPrice')?.focus();
+              }, 250);
+              return;
+            }
+          }
+          if (hintEl) hintEl.classList.add('hidden');
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            if (hintEl) hintEl.classList.add('hidden');
+          }
+        }
+      }, 350);
     }
 
     function applyAddProductAutoFill() {
