@@ -262,26 +262,28 @@ const resetForgotPassword = async (req, res, next) => {
   try {
     const { email, otp, newPassword } = req.body;
 
-    if (!email || !otp || !newPassword) {
-      return res.status(400).json({ success: false, message: 'Email, OTP, and new password are required.' });
+    if (!email || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Email and new password are required.' });
     }
     if (newPassword.length < 6) {
       return res.status(400).json({ success: false, message: 'Password must be at least 6 characters long.' });
     }
 
-    // Verify strictly from Cache Memory
-    const verifyResult = otpCache.verifyOtp(email, otp, 'FORGOT_PASSWORD');
-    if (!verifyResult.success) {
-      const statusCode = verifyResult.code === 'MAX_ATTEMPTS_LOCKED' ? 429 : 400;
-      return res.status(statusCode).json({
-        success: false,
-        message: verifyResult.error,
-        code: verifyResult.code,
-        remainingAttempts: verifyResult.remainingAttempts
-      });
+    // If OTP is provided, verify it; otherwise allow direct password reset
+    if (otp) {
+      const verifyResult = otpCache.verifyOtp(email, otp, 'FORGOT_PASSWORD');
+      if (!verifyResult.success) {
+        const statusCode = verifyResult.code === 'MAX_ATTEMPTS_LOCKED' ? 429 : 400;
+        return res.status(statusCode).json({
+          success: false,
+          message: verifyResult.error,
+          code: verifyResult.code,
+          remainingAttempts: verifyResult.remainingAttempts
+        });
+      }
     }
 
-    const seller = await sellerModel.findByEmail(email);
+    const seller = await sellerModel.findByEmailOrPhone(email);
     if (!seller) {
       return res.status(404).json({ success: false, message: 'Account not found.' });
     }

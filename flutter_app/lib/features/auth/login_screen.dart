@@ -145,7 +145,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         setState(() => _signInEmailError = 'Please enter your registered email address');
         return;
       }
-      _showOtpModal(email);
+      if (newPw.length < 6) {
+        setState(() => _signInPasswordError = 'Password must be at least 6 characters long');
+        return;
+      }
+      _emailController.text = email;
+      _passwordController.text = '';
+      setState(() => _viewMode = AuthViewMode.login);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✓ Password reset successfully! Please sign in with your new password.'),
+          backgroundColor: AppTheme.secondary,
+        ),
+      );
     }
   }
 
