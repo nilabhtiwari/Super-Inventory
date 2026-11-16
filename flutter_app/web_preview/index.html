@@ -134,7 +134,8 @@
       background: #0D0E15 !important;
       border-radius: 1.5rem !important;
     }
-    #liveBarcodeCameraScanner video {
+    #liveBarcodeCameraScanner video,
+    #modalLiveScannerContainer video {
       width: 100% !important;
       height: 100% !important;
       object-fit: cover !important;
@@ -143,27 +144,34 @@
       left: 0 !important;
       right: 0 !important;
       bottom: 0 !important;
-      border-radius: 1.5rem !important;
+      border-radius: 1rem !important;
       display: block !important;
     }
-    #liveBarcodeCameraScanner__scan_region {
+    #liveBarcodeCameraScanner__scan_region,
+    #modalLiveScannerContainer__scan_region {
       width: 100% !important;
       height: 100% !important;
       position: absolute !important;
       inset: 0 !important;
       overflow: hidden !important;
     }
-    /* Suppress Html5Qrcode's clunky shaded square box, svg overlays, and black pillarboxes */
+    /* Suppress Html5Qrcode's clunky shaded square box, white boundary borders, svg overlays, and black pillarboxes */
     #liveBarcodeCameraScanner #qr-shaded-region,
     #liveBarcodeCameraScanner svg,
-    #liveBarcodeCameraScanner div[style*="rgba(0, 0, 0"] {
+    #liveBarcodeCameraScanner div[style*="rgba(0, 0, 0"],
+    #liveBarcodeCameraScanner div[style*="border"],
+    #modalLiveScannerContainer #qr-shaded-region,
+    #modalLiveScannerContainer svg,
+    #modalLiveScannerContainer div[style*="rgba(0, 0, 0"],
+    #modalLiveScannerContainer div[style*="border"] {
       display: none !important;
       visibility: hidden !important;
       opacity: 0 !important;
       border: none !important;
     }
     /* Keep canvas in DOM and rendered for ZXing frame decoding without blocking the user view */
-    #liveBarcodeCameraScanner canvas {
+    #liveBarcodeCameraScanner canvas,
+    #modalLiveScannerContainer canvas {
       position: absolute !important;
       top: 0 !important;
       left: 0 !important;
@@ -5962,12 +5970,7 @@
         }
 
         const config = {
-          fps: 20,
-          qrbox: (viewfinderWidth, viewfinderHeight) => {
-            const w = Math.max(200, Math.min(Math.floor((viewfinderWidth || 320) * 0.90), 480));
-            const h = Math.max(120, Math.min(Math.floor((viewfinderHeight || 220) * 0.70), 240));
-            return { width: w, height: h };
-          }
+          fps: 20
         };
 
         let started = false;
@@ -6841,12 +6844,7 @@
         });
 
         const config = {
-          fps: 20,
-          qrbox: (viewfinderWidth, viewfinderHeight) => {
-            const w = Math.max(200, Math.min(Math.floor((viewfinderWidth || 320) * 0.90), 480));
-            const h = Math.max(120, Math.min(Math.floor((viewfinderHeight || 220) * 0.70), 240));
-            return { width: w, height: h };
-          }
+          fps: 20
         };
 
         let started = false;
