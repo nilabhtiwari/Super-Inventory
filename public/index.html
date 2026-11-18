@@ -2336,11 +2336,6 @@
           </button>
         </div>
 
-        <!-- Direct App Payment Intent Button (For same-device / mobile testing) -->
-        <a id="paymentModalPayViaUpiBtn" href="#" class="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
-          <span class="material-symbols-outlined text-sm">open_in_new</span>
-          <span>Pay via PhonePe / GPay / Paytm</span>
-        </a>
 
         <span class="text-[9.5px] font-bold text-emerald-700 flex items-center gap-1">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -8863,7 +8858,6 @@
       isPaymentModalUpiAmountFixed = includeAmount;
       const qrEl = document.getElementById('paymentModalQrCanvas');
       const upiTextEl = document.getElementById('paymentModalUpiText');
-      const payLinkEl = document.getElementById('paymentModalPayViaUpiBtn');
       const btnFixed = document.getElementById('upiQrModeFixedBtn');
       const btnOpen = document.getElementById('upiQrModeOpenBtn');
       const fixedAmtPill = document.getElementById('upiFixedAmtPill');
@@ -8895,10 +8889,6 @@
         if (upiTextEl) {
           upiTextEl.innerText = activeVpa;
         }
-        if (payLinkEl) {
-          payLinkEl.href = upiUrl;
-          payLinkEl.style.display = 'flex';
-        }
 
         new QRCode(qrEl, {
           text: upiUrl,
@@ -8918,9 +8908,6 @@
         `;
         if (upiTextEl) {
           upiTextEl.innerText = 'Configure Settlement UPI in Settings';
-        }
-        if (payLinkEl) {
-          payLinkEl.style.display = 'none';
         }
       }
     }
