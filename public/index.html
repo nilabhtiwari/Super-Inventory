@@ -6380,9 +6380,80 @@
     let selectedModalUnit = 'pcs';
     let currentModalEditedPrice = null;
 
+    // ============================================================
+    // DIRECT SCAN-TO-BILL CONTROLLER (FIXED PACK/UNIT PRICING)
+    // Product pack size (kg, g, ml, l) is for customer knowledge only.
+    // Price is fixed per item/pack: e.g. 1 pc = ₹250, 2 pcs = ₹500.
+    // ============================================================
+    function addProductDirectlyToCart(product) {
+      if (!product) return;
+
+      const availableStock = getProductAvailableStock(product);
+      if (availableStock <= 0) {
+        playOutOfStockAlertTone();
+        showAppToast(`⚠️ "${product.name}" is OUT OF STOCK (0 in stock). Cannot add to bill!`, 'error');
+        return;
+      }
+
+      const cleanBarcode = String(product.barcode || '').trim().toLowerCase();
+      const inCart = cart.find(i => String(i.barcode || '').trim().toLowerCase() === cleanBarcode);
+      const inCartQty = inCart ? (Number(inCart.quantity) || 0) : 0;
+      const remainingStock = availableStock - inCartQty;
+
+      if (remainingStock <= 0) {
+        playOutOfStockAlertTone();
+        showAppToast(`⚠️ Maximum stock reached! All ${availableStock} units of "${product.name}" are already in the bill.`, 'warning');
+        return;
+      }
+
+      // Exact fixed item price set by the seller
+      const fixedPrice = Math.round(((Number(product.price) || 0) + Number.EPSILON) * 100) / 100;
+
+      // Extract display pack quantity (e.g. 1 kg, 500 g, 1 L, etc.) for customer knowledge
+      let displayNetQty = (product.netQty && product.unit) ? `${product.netQty} ${product.unit}` : (product.net_qty || '');
+      if (!displayNetQty) {
+        const match = (product.name || '').match(/(\d+(?:\.\d+)?\s*(?:kg|g|gm|grams|l|ml|litre|litres|pcs|pack)\b)/i);
+        if (match) displayNetQty = match[1];
+      }
+
+      if (inCart) {
+        inCart.quantity += 1;
+        inCart.price = fixedPrice;
+      } else {
+        cart.push({
+          ...product,
+          name: product.name,
+          price: fixedPrice,
+          quantity: 1, // 1 piece/pack
+          displayNetQty: displayNetQty || '',
+          unit: 'pcs'
+        });
+      }
+
+      renderCart();
+      playBarcodeScanAudioTone();
+
+      const displayQtyInfo = displayNetQty ? ` (${displayNetQty})` : '';
+      const newCount = inCart ? inCart.quantity : 1;
+      const lineTotal = fixedPrice * newCount;
+      showAppToast(`✓ Added to Bill: ${product.name}${displayQtyInfo} • ${newCount} pc${newCount > 1 ? 's' : ''} (₹${lineTotal.toFixed(2)})`, 'shopping_bag');
+
+      // Re-trigger scanner for continuous mobile barcode scanning
+      if (isContinuousScanningMode) {
+        setTimeout(() => {
+          const billingScreen = document.getElementById('screen-billing');
+          if (billingScreen && !billingScreen.classList.contains('hidden')) {
+            startCameraBarcodeScanner();
+          }
+        }, 300);
+      }
+    }
+
+    // Direct redirection: openQtyUnitModal directly routes to addProductDirectlyToCart
     function openQtyUnitModal(product) {
       if (!product) return;
-      currentModalProduct = product;
+      addProductDirectlyToCart(product);
+      return;
       
       const availableStock = getProductAvailableStock(product);
       if (availableStock <= 0) {
@@ -7072,7 +7143,7 @@
           showAppToast(`⚠️ Maximum stock reached! All ${availableStock} units of "${product.name}" are already in the bill.`, 'warning');
           return;
         }
-        openQtyUnitModal(product);
+        addProductDirectlyToCart(product);
         return;
       }
 
@@ -7121,7 +7192,7 @@
                 return;
               }
 
-              openQtyUnitModal(cloudProd);
+              addProductDirectlyToCart(cloudProd);
               return;
             }
           }
@@ -8105,12 +8176,12 @@
         return;
       }
 
-      // Format product name cleanly with size/unit if not already explicitly included
+      // Format product name cleanly with size/unit for customer knowledge display
       let name = rawName;
       const sizeTag = `${netQty}${unit}`;
       const sizeTagSpace = `${netQty} ${unit}`;
       if (!name.toLowerCase().includes(sizeTag.toLowerCase()) && !name.toLowerCase().includes(sizeTagSpace.toLowerCase())) {
-        name = `${rawName} (${netQty}${unit})`;
+        name = `${rawName} (${netQty} ${unit})`;
       }
 
       let existingIdx = -1;
@@ -8310,24 +8381,26 @@
       } else {
         container.innerHTML = cart.map((item, idx) => {
           const lineTotal = calculateItemLineTotal(item);
+          const packBadgeText = item.displayNetQty || (item.netQty && item.unit ? `${item.netQty} ${item.unit}` : '');
+          const packBadgeHtml = packBadgeText 
+            ? `<span class="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 tracking-tight" title="Pack Size (Customer Info)">${packBadgeText}</span>`
+            : '';
 
           return `
             <div class="p-3 bg-white border border-slate-200 rounded-2xl flex items-center justify-between gap-2 shadow-xs hover:border-emerald-300 transition group">
               <div class="leading-tight flex-1 min-w-0 pr-1 text-left">
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  <p class="text-xs font-bold text-slate-800 truncate max-w-[150px]">${item.name}</p>
-                  <button type="button" onclick="openQtyUnitModal(sampleProducts.find(p => p.barcode === '${item.barcode}') || cart[${idx}])" class="text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition shadow-xs" title="Click to edit quantity or price">
-                    ${item.quantity} ${item.unit || 'pcs'}
-                  </button>
+                  <p class="text-xs font-bold text-slate-800 truncate max-w-[155px]">${item.name}</p>
+                  ${packBadgeHtml}
                 </div>
-                <p class="text-[10px] text-slate-500 mt-0.5 font-medium">Rate: ₹${Number(item.price).toFixed(2)}</p>
+                <p class="text-[10px] text-slate-500 mt-0.5 font-medium">Rate: ₹${Number(item.price).toFixed(2)} / pc</p>
               </div>
 
-              <!-- Action Controls: Steppers, Line Total & 1-Tap Remove Trash Button -->
+              <!-- Action Controls: Only piece count can be changed with + / - (e.g. 1 pc = ₹250, 2 pcs = ₹500) -->
               <div class="flex items-center gap-1.5 shrink-0">
-                <button type="button" onclick="updateCartQty(${idx}, -1)" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-sm font-black flex items-center justify-center active:scale-90 transition" title="Decrease Quantity">－</button>
-                <span class="text-xs font-black px-1 text-center min-w-6 text-slate-900">${item.quantity}</span>
-                <button type="button" onclick="updateCartQty(${idx}, 1)" class="w-7 h-7 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-black flex items-center justify-center active:scale-90 transition shadow-xs" title="Increase Quantity">＋</button>
+                <button type="button" onclick="updateCartQty(${idx}, -1)" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-sm font-black flex items-center justify-center active:scale-90 transition" title="Decrease Piece Count">－</button>
+                <span class="text-xs font-black px-1 text-center min-w-6 text-slate-900">${item.quantity} pc${item.quantity > 1 ? 's' : ''}</span>
+                <button type="button" onclick="updateCartQty(${idx}, 1)" class="w-7 h-7 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-black flex items-center justify-center active:scale-90 transition shadow-xs" title="Increase Piece Count">＋</button>
                 
                 <span class="text-xs font-black text-slate-900 ml-1 min-w-[54px] text-right whitespace-nowrap">₹${lineTotal.toFixed(2)}</span>
                 
@@ -9707,11 +9780,7 @@
       const billingScreen = document.getElementById('screen-billing');
       if (billingScreen && !billingScreen.classList.contains('hidden')) {
         if (matched) {
-          if (typeof openQtyUnitModal === 'function') {
-            openQtyUnitModal(matched);
-          } else if (typeof addToCart === 'function') {
-            addToCart(matched);
-          }
+          addProductDirectlyToCart(matched);
         } else {
           alert(`🏷️ Barcode scanned: ${barcode}\n(No product matched in local catalog)`);
         }
