@@ -347,8 +347,8 @@
     #smartphoneWrapper.theme-light #cameraStatusPill,
     #smartphoneWrapper.theme-light #cameraStatusPill *,
     #smartphoneWrapper.theme-light #scannerInstructionBadge,
-    #smartphoneWrapper.theme-light #scannerInstructionBadge *,
-    #smartphoneWrapper.theme-light #cameraControlsRow * {
+    #smartphoneWrapper.theme-light #cameraControlsRow *,
+    #smartphoneWrapper.theme-light #modalCameraControlsRow * {
       color: #FFFFFF !important;
     }
     #smartphoneWrapper.theme-light .text-brand-muted {
@@ -875,7 +875,7 @@
         <!-- Clean Edge-to-Edge POS Barcode Scanner Viewfinder -->
         <div class="w-full bg-[#0D0E15] border border-brand-surfaceBorder rounded-3xl relative overflow-hidden flex flex-col items-center justify-center shadow-lg">
           <!-- Video / Scanner Area: clean full view with no black cutoffs, no square box -->
-          <div onclick="if(!isCameraScanningActive) toggleCameraScanning()" class="w-full h-56 relative flex items-center justify-center bg-[#0D0E15] overflow-hidden cursor-pointer" title="Tap to switch camera on">
+          <div onclick="handleCameraBoxTap(event)" class="w-full h-56 relative flex items-center justify-center bg-[#0D0E15] overflow-hidden cursor-pointer" title="Tap to switch camera on • Double-tap to zoom">
             <!-- Camera Video Feed Container (Full Bleed Edge-to-Edge) -->
             <div id="liveBarcodeCameraScanner" class="w-full h-full absolute inset-0"></div>
             
@@ -892,6 +892,10 @@
                 <span id="cameraStatusText" style="color: #FFFFFF !important;">Camera Active</span>
               </span>
               <div class="flex items-center gap-1.5">
+                <button type="button" onclick="event.stopPropagation(); cycleCameraZoom();" id="cameraZoomBtn" class="px-2.5 py-1.5 bg-slate-900/90 hover:bg-slate-800 backdrop-blur-md border border-white/20 rounded-xl text-white transition active:scale-95 shadow flex items-center gap-1" style="color: #FFFFFF !important;" title="Maximize camera lens zoom (1x / 2x / 3x for small barcodes)">
+                  <span class="material-symbols-outlined text-sm" style="color: #FFFFFF !important;">zoom_in</span>
+                  <span id="cameraZoomLabel" class="text-[10px] font-black tracking-wider" style="color: #FFFFFF !important;">1x</span>
+                </button>
                 <button type="button" onclick="event.stopPropagation(); toggleCameraTorch();" id="cameraTorchBtn" class="p-2 bg-slate-900/90 hover:bg-slate-800 backdrop-blur-md border border-white/20 rounded-xl text-white transition active:scale-95 shadow flex items-center justify-center" style="color: #FFFFFF !important;" title="Toggle Flashlight / Torch">
                   <span class="material-symbols-outlined text-base" id="cameraTorchIcon" style="color: #FFFFFF !important;">flashlight_off</span>
                 </button>
@@ -2488,7 +2492,7 @@
           </div>
           
           <!-- LIVE CAMERA VIEWFINDER (INSIDE MODAL: Clean Edge-to-Edge POS Scanner - Same as Create Bill) -->
-          <div id="modalBarcodeCameraBox" onclick="if(!isModalCameraActive) toggleModalLiveCamera();" class="relative w-full h-52 bg-[#0D0E15] rounded-2xl overflow-hidden border border-emerald-500/40 shadow-inner flex flex-col justify-between cursor-pointer" title="Tap to switch camera on">
+          <div id="modalBarcodeCameraBox" onclick="handleModalCameraBoxTap(event)" class="relative w-full h-52 bg-[#0D0E15] rounded-2xl overflow-hidden border border-emerald-500/40 shadow-inner flex flex-col justify-between cursor-pointer" title="Tap to switch camera on • Double-tap to zoom">
             <!-- Html5Qrcode video render element (Full Bleed Edge-to-Edge) -->
             <div id="modalLiveScannerContainer" class="w-full h-full absolute inset-0"></div>
             
@@ -2504,6 +2508,10 @@
                 <span id="modalCamStatusText" style="color: #FFFFFF !important;">Camera Active</span>
               </span>
               <div class="flex items-center gap-1.5">
+                <button type="button" onclick="event.stopPropagation(); cycleModalCameraZoom();" id="modalCameraZoomBtn" class="px-2.5 py-1.5 bg-slate-900/90 hover:bg-slate-800 backdrop-blur-md border border-white/20 rounded-xl text-white transition active:scale-95 shadow flex items-center gap-1" style="color: #FFFFFF !important;" title="Maximize camera lens zoom (1x / 2x / 3x for small barcodes)">
+                  <span class="material-symbols-outlined text-sm" style="color: #FFFFFF !important;">zoom_in</span>
+                  <span id="modalCameraZoomLabel" class="text-[10px] font-black tracking-wider" style="color: #FFFFFF !important;">1x</span>
+                </button>
                 <button type="button" onclick="event.stopPropagation(); toggleModalCameraTorch();" id="modalCameraTorchBtn" class="p-2 bg-slate-900/90 hover:bg-slate-800 backdrop-blur-md border border-white/20 rounded-xl text-white transition active:scale-95 shadow flex items-center justify-center" style="color: #FFFFFF !important;" title="Toggle Flashlight / Torch">
                   <span class="material-symbols-outlined text-base" id="modalCameraTorchIcon" style="color: #FFFFFF !important;">flashlight_off</span>
                 </button>
@@ -6862,6 +6870,9 @@
           videoEl.setAttribute('autoplay', 'true');
           videoEl.muted = true;
           videoEl.play().catch(() => {});
+          if (currentCameraZoom > 1) {
+            applyCameraZoom(currentCameraZoom, false);
+          }
         }
       } catch (err) {
         console.warn('Camera initiation notice:', err);
@@ -7045,6 +7056,136 @@
       } catch (err) {
         console.warn('Torch toggle notice:', err);
         showAppToast('Flashlight not supported on this device/browser', 'info');
+      }
+    }
+
+    // =========================================================================
+    // CAMERA LENS MAXIMIZER / MACRO ZOOM CONTROLLER (FOR SMALL BARCODES)
+    // =========================================================================
+    let currentCameraZoom = 1;
+    let currentModalCameraZoom = 1;
+    let lastCameraBoxTapTime = 0;
+    let lastModalCameraBoxTapTime = 0;
+
+    function handleCameraBoxTap(event) {
+      if (event && event.target && event.target.closest('#cameraControlsRow')) return;
+      const now = Date.now();
+      if (now - lastCameraBoxTapTime < 350) {
+        cycleCameraZoom();
+        lastCameraBoxTapTime = 0;
+        return;
+      }
+      lastCameraBoxTapTime = now;
+      if (!isCameraScanningActive) {
+        toggleCameraScanning();
+      }
+    }
+
+    function handleModalCameraBoxTap(event) {
+      if (event && event.target && event.target.closest('#modalCameraControlsRow')) return;
+      const now = Date.now();
+      if (now - lastModalCameraBoxTapTime < 350) {
+        cycleModalCameraZoom();
+        lastModalCameraBoxTapTime = 0;
+        return;
+      }
+      lastModalCameraBoxTapTime = now;
+      if (!isModalCameraActive) {
+        toggleModalLiveCamera();
+      }
+    }
+
+    async function cycleCameraZoom() {
+      if (!isCameraScanningActive) {
+        await startCameraBarcodeScanner();
+      }
+      const nextZoom = currentCameraZoom === 1 ? 2 : (currentCameraZoom === 2 ? 3 : 1);
+      await applyCameraZoom(nextZoom, false);
+    }
+
+    async function cycleModalCameraZoom() {
+      if (!isModalCameraActive) {
+        startModalLiveCamera();
+      }
+      const nextZoom = currentModalCameraZoom === 1 ? 2 : (currentModalCameraZoom === 2 ? 3 : 1);
+      await applyCameraZoom(nextZoom, true);
+    }
+
+    async function applyCameraZoom(zoomLevel, isModal = false) {
+      if (isModal) {
+        currentModalCameraZoom = zoomLevel;
+      } else {
+        currentCameraZoom = zoomLevel;
+      }
+
+      const containerId = isModal ? 'modalLiveScannerContainer' : 'liveBarcodeCameraScanner';
+      const btnId = isModal ? 'modalCameraZoomBtn' : 'cameraZoomBtn';
+      const labelId = isModal ? 'modalCameraZoomLabel' : 'cameraZoomLabel';
+
+      const btn = document.getElementById(btnId);
+      const label = document.getElementById(labelId);
+      if (label) {
+        label.innerText = `${zoomLevel}x`;
+      }
+      if (btn) {
+        if (zoomLevel > 1) {
+          btn.classList.add('bg-emerald-500/30', 'border-emerald-400', 'text-emerald-300', 'shadow-[0_0_12px_rgba(52,211,153,0.5)]');
+          btn.classList.remove('bg-slate-900/90', 'border-white/20', 'text-white');
+          btn.title = `Camera Zoom: ${zoomLevel}x (Tap to cycle 1x/2x/3x)`;
+        } else {
+          btn.classList.remove('bg-emerald-500/30', 'border-emerald-400', 'text-emerald-300', 'shadow-[0_0_12px_rgba(52,211,153,0.5)]');
+          btn.classList.add('bg-slate-900/90', 'border-white/20', 'text-white');
+          btn.title = 'Maximize camera lens zoom (1x / 2x / 3x for small barcodes)';
+        }
+      }
+
+      const container = document.getElementById(containerId);
+      const videoEl = container ? container.querySelector('video') : null;
+      const stream = videoEl ? videoEl.srcObject : null;
+      const track = stream && stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
+
+      let appliedHardware = false;
+
+      if (track && typeof track.getCapabilities === 'function') {
+        try {
+          const caps = track.getCapabilities();
+          if (caps && caps.zoom) {
+            const minZ = caps.zoom.min || 1;
+            const maxZ = caps.zoom.max || 5;
+            const target = Math.min(Math.max(zoomLevel, minZ), maxZ);
+            const constraints = { advanced: [{ zoom: target }] };
+            if (caps.focusMode && (caps.focusMode.includes('macro') || caps.focusMode.includes('continuous'))) {
+              constraints.advanced.push({ focusMode: caps.focusMode.includes('macro') ? 'macro' : 'continuous' });
+            }
+            await track.applyConstraints(constraints);
+            appliedHardware = true;
+          }
+        } catch (e) {
+          console.warn('Hardware camera zoom note:', e);
+        }
+      }
+
+      // Visual / Digital Magnification fallback & enhancement
+      if (videoEl) {
+        if (appliedHardware) {
+          videoEl.style.transform = 'none';
+        } else {
+          if (zoomLevel > 1) {
+            videoEl.style.transform = `scale(${zoomLevel})`;
+            videoEl.style.transformOrigin = 'center center';
+            videoEl.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+          } else {
+            videoEl.style.transform = 'none';
+          }
+        }
+      }
+
+      if (zoomLevel === 1) {
+        showAppToast('Standard Lens (1x)', 'zoom_out');
+      } else if (zoomLevel === 2) {
+        showAppToast('🔍 Lens Maximized: 2x Macro Zoom (Small Barcode Mode)', 'zoom_in');
+      } else if (zoomLevel === 3) {
+        showAppToast('🔍 Lens Maximized: 3x Super Zoom', 'zoom_in');
       }
     }
 
@@ -7836,6 +7977,9 @@
             videoEl.setAttribute('autoplay', 'true');
             videoEl.muted = true;
             videoEl.play().catch(() => {});
+            if (currentModalCameraZoom > 1) {
+              applyCameraZoom(currentModalCameraZoom, true);
+            }
           }
         }
       } catch (err) {
