@@ -1018,7 +1018,7 @@
           <div class="border-t border-dashed border-brand-surfaceBorder pt-3 space-y-2">
             <p class="text-[11px] font-extrabold tracking-wider text-brand-primaryContainer uppercase">SCAN & PAY VIA ANY UPI APP</p>
             <div class="flex justify-center p-3 bg-white rounded-2xl w-fit mx-auto shadow-md" id="qrcodeCanvas"></div>
-            <p class="text-[10px] text-brand-muted font-mono" id="rcptUpiId">superinventory@upi</p>
+            <p class="text-[10px] text-brand-muted font-mono" id="rcptUpiId">Scan to pay directly to seller UPI</p>
           </div>
 
           <!-- Store Hours & Customer Support / Contact No (Printed on Bill) -->
@@ -1810,7 +1810,7 @@
             <label class="text-[10px] font-bold text-brand-muted block">Bank UPI ID (VPA) *</label>
             <div class="relative">
               <span class="material-symbols-outlined absolute left-3 top-2 text-emerald-400 text-base">alternate_email</span>
-              <input type="text" id="profileDirectUpiInput" disabled value="superinventory@upi" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl pl-9 pr-3 py-2 text-xs text-white outline-none focus:border-emerald-500 font-mono transition disabled:opacity-50 disabled:cursor-not-allowed" placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm" />
+              <input type="text" id="profileDirectUpiInput" disabled value="" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl pl-9 pr-3 py-2 text-xs text-white outline-none focus:border-emerald-500 font-mono transition disabled:opacity-50 disabled:cursor-not-allowed" placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm" />
             </div>
             <p class="text-[9.5px] text-brand-muted">Compatible with PhonePe, Google Pay, Paytm, BHIM, Cred & all banking apps.</p>
           </div>
@@ -2322,7 +2322,7 @@
       <!-- 2. UPI QR Code Preview -->
       <div id="panel-pay-upi" class="hidden p-3 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center text-center space-y-1.5">
         <div class="p-2.5 bg-white border border-slate-200 rounded-xl shadow-sm" id="paymentModalQrCanvas"></div>
-        <p class="text-[10px] font-mono text-slate-600 font-bold" id="paymentModalUpiText">superinventory@upi</p>
+        <p class="text-[10px] font-mono text-slate-600 font-bold" id="paymentModalUpiText">Scan to pay directly to seller UPI</p>
         <span class="text-[9.5px] font-bold text-emerald-700">● Dynamic Auto-Reconciled UPI QR</span>
       </div>
 
@@ -3337,6 +3337,38 @@
         if (!sellerId) {
           isCloudSyncing = false;
           return;
+        }
+
+        // Also sync seller's settlement UPI from Supabase cloud
+        try {
+          const sellerRes = await fetch(`${SUPABASE_REST_URL}/sellers?id=eq.${sellerId}&select=upi_id,payee_name,store_name`, {
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+            }
+          });
+          if (sellerRes.ok) {
+            const sellersData = await sellerRes.json();
+            if (Array.isArray(sellersData) && sellersData.length > 0) {
+              const sData = sellersData[0];
+              if (sData.upi_id) {
+                const currentBank = getStoredBankUpiSettings();
+                if (!currentBank.vpa || currentBank.vpa === sData.upi_id) {
+                  const updatedBank = {
+                    payeeName: sData.payee_name || sData.store_name || currentBank.payeeName || 'Super Inventory Store',
+                    vpa: sData.upi_id,
+                    accountNo: '',
+                    ifsc: '',
+                    bankName: ''
+                  };
+                  localStorage.setItem(getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY), JSON.stringify(updatedBank));
+                  if (typeof refreshUpiDisplays === 'function') refreshUpiDisplays();
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Sync merchant UPI note:', e);
         }
 
         const cloudItems = await supabaseFetchMerchantProducts(sellerId);
@@ -5054,26 +5086,77 @@
     const UPI_PIN_STORAGE_KEY = 'super_inventory_upi_security_pin';
     let isBankUpiUnlocked = false;
 
+    // NPCI-Compliant Dynamic UPI Payment URI Generator
+    function generateUpiPaymentUrl(vpa, payeeName, amount, invoiceNo) {
+      const cleanVpa = String(vpa || '').trim();
+      if (!cleanVpa) return '';
+      const cleanPayee = String(payeeName || 'Super Inventory Store').trim();
+      const amtNum = parseFloat(amount) || 0;
+      const amtStr = amtNum > 0 ? amtNum.toFixed(2) : '';
+      const cleanInv = String(invoiceNo || 'INV-STORE').trim();
+
+      // Standard NPCI UPI URI Specification:
+      // Note: 'pa' must keep literal '@' so UPI apps (PhonePe, GPay, Paytm) parse the handle directly
+      let url = `upi://pay?pa=${cleanVpa}&pn=${encodeURIComponent(cleanPayee)}`;
+      if (amtStr) {
+        url += `&am=${amtStr}`;
+      }
+      url += `&cu=INR&tn=${encodeURIComponent(cleanInv)}`;
+      return url;
+    }
+
     function getStoredBankUpiSettings() {
-      try {
-        const key = getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY);
-        const saved = localStorage.getItem(key);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed && parsed.vpa) return parsed;
-        }
-      } catch (e) {}
       let defaultPayee = 'Super Inventory Store';
+      let sellerUpi = '';
+
+      // 1. Check current logged-in seller session
       try {
         const sRaw = localStorage.getItem('super_inventory_seller');
         if (sRaw) {
           const s = JSON.parse(sRaw);
           if (s.name || s.store_name) defaultPayee = s.name || s.store_name;
+          if (s.upi_id) sellerUpi = String(s.upi_id).trim();
+          if (s.payee_name) defaultPayee = String(s.payee_name).trim();
         }
       } catch (e) {}
+
+      // 2. Check merchant-scoped saved settlement settings
+      try {
+        const key = getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY);
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed) {
+            if (parsed.vpa && parsed.vpa !== 'superinventory@upi') {
+              sellerUpi = String(parsed.vpa).trim();
+            }
+            if (parsed.payeeName) {
+              defaultPayee = String(parsed.payeeName).trim();
+            }
+          }
+        }
+      } catch (e) {}
+
+      // 3. Fallback: check profile updates cache
+      if (!sellerUpi) {
+        try {
+          const profKey = getMerchantStorageKey('super_inventory_profile_updates');
+          const profSaved = localStorage.getItem(profKey);
+          if (profSaved) {
+            const p = JSON.parse(profSaved);
+            if (p.upiId && p.upiId !== 'superinventory@upi') {
+              sellerUpi = String(p.upiId).trim();
+            }
+            if (p.storeName) {
+              defaultPayee = String(p.storeName).trim();
+            }
+          }
+        } catch (e) {}
+      }
+
       return {
         payeeName: defaultPayee,
-        vpa: 'superinventory@upi',
+        vpa: sellerUpi || '',
         accountNo: '',
         ifsc: '',
         bankName: ''
@@ -5082,7 +5165,7 @@
 
     function refreshUpiDisplays() {
       const config = getStoredBankUpiSettings();
-      const vpa = config.vpa || 'superinventory@upi';
+      const vpa = config.vpa || '';
       const payee = config.payeeName || 'Super Inventory Store';
 
       const directUpiInput = document.getElementById('profileDirectUpiInput');
@@ -5097,10 +5180,10 @@
         directPayeeInput.value = payee;
       }
       if (rcptUpiId) {
-        rcptUpiId.innerText = vpa;
+        rcptUpiId.innerText = vpa ? vpa : 'Configure Settlement UPI in Settings';
       }
       if (profileActiveUpi) {
-        profileActiveUpi.innerText = vpa;
+        profileActiveUpi.innerText = vpa ? vpa : 'Not configured';
       }
 
       if (isBankUpiUnlocked) {
@@ -5258,7 +5341,7 @@
       showAppToast('🔒 Settlement account is locked', 'lock');
     }
 
-    function saveProfileDirectUpi() {
+    async function saveProfileDirectUpi() {
       if (!isBankUpiUnlocked) {
         openUpiBankModal();
         return false;
@@ -5277,6 +5360,34 @@
 
       const settings = { payeeName, vpa, accountNo: '', ifsc: '', bankName: '' };
       localStorage.setItem(getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY), JSON.stringify(settings));
+
+      // Also update active seller session cache
+      try {
+        const sRaw = localStorage.getItem('super_inventory_seller');
+        if (sRaw) {
+          const s = JSON.parse(sRaw);
+          s.upi_id = vpa;
+          s.payee_name = payeeName;
+          localStorage.setItem('super_inventory_seller', JSON.stringify(s));
+        }
+      } catch (e) {}
+
+      // Cloud sync to Supabase sellers table so it persists across sign-ins on any device
+      try {
+        const sellerId = getActiveNumericSellerId();
+        if (sellerId) {
+          fetch(`${SUPABASE_REST_URL}/sellers?id=eq.${sellerId}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({ upi_id: vpa, payee_name: payeeName })
+          }).catch(err => console.warn('Cloud UPI sync note:', err));
+        }
+      } catch (e) {}
 
       lockUpiSettings();
       refreshUpiDisplays();
@@ -8032,20 +8143,42 @@
       calculateCashChange();
       selectPaymentTab('CASH');
 
-      // Generate Dynamic QR inside payment modal
+      // Generate Dynamic QR inside payment modal pointing to seller's settlement UPI
       const qrEl = document.getElementById('paymentModalQrCanvas');
+      const upiTextEl = document.getElementById('paymentModalUpiText');
       if (qrEl) {
         qrEl.innerHTML = '';
+        const bankConfig = getStoredBankUpiSettings();
+        const activeVpa = (bankConfig.vpa || '').trim();
+        const activePayee = bankConfig.payeeName || 'Super Inventory Store';
         const invNo = `INV-${Date.now().toString().slice(-6)}`;
-        const upiUrl = `upi://pay?pa=superinventory@upi&pn=Super+Inventory&am=${currentPayableGrandTotal.toFixed(2)}&tn=${invNo}&cu=INR`;
-        new QRCode(qrEl, {
-          text: upiUrl,
-          width: 120,
-          height: 120,
-          colorDark: "#000000",
-          colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.M
-        });
+
+        if (activeVpa) {
+          const upiUrl = generateUpiPaymentUrl(activeVpa, activePayee, currentPayableGrandTotal, invNo);
+          if (upiTextEl) {
+            upiTextEl.innerText = activeVpa;
+          }
+
+          new QRCode(qrEl, {
+            text: upiUrl,
+            width: 120,
+            height: 120,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        } else {
+          qrEl.innerHTML = `
+            <div class="w-[120px] h-[120px] flex flex-col items-center justify-center p-2 text-center bg-slate-100 rounded-xl border border-dashed border-amber-500 text-slate-700">
+              <span class="material-symbols-outlined text-2xl text-amber-500">account_balance_wallet</span>
+              <p class="text-[9.5px] font-bold mt-1 text-slate-800">UPI Not Set</p>
+              <p class="text-[8px] text-slate-500 leading-tight">Enter UPI in Settings > Settlement</p>
+            </div>
+          `;
+          if (upiTextEl) {
+            upiTextEl.innerText = 'Configure Settlement UPI in Settings';
+          }
+        }
       }
 
       const pModal = document.getElementById('paymentModal');
@@ -8265,26 +8398,41 @@
         }
       }
 
-      // Generate dynamic UPI QR code
+      // Generate dynamic UPI QR code pointing to seller's settlement UPI
       const qrEl = document.getElementById('qrcodeCanvas');
+      const upiIdEl = document.getElementById('rcptUpiId');
       if (qrEl) {
         qrEl.innerHTML = '';
         const bankConfig = getStoredBankUpiSettings();
-        const activeVpa = bankConfig.vpa || 'superinventory@upi';
-        const activePayee = encodeURIComponent(bankConfig.payeeName || 'Super Inventory');
-        const upiUrl = `upi://pay?pa=${encodeURIComponent(activeVpa)}&pn=${activePayee}&am=${grandTotal.toFixed(2)}&tn=${encodeURIComponent(invNo)}&cu=INR`;
-        
-        const upiIdEl = document.getElementById('rcptUpiId');
-        if (upiIdEl) upiIdEl.innerText = activeVpa;
+        const activeVpa = (bankConfig.vpa || '').trim();
+        const activePayee = bankConfig.payeeName || document.getElementById('rcptShopName')?.innerText || 'Super Inventory Store';
 
-        new QRCode(qrEl, {
-          text: upiUrl,
-          width: 140,
-          height: 140,
-          colorDark: "#000000",
-          colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.M
-        });
+        if (activeVpa) {
+          const upiUrl = generateUpiPaymentUrl(activeVpa, activePayee, grandTotal, invNo);
+          if (upiIdEl) {
+            upiIdEl.innerText = activeVpa;
+          }
+
+          new QRCode(qrEl, {
+            text: upiUrl,
+            width: 140,
+            height: 140,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        } else {
+          qrEl.innerHTML = `
+            <div class="w-[140px] h-[140px] flex flex-col items-center justify-center p-2 text-center bg-slate-800 rounded-xl border border-dashed border-amber-500/40 text-amber-300">
+              <span class="material-symbols-outlined text-2xl text-amber-400">account_balance_wallet</span>
+              <p class="text-[10px] font-bold mt-1 text-white">Settlement UPI Not Set</p>
+              <p class="text-[8.5px] text-amber-200/80 leading-tight mt-0.5">Add your UPI ID in Settings > Settlement Account</p>
+            </div>
+          `;
+          if (upiIdEl) {
+            upiIdEl.innerText = 'Configure Settlement UPI in Settings';
+          }
+        }
       }
 
       lastCompletedInvoiceData = { 
