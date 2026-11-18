@@ -6907,24 +6907,186 @@
       showAppToast('📷 Tap the camera button above to start scanner.', 'info');
     }
 
+    // =========================================================================
+    // UNIFIED ROBUST IMAGE BARCODE DECODER (MULTI-STRATEGY & MULTI-SCALE)
+    // =========================================================================
+    async function decodeBarcodeFromImageFile(file) {
+      if (!file) return null;
+
+      const nativeFormats = ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'qr_code', 'itf'];
+      const supportedHtml5Formats = (window.Html5QrcodeSupportedFormats) ? [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.QR_CODE,
+        Html5QrcodeSupportedFormats.ITF
+      ] : undefined;
+
+      function loadImageElement(imgFile) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          const url = URL.createObjectURL(imgFile);
+          img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+          img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+          img.src = url;
+        });
+      }
+
+      // Strategy 1: Native BarcodeDetector API (fastest, hardware-accelerated, handles full-res photos)
+      if (typeof window !== 'undefined' && 'BarcodeDetector' in window) {
+        try {
+          let formatsToUse = nativeFormats;
+          if (typeof BarcodeDetector.getSupportedFormats === 'function') {
+            const supported = await BarcodeDetector.getSupportedFormats().catch(() => nativeFormats);
+            if (Array.isArray(supported) && supported.length > 0) {
+              formatsToUse = nativeFormats.filter(f => supported.includes(f));
+            }
+          }
+          if (formatsToUse.length > 0) {
+            const detector = new BarcodeDetector({ formats: formatsToUse });
+            let source = null;
+            if (typeof createImageBitmap === 'function') {
+              source = await createImageBitmap(file).catch(() => null);
+            }
+            if (!source) {
+              source = await loadImageElement(file).catch(() => null);
+            }
+            if (source) {
+              const results = await detector.detect(source).catch(() => []);
+              if (results && results.length > 0 && results[0].rawValue) {
+                console.log('[Image Barcode] Detected via native BarcodeDetector:', results[0].rawValue);
+                return String(results[0].rawValue).trim();
+              }
+            }
+          }
+        } catch (nativeErr) {
+          console.warn('[Image Barcode] Native BarcodeDetector note:', nativeErr);
+        }
+      }
+
+      // Helper to scan a file/blob using an isolated Html5Qrcode instance
+      async function tryHtml5Scan(targetFileOrBlob) {
+        if (typeof Html5Qrcode === 'undefined') return null;
+        let tempContainer = null;
+        let scanner = null;
+        try {
+          tempContainer = document.createElement('div');
+          tempContainer.id = 'tempBarcodeDecoder_' + Math.random().toString(36).substring(2);
+          tempContainer.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:320px;height:320px;visibility:hidden;pointer-events:none;';
+          document.body.appendChild(tempContainer);
+
+          scanner = new Html5Qrcode(tempContainer.id, {
+            formatsToSupport: supportedHtml5Formats,
+            verbose: false
+          });
+
+          const res = await scanner.scanFile(targetFileOrBlob, false);
+          if (res && typeof res === 'string') {
+            return res.trim();
+          }
+        } catch (_) {
+          return null;
+        } finally {
+          if (scanner) {
+            try { await scanner.clear(); } catch (_) {}
+          }
+          if (tempContainer && tempContainer.parentNode) {
+            tempContainer.parentNode.removeChild(tempContainer);
+          }
+        }
+        return null;
+      }
+
+      // Strategy 2: Direct Html5Qrcode on original file
+      const directHtml5 = await tryHtml5Scan(file);
+      if (directHtml5) return directHtml5;
+
+      // Strategy 3: Multi-Scale & 90-Degree Rotation Canvas Preprocessing
+      // Handles large 12MP/48MP smartphone photos and vertically oriented barcodes
+      try {
+        const img = await loadImageElement(file);
+        const orientations = [0, 90]; // normal and 90-degree rotated for vertical barcodes
+        const targetScales = [1200, 800];
+
+        for (const rot of orientations) {
+          for (const maxDim of targetScales) {
+            let w = img.width;
+            let h = img.height;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+
+            const canvas = document.createElement('canvas');
+            if (rot === 90) {
+              canvas.width = h;
+              canvas.height = w;
+              const ctx = canvas.getContext('2d');
+              if (!ctx) continue;
+              ctx.translate(canvas.width / 2, canvas.height / 2);
+              ctx.rotate((90 * Math.PI) / 180);
+              ctx.drawImage(img, -w / 2, -h / 2, w, h);
+            } else {
+              canvas.width = w;
+              canvas.height = h;
+              const ctx = canvas.getContext('2d');
+              if (!ctx) continue;
+              ctx.drawImage(img, 0, 0, w, h);
+            }
+
+            // Try native BarcodeDetector on canvas if supported
+            if (typeof window !== 'undefined' && 'BarcodeDetector' in window) {
+              try {
+                const detector = new BarcodeDetector({ formats: nativeFormats });
+                const found = await detector.detect(canvas).catch(() => []);
+                if (found && found.length > 0 && found[0].rawValue) {
+                  return String(found[0].rawValue).trim();
+                }
+              } catch (_) {}
+            }
+
+            // Try Html5Qrcode on resized canvas blob
+            const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+            if (blob) {
+              const res = await tryHtml5Scan(blob);
+              if (res) return res;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[Barcode Decoder] Multi-scale processing note:', err);
+      }
+
+      return null;
+    }
+
     async function handleBarcodeImageUpload(event) {
       const file = event.target.files && event.target.files[0];
       if (!file) return;
 
-      showAppToast('Processing barcode image...', 'search');
+      if (typeof stopCameraBarcodeScanner === 'function' && isCameraScanningActive) {
+        await stopCameraBarcodeScanner();
+      }
+
+      showAppToast('🔍 Reading barcode from image...', 'search', false, 3500);
       try {
-        if (!html5QrScannerInstance && window.Html5Qrcode) {
-          html5QrScannerInstance = new Html5Qrcode("liveBarcodeCameraScanner");
-        }
-        if (html5QrScannerInstance) {
-          const decodedText = await html5QrScannerInstance.scanFile(file, true);
-          if (decodedText) {
-            onBarcodeSuccessfullyDetected(decodedText, null);
-          }
+        const decodedText = await decodeBarcodeFromImageFile(file);
+        if (decodedText) {
+          onBarcodeSuccessfullyDetected(decodedText, null);
+        } else {
+          showAppToast('⚠️ No barcode found in image. Please try a clearer picture.', 'warning', true, 4000);
         }
       } catch (err) {
         console.warn('Image barcode scan error:', err);
-        showAppToast('No barcode found in image. Please try a clearer picture.', 'warning', true);
+        showAppToast('⚠️ Could not read barcode from image. Please try a clearer picture.', 'warning', true, 4000);
       } finally {
         event.target.value = '';
       }
@@ -8026,12 +8188,19 @@
     function onModalBarcodeDetected(decodedText) {
       if (!decodedText) return;
       playBarcodeScanAudioTone();
-      showAppToast(`✓ Barcode Scanned: ${decodedText}`, 'check_circle');
+
+      const cleanBarcode = String(decodedText).trim();
 
       const input = document.getElementById('addProdBarcode');
       if (input) {
-        input.value = decodedText.trim();
-        checkAddProductBarcodeLookup(decodedText.trim());
+        input.value = cleanBarcode;
+        // Visual indicator that barcode was populated
+        input.classList.add('border-emerald-500', 'bg-emerald-950/20');
+        setTimeout(() => {
+          input.classList.remove('border-emerald-500', 'bg-emerald-950/20');
+        }, 2000);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        checkAddProductBarcodeLookup(cleanBarcode);
       }
 
       // Stop camera once barcode is captured so user can easily enter name & price
@@ -8040,29 +8209,29 @@
       // Focus product name
       setTimeout(() => {
         document.getElementById('addProdName')?.focus();
-      }, 200);
+      }, 250);
     }
 
     async function handleModalSnapPhoto(event) {
       const file = event.target.files && event.target.files[0];
       if (!file) return;
 
-      showAppToast('Processing barcode image...', 'search');
+      if (typeof stopModalLiveCamera === 'function' && isModalCameraActive) {
+        await stopModalLiveCamera();
+      }
+
+      showAppToast('🔍 Reading barcode from image...', 'search', false, 3500);
       try {
-        if (!modalCameraScannerInstance && window.Html5Qrcode) {
-          modalCameraScannerInstance = new Html5Qrcode("modalLiveScannerContainer");
-        }
-        if (modalCameraScannerInstance) {
-          const decodedText = await modalCameraScannerInstance.scanFile(file, true);
-          if (decodedText) {
-            onModalBarcodeDetected(decodedText);
-          } else {
-            showAppToast('No barcode found in image. Please write down barcode number.', 'warning', true);
-          }
+        const decodedText = await decodeBarcodeFromImageFile(file);
+        if (decodedText) {
+          onModalBarcodeDetected(decodedText);
+          showAppToast(`✓ Barcode Extracted: ${decodedText}`, 'check_circle', false, 3500);
+        } else {
+          showAppToast('⚠️ Could not find a clear barcode in this photo. Please enter number manually or take a closer photo.', 'warning', true, 5000);
         }
       } catch (err) {
         console.warn('Barcode image scan notice:', err);
-        showAppToast('Could not read barcode in image. Please write down barcode number.', 'warning', true);
+        showAppToast('⚠️ Could not read barcode from image. Please enter barcode number manually.', 'warning', true, 4000);
       } finally {
         event.target.value = '';
       }
@@ -8093,7 +8262,7 @@
       }
 
       // 1. Check if already existing in the store's inventory database
-      const existing = sampleProducts.find(p => p.barcode === clean);
+      const existing = sampleProducts.find(p => String(p.barcode || '').trim().toLowerCase() === clean.toLowerCase());
       if (existing) {
         pendingAutoFillData = existing;
         if (hintEl && textEl) {
