@@ -882,10 +882,7 @@
             <!-- Sleek Minimalist Laser Scanning Line (Clean & Unobstructed - No Clunky Square Box) -->
             <div class="absolute inset-0 pointer-events-none z-10 flex flex-col items-center justify-center px-4">
               <div id="scannerLaserBeam" class="w-full max-w-[92%] h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] animate-pulse"></div>
-              <p id="scannerInstructionBadge" class="camera-ui-text text-[10px] font-extrabold bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/25 mt-3 shadow-xl tracking-wide flex items-center gap-1.5" style="color: #FFFFFF !important;">
-                <span class="material-symbols-outlined text-xs text-emerald-400" style="color: #34D399 !important;">qr_code_scanner</span>
-                <span style="color: #FFFFFF !important;">Point camera at any product barcode to auto-scan</span>
-              </p>
+              <p id="scannerInstructionBadge" class="hidden camera-ui-text text-[10px] font-extrabold bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/25 mt-3 shadow-xl tracking-wide flex items-center gap-1.5" style="color: #FFFFFF !important;"></p>
             </div>
 
             <!-- Top Camera Controls: Torch + Camera Toggle Button -->
@@ -2498,10 +2495,6 @@
             <!-- Sleek Minimalist Laser Scanning Line (Clean & Unobstructed - Exact Match to Create Bill) -->
             <div class="absolute inset-0 pointer-events-none z-10 flex flex-col items-center justify-center px-4">
               <div id="modalScannerLaserBeam" class="w-full max-w-[92%] h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] animate-pulse"></div>
-              <p id="modalScannerInstructionBadge" class="camera-ui-text text-[10px] font-extrabold bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/25 mt-3 shadow-xl tracking-wide flex items-center gap-1.5" style="color: #FFFFFF !important;">
-                <span class="material-symbols-outlined text-xs text-emerald-400" style="color: #34D399 !important;">qr_code_scanner</span>
-                <span style="color: #FFFFFF !important;">Point camera at any product barcode to auto-scan</span>
-              </p>
             </div>
 
             <!-- Top Camera Controls: Torch + Camera Toggle Button (Same as Create Bill) -->
@@ -7215,6 +7208,7 @@
           <span class="material-symbols-outlined text-xs text-rose-400">error</span>
           <span class="text-rose-400 font-black tracking-wider">PRODUCT NOT FOUND IN INVENTORY</span>
         `;
+        badge.classList.remove('hidden');
         badge.classList.add('border-rose-500/50', 'bg-rose-950/90');
       }
 
@@ -7225,10 +7219,8 @@
       // 4. Return to page for scanning after 4 seconds
       setTimeout(async () => {
         if (badge) {
-          badge.innerHTML = `
-            <span class="material-symbols-outlined text-xs text-emerald-400" style="color: #34D399 !important;">qr_code_scanner</span>
-            <span style="color: #FFFFFF !important;">Point camera at any product barcode to auto-scan</span>
-          `;
+          badge.innerHTML = '';
+          badge.classList.add('hidden');
           badge.classList.remove('border-rose-500/50', 'bg-rose-950/90');
         }
         if (statusText) statusText.innerText = 'Camera Active';
