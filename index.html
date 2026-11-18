@@ -3113,6 +3113,13 @@
     let sampleProducts = [];
 
     // ============================================================
+    // SUPABASE CLOUD REST CONFIGURATION
+    // ============================================================
+    var SUPABASE_REST_URL = 'https://lradlwctnqwajejuffys.supabase.co/rest/v1';
+    var SUPABASE_ANON_KEY = 'sb_publishable_CGkLGQ0WjVp_YzgYJyl7uw_OlNhe5Zh';
+    var BACKEND_API_BASE = (window.location.protocol.startsWith('http') && !window.location.origin.includes(':8000')) ? '/api' : (window.location.hostname && window.location.hostname !== 'localhost' ? `http://${window.location.hostname}:5000/api` : 'http://localhost:5000/api');
+
+    // ============================================================
     // MULTI-TENANT MERCHANT DATA ISOLATION ENGINE
     // ============================================================
     function getActiveMerchantId() {
@@ -3121,6 +3128,7 @@
         if (raw) {
           const s = JSON.parse(raw);
           if (s) {
+            if (s.seller_id !== undefined && s.seller_id !== null) return 'seller_' + String(s.seller_id).toLowerCase().replace(/[^a-z0-9_-]/g, '_');
             if (s.id !== undefined && s.id !== null) return 'seller_' + String(s.id).toLowerCase().replace(/[^a-z0-9_-]/g, '_');
             if (s.email) return 'seller_' + String(s.email).toLowerCase().replace(/[^a-z0-9_-]/g, '_');
             if (s.phone) return 'seller_' + String(s.phone).replace(/[^0-9]/g, '');
@@ -3131,8 +3139,235 @@
       return 'seller_demo_default';
     }
 
+    function getActiveNumericSellerId() {
+      try {
+        const raw = localStorage.getItem('super_inventory_seller');
+        if (raw) {
+          const s = JSON.parse(raw);
+          if (s) {
+            if (s.seller_id !== undefined && s.seller_id !== null && !isNaN(Number(s.seller_id))) {
+              return Number(s.seller_id);
+            }
+            if (s.id !== undefined && s.id !== null && !isNaN(Number(s.id))) {
+              return Number(s.id);
+            }
+          }
+        }
+      } catch (e) {}
+      return null;
+    }
+
     function getMerchantStorageKey(baseKey) {
       return `${baseKey}_${getActiveMerchantId()}`;
+    }
+
+    // ============================================================
+    // SUPABASE CLOUD INVENTORY SYNC ENGINE (LIFETIME PERSISTENCE)
+    // ============================================================
+    async function supabaseFetchMerchantProducts(sellerId) {
+      if (!sellerId) return [];
+      try {
+        const url = `${SUPABASE_REST_URL}/products?seller_id=eq.${sellerId}&select=*&order=created_at.desc`;
+        const res = await fetch(url, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+          }
+        });
+        if (res.ok) {
+          const list = await res.json();
+          if (Array.isArray(list)) {
+            return list.map(p => ({
+              id: p.id,
+              seller_id: p.seller_id,
+              barcode: String(p.barcode || '').trim(),
+              name: String(p.name || '').trim(),
+              price: Number(p.price) || 0,
+              cost_price: Number(p.cost_price) || 0,
+              qty: Number(p.qty !== undefined && p.qty !== null ? p.qty : 100),
+              unit: p.unit || 'pcs',
+              netQty: p.net_qty || '',
+              gst: Number(p.gst !== undefined && p.gst !== null ? p.gst : 5.0),
+              hsn: p.hsn || '1905'
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn('Supabase fetch products note:', err);
+      }
+      return [];
+    }
+
+    async function supabaseCreateProduct(sellerId, prod) {
+      if (!sellerId || !prod || !prod.name) return null;
+      try {
+        const barcode = String(prod.barcode || '').trim();
+        const payload = {
+          seller_id: Number(sellerId),
+          barcode: barcode,
+          name: String(prod.name || '').trim(),
+          price: Math.round(((Number(prod.price) || 0) + Number.EPSILON) * 100) / 100,
+          cost_price: Math.round(((Number(prod.cost_price) || 0) + Number.EPSILON) * 100) / 100,
+          qty: Number(prod.qty !== undefined && prod.qty !== null ? prod.qty : 100),
+          unit: prod.unit || 'pcs',
+          net_qty: prod.netQty || '',
+          gst: Number(prod.gst !== undefined && prod.gst !== null ? prod.gst : 5.0),
+          hsn: prod.hsn || '1905'
+        };
+
+        const res = await fetch(`${SUPABASE_REST_URL}/products`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const inserted = await res.json();
+          return inserted && inserted[0] ? inserted[0] : null;
+        } else if (res.status === 409) {
+          return await supabaseUpdateProduct(sellerId, barcode, prod);
+        }
+      } catch (e) {
+        console.warn('Supabase create product note:', e);
+      }
+      return null;
+    }
+
+    async function supabaseUpdateProduct(sellerId, barcode, prod) {
+      if (!sellerId || !barcode) return null;
+      try {
+        const cleanCode = String(barcode).trim();
+        const payload = {
+          name: String(prod.name || '').trim(),
+          price: Math.round(((Number(prod.price) || 0) + Number.EPSILON) * 100) / 100,
+          qty: Number(prod.qty !== undefined && prod.qty !== null ? prod.qty : 0),
+          unit: prod.unit || 'pcs',
+          net_qty: prod.netQty || '',
+          gst: Number(prod.gst !== undefined && prod.gst !== null ? prod.gst : 5.0),
+          hsn: prod.hsn || '1905',
+          updated_at: new Date().toISOString()
+        };
+
+        const res = await fetch(`${SUPABASE_REST_URL}/products?seller_id=eq.${sellerId}&barcode=eq.${encodeURIComponent(cleanCode)}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const updated = await res.json();
+          return updated && updated[0] ? updated[0] : null;
+        }
+      } catch (e) {
+        console.warn('Supabase update product note:', e);
+      }
+      return null;
+    }
+
+    async function supabaseDeleteProduct(sellerId, barcode) {
+      if (!sellerId || !barcode) return false;
+      try {
+        const cleanCode = String(barcode).trim();
+        const res = await fetch(`${SUPABASE_REST_URL}/products?seller_id=eq.${sellerId}&barcode=eq.${encodeURIComponent(cleanCode)}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+          }
+        });
+        return res.ok;
+      } catch (e) {
+        console.warn('Supabase delete product note:', e);
+      }
+      return false;
+    }
+
+    async function supabaseUpdateProductStock(sellerId, barcode, newQty) {
+      if (!sellerId || !barcode) return false;
+      try {
+        const cleanCode = String(barcode).trim();
+        const res = await fetch(`${SUPABASE_REST_URL}/products?seller_id=eq.${sellerId}&barcode=eq.${encodeURIComponent(cleanCode)}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            qty: Number(newQty) || 0,
+            updated_at: new Date().toISOString()
+          })
+        });
+        return res.ok;
+      } catch (e) {
+        console.warn('Supabase stock update note:', e);
+      }
+      return false;
+    }
+
+    let isCloudSyncing = false;
+    async function syncMerchantProductsFromCloud() {
+      if (!isLoggedIn || isCloudSyncing) return;
+      isCloudSyncing = true;
+      try {
+        let sellerId = getActiveNumericSellerId();
+        if (!sellerId) {
+          const currentSeller = JSON.parse(localStorage.getItem('super_inventory_seller') || '{}');
+          if (currentSeller && (currentSeller.email || currentSeller.phone || currentSeller.store_name)) {
+            const resolved = await supabaseQuerySellers(currentSeller.email || currentSeller.phone || currentSeller.store_name);
+            if (resolved && resolved.id) {
+              currentSeller.id = resolved.id;
+              currentSeller.seller_id = resolved.id;
+              localStorage.setItem('super_inventory_seller', JSON.stringify(currentSeller));
+              sellerId = resolved.id;
+            }
+          }
+        }
+
+        if (!sellerId) {
+          isCloudSyncing = false;
+          return;
+        }
+
+        const cloudItems = await supabaseFetchMerchantProducts(sellerId);
+        if (Array.isArray(cloudItems)) {
+          if (cloudItems.length > 0) {
+            // Merge: preserve any local items that haven't been saved to cloud yet
+            const merged = [...cloudItems];
+            sampleProducts.forEach(localItem => {
+              if (localItem && localItem.barcode && !cloudItems.some(c => c.barcode === localItem.barcode)) {
+                merged.push(localItem);
+                supabaseCreateProduct(sellerId, localItem);
+              }
+            });
+            sampleProducts = merged;
+            saveMerchantProducts();
+            renderProducts();
+            updateTotalStockValueUI();
+          } else if (sampleProducts.length > 0) {
+            // Push existing local items to Supabase cloud
+            for (const item of sampleProducts) {
+              if (item && item.name) {
+                await supabaseCreateProduct(sellerId, item);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Sync merchant products note:', err);
+      } finally {
+        isCloudSyncing = false;
+      }
     }
 
     function calculateRealtimeInventoryStats() {
@@ -3189,29 +3424,21 @@
     }
 
     function loadMerchantProducts() {
+      if (!isLoggedIn) {
+        sampleProducts = [];
+        updateTotalStockValueUI();
+        return sampleProducts;
+      }
+
       try {
         const key = getMerchantStorageKey('super_inventory_products');
         const stored = localStorage.getItem(key);
         if (stored) {
           let loaded = JSON.parse(stored);
-          // Purge any legacy dummy items that were auto-created with nominal price 45 and pcs from old online fallback
           const cleaned = loaded.filter(p => !(p.price === 45.0 && p.qty === 100 && p.unit === 'pcs' && !DEFAULT_INITIAL_PRODUCTS.some(dp => dp.barcode === p.barcode)));
-          if (cleaned.length !== loaded.length) {
-            sampleProducts = cleaned;
-            saveMerchantProducts();
-          } else {
-            sampleProducts = loaded;
-          }
-          updateTotalStockValueUI();
-          return sampleProducts;
-        }
-        // First-time load for this merchant
-        const mId = getActiveMerchantId();
-        if (mId.includes('demo') || mId.includes('merchant_gmail_com') || mId.includes('default')) {
-          sampleProducts = JSON.parse(JSON.stringify(DEFAULT_INITIAL_PRODUCTS));
-          saveMerchantProducts();
+          sampleProducts = cleaned;
         } else {
-          // Dedicated clean private inventory for newly registered merchants
+          // Dedicated clean private godown for newly registered merchants
           sampleProducts = [];
           saveMerchantProducts();
         }
@@ -3220,6 +3447,12 @@
         sampleProducts = [];
       }
       updateTotalStockValueUI();
+
+      // Seamlessly sync latest cloud products in background
+      setTimeout(() => {
+        syncMerchantProductsFromCloud();
+      }, 50);
+
       return sampleProducts;
     }
 
@@ -3349,6 +3582,10 @@
     // Dedicated multi-tenant session activator for logged-in merchant
     function activateMerchantSession(sellerData) {
       if (!sellerData) return;
+      isLoggedIn = true;
+      if (sellerData.id && !isNaN(Number(sellerData.id)) && !sellerData.seller_id) {
+        sellerData.seller_id = Number(sellerData.id);
+      }
       try {
         localStorage.setItem('super_inventory_seller', JSON.stringify(sellerData));
       } catch (e) {}
@@ -3558,10 +3795,6 @@
     // ============================================================
     // SUPABASE CLOUD & MULTI-DEVICE SYNCHRONIZATION
     // ============================================================
-    const SUPABASE_REST_URL = 'https://lradlwctnqwajejuffys.supabase.co/rest/v1';
-    const SUPABASE_ANON_KEY = 'sb_publishable_CGkLGQ0WjVp_YzgYJyl7uw_OlNhe5Zh';
-    const BACKEND_API_BASE = (window.location.protocol.startsWith('http') && !window.location.origin.includes(':8000')) ? '/api' : (window.location.hostname && window.location.hostname !== 'localhost' ? `http://${window.location.hostname}:5000/api` : 'http://localhost:5000/api');
-
     let pendingRegistration = null;
 
     async function supabaseQuerySellers(identifier) {
@@ -3751,8 +3984,20 @@
           }
         } catch (e) {}
 
+        let cloudId = matchedUser.seller_id || (Number.isInteger(Number(matchedUser.id)) ? Number(matchedUser.id) : null);
+        if (!cloudId) {
+          const cs = await supabaseQuerySellers(cleanEmail);
+          if (cs && cs.id) {
+            cloudId = cs.id;
+            matchedUser.seller_id = cs.id;
+            matchedUser.id = cs.id;
+            saveNewUser(matchedUser);
+          }
+        }
+
         const sellerObj = {
-          id: matchedUser.email || 'seller-01',
+          id: cloudId || matchedUser.email || 'seller-01',
+          seller_id: cloudId || null,
           name: userStoreName,
           store_name: userStoreName,
           email: matchedUser.email,
@@ -3811,6 +4056,8 @@
 
         // Cache on this device for future instant offline sign-in
         saveNewUser({
+          id: cloudSeller.id,
+          seller_id: cloudSeller.id,
           storeName: userStoreName,
           phone: userPhone,
           email: cloudEmail,
@@ -3835,6 +4082,7 @@
 
         const sellerObj = {
           id: cloudSeller.id || cloudEmail,
+          seller_id: cloudSeller.id || null,
           name: userStoreName,
           store_name: userStoreName,
           email: cloudEmail,
@@ -4025,6 +4273,8 @@
 
       // 8. Save locally permanently (offline-first resilience)
       const newUser = {
+        id: (cloudReg && cloudReg.seller && cloudReg.seller.id) ? cloudReg.seller.id : null,
+        seller_id: (cloudReg && cloudReg.seller && cloudReg.seller.id) ? cloudReg.seller.id : null,
         storeName: storeName,
         phone: phone || '',
         email: cleanEmail,
@@ -5484,8 +5734,14 @@
             localStorage.removeItem('super_inventory_token');
             localStorage.removeItem('super_inventory_seller');
           } catch (e) {}
+          // Strict merchant godown isolation: completely purge all session and product memory
+          sampleProducts = [];
           cart = [];
+          completedInvoices = [];
+          lastCompletedInvoiceData = null;
           if (typeof renderCart === 'function') renderCart();
+          if (typeof renderProducts === 'function') renderProducts();
+          if (typeof updateTotalStockValueUI === 'function') updateTotalStockValueUI();
           switchScreen('login');
           // Replace browser history so browser 'Back' button cannot return to dashboard
           if (window.history && window.history.pushState) {
@@ -6070,6 +6326,8 @@
         itemUnitWeight = `${weightVal}${selectedModalUnit}`;
       }
 
+      finalPrice = Math.round((finalPrice + Number.EPSILON) * 100) / 100;
+
       const existing = cart.find(i => i.barcode === currentModalProduct.barcode && i.unitWeight === itemUnitWeight);
       if (existing) {
         existing.quantity += pcsCount;
@@ -6480,40 +6738,52 @@
 
     async function processScannedBarcode(barcode) {
       const cleanCode = String(barcode).trim();
+      if (!cleanCode) return;
       
-      // Tier 1: Instant match from store sample/local catalog
-      let product = sampleProducts.find(p => p.barcode === cleanCode);
+      // Tier 1: Instant match from this merchant's local inventory catalog
+      let product = sampleProducts.find(p => String(p.barcode || '').trim().toLowerCase() === cleanCode.toLowerCase());
       if (product) {
         openQtyUnitModal(product);
         return;
       }
 
-      // Tier 2: Check Node.js Backend Database for this store
+      // Tier 2: Query Supabase Cloud Database for this specific merchant's item
       try {
-        const token = localStorage.getItem('super_inventory_token');
-        if (token) {
-          const res = await fetch(`${BACKEND_API_BASE}/products/barcode/${encodeURIComponent(cleanCode)}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const sellerId = getActiveNumericSellerId();
+        if (sellerId) {
+          const url = `${SUPABASE_REST_URL}/products?seller_id=eq.${sellerId}&barcode=eq.${encodeURIComponent(cleanCode)}&select=*`;
+          const res = await fetch(url, {
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+            }
           });
-          const data = await res.json();
-          if (data && data.success && data.product) {
-            const backendProd = {
-              id: data.product.id || Date.now(),
-              barcode: data.product.barcode || cleanCode,
-              name: data.product.name,
-              price: parseFloat(data.product.selling_price || data.product.price || 0),
-              gst: parseFloat(data.product.tax_rate || 5.0),
-              qty: data.product.stock_quantity || 100,
-              unit: data.product.unit || 'pcs'
-            };
-            sampleProducts.push(backendProd);
-            saveMerchantProducts();
-            openQtyUnitModal(backendProd);
-            return;
+          if (res.ok) {
+            const list = await res.json();
+            if (Array.isArray(list) && list.length > 0) {
+              const p = list[0];
+              const cloudProd = {
+                id: p.id,
+                seller_id: p.seller_id,
+                barcode: String(p.barcode || '').trim(),
+                name: String(p.name || '').trim(),
+                price: Number(p.price) || 0,
+                cost_price: Number(p.cost_price) || 0,
+                qty: Number(p.qty !== undefined && p.qty !== null ? p.qty : 100),
+                unit: p.unit || 'pcs',
+                netQty: p.net_qty || '',
+                gst: Number(p.gst !== undefined && p.gst !== null ? p.gst : 5.0),
+                hsn: p.hsn || '1905'
+              };
+              sampleProducts.unshift(cloudProd);
+              saveMerchantProducts();
+              openQtyUnitModal(cloudProd);
+              return;
+            }
           }
         }
       } catch (err) {
-        // Backend lookup fallback
+        console.warn('Process scan Supabase lookup note:', err);
       }
 
       // PRODUCT NOT FOUND IN INVENTORY:
@@ -7500,6 +7770,8 @@
         existingIdx = sampleProducts.findIndex(p => p.barcode === barcode);
       }
 
+      const sellerId = getActiveNumericSellerId();
+
       if (existingIdx >= 0) {
         const prod = sampleProducts[existingIdx];
         prod.barcode = barcode;
@@ -7513,16 +7785,10 @@
         saveMerchantProducts();
         showAppToast(`✓ Updated "${name}" in inventory!`, 'check_circle');
 
-        // Optional backend update sync
-        try {
-          if (prod.id && typeof fetch === 'function' && window.AUTH_TOKEN) {
-            fetch(`/api/products/${prod.id}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.AUTH_TOKEN}` },
-              body: JSON.stringify({ name, barcode, price, stock_qty: qty, unit, net_quantity: netQty })
-            }).catch(() => {});
-          }
-        } catch (e) {}
+        // Cloud persistence sync to merchant's private Supabase godown
+        if (sellerId) {
+          supabaseUpdateProduct(sellerId, barcode, prod);
+        }
       } else {
         const newProd = {
           id: Date.now(),
@@ -7539,16 +7805,16 @@
         saveMerchantProducts();
         showAppToast(`✓ Added "${name}" to inventory!`, 'check_circle');
 
-        // Optional backend create sync
-        try {
-          if (typeof fetch === 'function' && window.AUTH_TOKEN) {
-            fetch('/api/products', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.AUTH_TOKEN}` },
-              body: JSON.stringify({ name, barcode, price, stock_qty: qty, unit })
-            }).catch(() => {});
-          }
-        } catch (e) {}
+        // Cloud persistence sync to merchant's private Supabase godown
+        if (sellerId) {
+          supabaseCreateProduct(sellerId, newProd).then(created => {
+            if (created && created.id) {
+              newProd.id = created.id;
+              newProd.seller_id = created.seller_id;
+              saveMerchantProducts();
+            }
+          });
+        }
       }
 
       editingProductOriginalBarcode = null;
@@ -7576,15 +7842,11 @@
           renderProducts();
           showAppToast(`✓ Deleted "${product.name}" from inventory`, 'delete');
 
-          // Optional backend delete sync
-          try {
-            if (product.id && typeof fetch === 'function' && window.AUTH_TOKEN) {
-              fetch(`/api/products/${product.id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${window.AUTH_TOKEN}` }
-              }).catch(() => {});
-            }
-          } catch (e) {}
+          // Delete permanently from Supabase Cloud
+          const sellerId = getActiveNumericSellerId();
+          if (sellerId) {
+            supabaseDeleteProduct(sellerId, barcode);
+          }
         }
       });
     }
@@ -7652,6 +7914,27 @@
       });
     }
 
+    // Canonical single source of truth for bill & cart item calculations
+    function calculateItemLineTotal(item) {
+      if (!item) return 0;
+      const price = Math.round(((Number(item.price) || 0) + Number.EPSILON) * 100) / 100;
+      let qty = Number(item.quantity) || 1;
+      if (item.unit === 'g' || item.unit === 'ml') {
+        qty = qty / 1000;
+      }
+      return Math.round((price * qty + Number.EPSILON) * 100) / 100;
+    }
+
+    function calculateCartTotals(itemsList) {
+      const list = itemsList || cart;
+      let grandTotal = 0;
+      list.forEach(item => {
+        grandTotal += calculateItemLineTotal(item);
+      });
+      grandTotal = Math.round((grandTotal + Number.EPSILON) * 100) / 100;
+      return { subtotal: grandTotal, tax: 0, grandTotal };
+    }
+
     function renderCart() {
       const container = document.getElementById('cartItemsContainer');
       const totalCount = cart.reduce((s, i) => s + (typeof i.quantity === 'number' ? i.quantity : 1), 0);
@@ -7666,11 +7949,7 @@
         `;
       } else {
         container.innerHTML = cart.map((item, idx) => {
-          let normalizedQty = item.quantity;
-          if (item.unit === 'g' || item.unit === 'ml') normalizedQty = item.quantity / 1000;
-          
-          const lineTotal = item.price * normalizedQty;
-          const lineNet = lineTotal;
+          const lineTotal = calculateItemLineTotal(item);
 
           return `
             <div class="p-3 bg-white border border-slate-200 rounded-2xl flex items-center justify-between gap-2 shadow-xs hover:border-emerald-300 transition group">
@@ -7681,7 +7960,7 @@
                     ${item.quantity} ${item.unit || 'pcs'}
                   </button>
                 </div>
-                <p class="text-[10px] text-slate-500 mt-0.5 font-medium">Rate: ₹${item.price.toFixed(2)}</p>
+                <p class="text-[10px] text-slate-500 mt-0.5 font-medium">Rate: ₹${Number(item.price).toFixed(2)}</p>
               </div>
 
               <!-- Action Controls: Steppers, Line Total & 1-Tap Remove Trash Button -->
@@ -7703,21 +7982,15 @@
       }
 
       // Update Subtotal and Grand Total in checkout footer
-      let grandTotal = 0;
-      cart.forEach(i => {
-        let normalizedQty = i.quantity;
-        if (i.unit === 'g' || i.unit === 'ml') normalizedQty = i.quantity / 1000;
-        const lineTotal = i.price * normalizedQty;
-        grandTotal += lineTotal;
-      });
+      const totals = calculateCartTotals();
 
       const subtotalEl = document.getElementById('cartSubtotalText');
       const gstEl = document.getElementById('cartGstText');
       const grandTotalEl = document.getElementById('cartGrandTotalText');
 
-      if (subtotalEl) subtotalEl.innerText = `₹${grandTotal.toFixed(2)}`;
+      if (subtotalEl) subtotalEl.innerText = `₹${totals.subtotal.toFixed(2)}`;
       if (gstEl) gstEl.innerText = `₹0.00`;
-      if (grandTotalEl) grandTotalEl.innerText = `₹${grandTotal.toFixed(2)}`;
+      if (grandTotalEl) grandTotalEl.innerText = `₹${totals.grandTotal.toFixed(2)}`;
     }
 
     let activePayMode = 'CASH';
@@ -7734,17 +8007,11 @@
         stopCameraBarcodeScanner();
       }
 
-      let grandTotal = 0;
-      cart.forEach(i => {
-        let normalizedQty = i.quantity;
-        if (i.unit === 'g' || i.unit === 'ml') normalizedQty = i.quantity / 1000;
-        const lineTotal = i.price * normalizedQty;
-        grandTotal += lineTotal;
-      });
-      currentPayableGrandTotal = grandTotal;
+      const totals = calculateCartTotals();
+      currentPayableGrandTotal = totals.grandTotal;
 
       document.getElementById('paymentModalTotalText').innerText = `₹${currentPayableGrandTotal.toFixed(2)}`;
-      document.getElementById('paymentModalItemsBadge').innerText = `${cart.reduce((s, i) => s + i.quantity, 0)} Items`;
+      document.getElementById('paymentModalItemsBadge').innerText = `${cart.reduce((s, i) => s + (typeof i.quantity === 'number' ? i.quantity : 1), 0)} Items`;
       document.getElementById('cashReceivedInput').value = currentPayableGrandTotal.toFixed(0);
       
       calculateCashChange();
@@ -7947,10 +8214,7 @@
               <span>Item Total</span>
             </div>
           ` + inv.itemsList.map((i, idx) => {
-            let normalizedQty = i.quantity;
-            if (i.unit === 'g' || i.unit === 'ml') normalizedQty = i.quantity / 1000;
-            const lineTotal = (Number(i.price) || 0) * (Number(normalizedQty) || 1);
-            const lineNet = lineTotal;
+            const lineTotal = calculateItemLineTotal(i);
 
             return `
               <div class="py-1.5 border-b border-dashed border-brand-surfaceBorder/70 text-left">
@@ -8028,15 +8292,10 @@
         alert('Please scan products first!');
         return;
       }
-      let grandTotal = 0;
-      cart.forEach(item => {
-        let normalizedQty = item.quantity;
-        if (item.unit === 'g' || item.unit === 'ml') normalizedQty = item.quantity / 1000;
-        const lineTotal = item.price * normalizedQty;
-        grandTotal += lineTotal;
-      });
-      let subtotal = grandTotal;
-      let totalGst = 0;
+      const totals = calculateCartTotals();
+      const grandTotal = totals.grandTotal;
+      const subtotal = totals.subtotal;
+      const totalGst = totals.tax;
 
       const now = new Date();
       const dateCode = now.toISOString().slice(0, 10).replace(/-/g, '');
@@ -8047,7 +8306,7 @@
         total: grandTotal,
         subtotal: subtotal,
         tax: totalGst,
-        items: cart.reduce((s, i) => s + i.quantity, 0),
+        items: cart.reduce((s, i) => s + (typeof i.quantity === 'number' ? i.quantity : 1), 0),
         itemsList: JSON.parse(JSON.stringify(cart)),
         payMode: paymentMode,
         time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -8055,7 +8314,8 @@
         status: 'Paid'
       };
 
-      // Deduct sold quantity from merchant's isolated inventory in real time
+      // Deduct sold quantity from merchant's isolated inventory in real time & sync cloud
+      const sellerId = getActiveNumericSellerId();
       cart.forEach(item => {
         const prod = sampleProducts.find(p => p.barcode === item.barcode);
         if (prod) {
@@ -8064,8 +8324,12 @@
           if ((item.unit === 'g' || item.unit === 'ml') && (prod.unit === 'kg' || prod.unit === 'L')) {
             deductQty = deductQty / 1000;
           }
-          prod.qty = Math.max(0, +(currentQty - deductQty).toFixed(2));
+          prod.qty = Math.max(0, +(currentQty - deductQty).toFixed(3));
           if (prod.stock_qty !== undefined) prod.stock_qty = prod.qty;
+
+          if (sellerId && prod.barcode) {
+            supabaseUpdateProductStock(sellerId, prod.barcode, prod.qty);
+          }
         }
       });
       saveMerchantProducts();
@@ -9190,7 +9454,7 @@
         ctx.fillText(`₹${parseFloat(it.price).toFixed(2)}`, 480, y);
 
         // Amount
-        const lineTotal = (it.price * it.quantity) * (1 + (it.gst || 0) / 100);
+        const lineTotal = calculateItemLineTotal(it);
         ctx.fillStyle = '#0F172A';
         ctx.font = 'bold 13px monospace';
         ctx.fillText(`₹${lineTotal.toFixed(2)}`, width - 44, y);
@@ -9419,8 +9683,8 @@
           const cgstRate = (it.gst / 2).toFixed(1);
           const sgstRate = (it.gst / 2).toFixed(1);
           const taxDesc = it.gst > 0 ? `GST ${it.gst}% (CGST ${cgstRate}% + SGST ${sgstRate}%)` : `GST 0% (CBIC Exempt)`;
-          const lineTotal = (it.price * it.quantity) * (1 + it.gst / 100);
-          return `${idx + 1}. *${it.name}*\n   Qty: ${it.quantity} ${it.unit || 'pcs'} @ ₹${it.price.toFixed(2)}${hsnStr}\n   Tax: ${taxDesc}\n   Amount: ₹${lineTotal.toFixed(2)}`;
+          const lineTotal = calculateItemLineTotal(it);
+          return `${idx + 1}. *${it.name}*\n   Qty: ${it.quantity} ${it.unit || 'pcs'} @ ₹${Number(it.price).toFixed(2)}${hsnStr}\n   Tax: ${taxDesc}\n   Amount: ₹${lineTotal.toFixed(2)}`;
         }).join('\n\n');
       } else {
         itemsListText = '1. General Store Items (Qty: 1) - ' + grandTotal;
