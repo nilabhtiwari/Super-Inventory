@@ -980,12 +980,11 @@
           <button onclick="switchScreen('history')" class="py-1.5 px-3 bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition active:scale-95">
             <span class="material-symbols-outlined text-sm">arrow_back</span> Back
           </button>
-          <span class="text-[10.5px] font-black uppercase text-brand-muted tracking-wider">Thermal Tax Invoice</span>
+          <span class="text-[10.5px] font-black uppercase text-brand-muted tracking-wider">Store Bill Receipt</span>
         </div>
         <div class="p-5 bg-brand-surface border border-brand-surfaceBorder rounded-3xl space-y-3 text-center">
           <h2 class="text-xl font-black tracking-tight text-white" id="rcptShopName">Super Inventory</h2>
           <p class="text-[11px] text-brand-muted" id="rcptShopAddress">Main Branch • City Centre Road</p>
-          <p class="text-[11px] text-brand-primaryContainer font-bold" id="rcptGstin">GSTIN: 27AAAAA0000A1Z5</p>
           
           <div class="border-t border-dashed border-brand-surfaceBorder my-2"></div>
           
@@ -1003,10 +1002,7 @@
               <span>Subtotal:</span>
               <span id="rcptSubtotal" class="font-bold text-white">₹0.00</span>
             </div>
-            <div id="rcptTaxRow" class="hidden flex justify-between text-brand-muted">
-              <span>Tax (GST):</span>
-              <span id="rcptTax" class="font-bold text-white">₹0.00</span>
-            </div>
+
             <div class="flex justify-between items-baseline text-base font-black text-brand-secondary pt-1">
               <span>GRAND TOTAL:</span>
               <span id="rcptGrandTotal">₹0.00</span>
@@ -2402,74 +2398,72 @@
     </div>
   </div>
 
-  <!-- 4. FULL-SCREEN WHATSAPP BILL DISPATCH & PREVIEW DIALOG -->
-  <div id="whatsappModal" style="display: none;" onclick="if(event.target === this) closeWhatsAppModal();" class="hidden absolute inset-0 bg-slate-900/70 backdrop-blur-md z-[100] flex items-center justify-center p-3 transition-all overflow-y-auto custom-scroll">
-    <div class="bg-white border border-slate-200 rounded-[28px] p-4.5 w-full max-w-[360px] shadow-2xl text-left space-y-3 animate-in fade-in zoom-in-95 duration-150 my-auto">
-      <div class="flex items-start justify-between border-b border-slate-100 pb-2">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
-            <span class="material-symbols-outlined text-lg">chat</span>
+  <!-- 4. PROFESSIONAL WHATSAPP BILL DISPATCH DIALOG -->
+  <div id="whatsappModal" style="display: none;" onclick="if(event.target === this) closeWhatsAppModal();" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-all">
+    <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[360px] shadow-2xl text-left space-y-4 my-auto relative animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-[#25D366]/20 border border-[#25D366]/40 flex items-center justify-center text-[#25D366] shadow-sm">
+            <span class="material-symbols-outlined text-2xl">chat</span>
           </div>
           <div>
-            <h3 class="text-xs font-black text-slate-900">Send WhatsApp Bill</h3>
-            <p class="text-[10px] text-emerald-600 font-bold">● High-Resolution Image Receipt</p>
+            <h3 class="text-sm font-black text-white tracking-wide">Share Bill on WhatsApp</h3>
+            <p class="text-[10.5px] text-[#25D366] font-bold">Direct delivery to customer's chat</p>
           </div>
         </div>
-        <button onclick="closeWhatsAppModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition flex items-center justify-center active:scale-95">
+        <button type="button" onclick="closeWhatsAppModal()" class="w-8 h-8 rounded-full bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white transition flex items-center justify-center active:scale-95">
           <span class="material-symbols-outlined text-base">close</span>
         </button>
       </div>
 
-      <div class="space-y-1">
-        <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Customer Mobile (WhatsApp Number)</label>
+      <!-- Bill Overview Summary Card -->
+      <div class="p-3.5 bg-brand-surfaceElevated/70 border border-brand-surfaceBorder rounded-2xl space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-brand-muted font-bold" id="waSummaryShopName">Super Inventory</span>
+          <span class="font-mono font-bold text-slate-300" id="waSummaryInvNo">#INV-0000</span>
+        </div>
+        <div class="flex items-baseline justify-between pt-1 border-t border-brand-surfaceBorder/60">
+          <span class="text-[11px] font-black uppercase text-brand-muted tracking-wider">Total Bill Amount</span>
+          <span class="text-lg font-black text-emerald-400 font-mono" id="waSummaryAmount">₹0.00</span>
+        </div>
+        <div class="text-[10px] text-slate-400 font-medium" id="waSummaryItemCount">0 items in bill</div>
+      </div>
+
+      <!-- Customer Phone Input Box -->
+      <div class="space-y-1.5">
+        <label class="text-[10px] font-black uppercase tracking-wider text-slate-300 flex items-center justify-between">
+          <span>Customer Mobile Number</span>
+          <span class="text-[9.5px] text-emerald-400 font-bold" id="waPhoneStatusHint">Ready</span>
+        </label>
         <div class="relative flex items-center">
-          <span class="absolute left-3 text-xs font-black text-slate-400">+91</span>
-          <input type="tel" id="whatsappMobileInput" maxlength="10" placeholder="9876543210 (Optional)" 
-                 onkeydown="if(event.key === 'Enter') dispatchWhatsAppInvoiceImage();"
-                 class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-emerald-500 focus:bg-white transition" />
-        </div>
-        <p class="text-[9px] text-slate-400 font-medium leading-tight">Enter mobile number to automatically redirect straight to customer's WhatsApp chat.</p>
-      </div>
-
-      <!-- Live Receipt Image Preview -->
-      <div class="space-y-1">
-        <div class="flex items-center justify-between">
-          <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Receipt Image Preview</label>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="downloadReceiptImage()" class="text-[9.5px] font-bold text-slate-600 hover:text-emerald-600 flex items-center gap-0.5">
-              <span class="material-symbols-outlined text-xs">download</span> Download
-            </button>
-            <button type="button" onclick="copyReceiptImageToClipboard()" id="copyImageBtn" class="text-[9.5px] font-bold text-emerald-600 hover:underline flex items-center gap-0.5">
-              <span class="material-symbols-outlined text-xs">content_copy</span> Copy Image
-            </button>
+          <div class="absolute left-3 flex items-center gap-1.5 pointer-events-none border-r border-brand-surfaceBorder pr-2">
+            <span class="text-xs">🇮🇳</span>
+            <span class="text-xs font-black text-white font-mono">+91</span>
           </div>
+          <input type="tel" id="whatsappMobileInput" maxlength="10" placeholder="9876543210" 
+                 onkeydown="if(event.key === 'Enter') dispatchWhatsAppInvoiceImage();"
+                 oninput="handleWhatsAppPhoneInput(this.value)"
+                 class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl pl-16 pr-3 py-3 text-sm font-black text-white placeholder:text-brand-muted outline-none focus:border-[#25D366] focus:ring-1 focus:ring-[#25D366] transition font-mono tracking-wider" />
         </div>
-        <div class="p-2 bg-slate-100 border border-slate-200 rounded-xl max-h-44 overflow-y-auto custom-scroll flex items-center justify-center">
-          <img id="receiptImagePreviewEl" class="w-full rounded-lg shadow-sm border border-slate-200 bg-white" alt="Tax Invoice Receipt Preview" />
-        </div>
-        <!-- Desktop helper tip banner -->
-        <div id="desktopWhatsappHint" class="hidden text-[9px] text-slate-600 bg-emerald-50 border border-emerald-200 rounded-lg p-1.5 flex items-center gap-1.5 leading-snug">
-          <span class="material-symbols-outlined text-xs text-emerald-600">info</span>
-          <span><b>Desktop tip:</b> Image is auto-copied to clipboard. Press <b>Ctrl+V</b> in WhatsApp chat to paste!</span>
-        </div>
-        <div class="hidden" id="whatsappMessagePreview"></div>
+        <p class="text-[9.5px] text-brand-muted leading-tight">
+          Enter 10-digit number. Opens chat directly with invoice ready to send — no saving to contacts needed.
+        </p>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="space-y-1.5 pt-1">
-        <button type="button" onclick="dispatchWhatsAppInvoiceImage()" class="w-full py-3.5 bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 active:scale-95 transition flex items-center justify-center gap-2 uppercase tracking-wider">
-          <span class="material-symbols-outlined text-base">image</span>
-          <span>SEND BILL ON WHATSAPP</span>
+      <!-- Single Primary Action Button -->
+      <div class="pt-1 space-y-2">
+        <button type="button" onclick="dispatchWhatsAppInvoiceImage()" class="w-full py-3.5 bg-[#25D366] hover:bg-[#20ba59] active:scale-95 text-white font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/25 transition flex items-center justify-center gap-2 uppercase tracking-wider">
+          <span class="material-symbols-outlined text-lg">send</span>
+          <span>OPEN WHATSAPP & SEND BILL</span>
         </button>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="dispatchWhatsAppInvoiceNow()" class="w-1/2 py-2 bg-slate-50 border border-slate-200 text-slate-700 text-[10px] font-bold rounded-xl hover:bg-slate-100 transition flex items-center justify-center gap-1">
-            <span class="material-symbols-outlined text-xs">chat</span> Send Text Bill
-          </button>
-          <button type="button" onclick="closeWhatsAppModal()" class="w-1/2 py-2 bg-slate-100 border border-slate-200 text-slate-600 text-[10px] font-bold rounded-xl hover:text-slate-900 transition">
-            Dismiss
-          </button>
-        </div>
+        <button type="button" onclick="closeWhatsAppModal()" class="w-full py-2 text-brand-muted hover:text-white text-xs font-bold text-center transition">
+          Cancel
+        </button>
       </div>
+
+      <div class="hidden" id="whatsappMessagePreview"></div>
     </div>
   </div>
 
@@ -9844,10 +9838,10 @@
       ctx.font = '500 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.fillText(shopAddress, width / 2, 75);
 
-      // GSTIN Badge
-      ctx.fillStyle = '#38BDF8';
+      // Business receipt badge
+      ctx.fillStyle = '#34D399';
       ctx.font = 'bold 12px monospace';
-      ctx.fillText(gstin, width / 2, 94);
+      ctx.fillText('RETAIL PURCHASE RECEIPT', width / 2, 94);
 
       let y = 140;
 
@@ -9944,21 +9938,13 @@
       ctx.stroke();
 
       y += 24;
-      // 6. Subtotal & GST
+      // 6. Net Amount Total
       ctx.textAlign = 'left';
       ctx.fillStyle = '#475569';
       ctx.font = '13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText('Subtotal (Taxable):', 44, y);
+      ctx.fillText('Total Items Amount:', 44, y);
       ctx.textAlign = 'right';
-      ctx.fillText(subtotal, width - 44, y);
-
-      if (tax && tax !== '₹0.00') {
-        y += 22;
-        ctx.textAlign = 'left';
-        ctx.fillText('GST Tax Total:', 44, y);
-        ctx.textAlign = 'right';
-        ctx.fillText(tax, width - 44, y);
-      }
+      ctx.fillText(grandTotal, width - 44, y);
 
       y += 28;
       // 7. High-Contrast Grand Total Banner
@@ -10133,6 +10119,22 @@
       window.location.href = fallbackUrl;
     }
 
+    function handleWhatsAppPhoneInput(val) {
+      const hint = document.getElementById('waPhoneStatusHint');
+      const clean = (val || '').replace(/\D/g, '');
+      if (!hint) return;
+      if (clean.length === 10) {
+        hint.innerText = '✓ Ready to send';
+        hint.className = 'text-[9.5px] text-emerald-400 font-bold';
+      } else if (clean.length > 0) {
+        hint.innerText = `${clean.length}/10 digits`;
+        hint.className = 'text-[9.5px] text-amber-400 font-bold';
+      } else {
+        hint.innerText = 'Ready';
+        hint.className = 'text-[9.5px] text-brand-muted font-bold';
+      }
+    }
+
     async function openWhatsAppModal() {
       const shopName = document.getElementById('rcptShopName')?.innerText || 'Super Inventory Store';
       const shopAddress = document.getElementById('rcptShopAddress')?.innerText || 'Main Branch • City Centre';
@@ -10146,40 +10148,47 @@
       const helpline = document.getElementById('rcptHelpline')?.innerText || '9876543210';
       const timings = document.getElementById('rcptTimings')?.innerText || '8:00 AM - 10:30 PM';
 
-      // Extract item lines
+      // Extract item lines - strictly business & product details with zero tax/GST mentions
       let itemsListText = '';
       if (lastCompletedInvoiceData && lastCompletedInvoiceData.items && lastCompletedInvoiceData.items.length > 0) {
         itemsListText = lastCompletedInvoiceData.items.map((it, idx) => {
-          const hsnStr = it.hsn ? ` | HSN: ${it.hsn}` : '';
-          const cgstRate = (it.gst / 2).toFixed(1);
-          const sgstRate = (it.gst / 2).toFixed(1);
-          const taxDesc = it.gst > 0 ? `GST ${it.gst}% (CGST ${cgstRate}% + SGST ${sgstRate}%)` : `GST 0% (CBIC Exempt)`;
           const lineTotal = calculateItemLineTotal(it);
-          return `${idx + 1}. *${it.name}*\n   Qty: ${it.quantity} ${it.unit || 'pcs'} @ ₹${Number(it.price).toFixed(2)}${hsnStr}\n   Tax: ${taxDesc}\n   Amount: ₹${lineTotal.toFixed(2)}`;
+          const packInfo = it.displayNetQty ? ` (${it.displayNetQty})` : '';
+          return `${idx + 1}. *${it.name}${packInfo}*\n   ${it.quantity} pc${it.quantity > 1 ? 's' : ''} @ ₹${Number(it.price).toFixed(2)} = ₹${lineTotal.toFixed(2)}`;
         }).join('\n\n');
       } else {
-        itemsListText = '1. General Store Items (Qty: 1) - ' + grandTotal;
+        itemsListText = '1. Store Purchase (1 pc) = ' + grandTotal;
       }
 
       currentFormattedWhatsAppText = 
-`🧾 *TAX INVOICE - ${shopName.toUpperCase()}*
+`🧾 *BILL RECEIPT - ${shopName.toUpperCase()}*
 📍 ${shopAddress}
-📋 ${gstin}
+📞 Contact: ${helpline}
 ----------------------------------------
 *Invoice No:* ${invNo}
 *Date:* ${dateStr}
-*Payment:* ${payMode}
+*Payment Status:* ${payMode}
 ----------------------------------------
 *ITEMS PURCHASED:*
 ${itemsListText}
 ----------------------------------------
-*Subtotal (Taxable):* ${subtotal}
-*Total GST Tax:* ${tax}
-💰 *FINAL TOTAL:* *${grandTotal}*
+💰 *TOTAL AMOUNT: ${grandTotal}*
 ----------------------------------------
-📞 *Customer Support / Contact:* ${helpline}
 ⏱ *Store Hours:* ${timings}
 🎉 Thank you for shopping with us! Visit again.`;
+
+      // Update WhatsApp Modal Summary Card values
+      const amtEl = document.getElementById('waSummaryAmount');
+      if (amtEl) amtEl.innerText = grandTotal;
+      const shopEl = document.getElementById('waSummaryShopName');
+      if (shopEl) shopEl.innerText = shopName;
+      const invEl = document.getElementById('waSummaryInvNo');
+      if (invEl) invEl.innerText = `#${invNo}`;
+      const cntEl = document.getElementById('waSummaryItemCount');
+      if (cntEl && lastCompletedInvoiceData && lastCompletedInvoiceData.items) {
+        const totalPcs = lastCompletedInvoiceData.items.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0);
+        cntEl.innerText = `${lastCompletedInvoiceData.items.length} item${lastCompletedInvoiceData.items.length === 1 ? '' : 's'} (${totalPcs} total pcs)`;
+      }
 
       const previewEl = document.getElementById('whatsappMessagePreview');
       if (previewEl) previewEl.innerText = currentFormattedWhatsAppText;
