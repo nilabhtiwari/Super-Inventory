@@ -2428,7 +2428,7 @@
                  onkeydown="if(event.key === 'Enter') dispatchWhatsAppInvoiceImage();"
                  class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-emerald-500 focus:bg-white transition" />
         </div>
-        <p class="text-[9px] text-slate-400 font-medium leading-tight">Optional. Leave empty to choose contact directly in WhatsApp.</p>
+        <p class="text-[9px] text-slate-400 font-medium leading-tight">Enter mobile number to automatically redirect straight to customer's WhatsApp chat.</p>
       </div>
 
       <!-- Live Receipt Image Preview -->
@@ -2459,7 +2459,7 @@
       <div class="space-y-1.5 pt-1">
         <button type="button" onclick="dispatchWhatsAppInvoiceImage()" class="w-full py-3.5 bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 active:scale-95 transition flex items-center justify-center gap-2 uppercase tracking-wider">
           <span class="material-symbols-outlined text-base">image</span>
-          <span>SEND RECEIPT IMAGE ON WHATSAPP</span>
+          <span>SEND BILL ON WHATSAPP</span>
         </button>
         <div class="flex items-center gap-2">
           <button type="button" onclick="dispatchWhatsAppInvoiceNow()" class="w-1/2 py-2 bg-slate-50 border border-slate-200 text-slate-700 text-[10px] font-bold rounded-xl hover:bg-slate-100 transition flex items-center justify-center gap-1">
@@ -5878,7 +5878,241 @@
       isLoggedIn = false;
     }
 
-    function switchScreen(screenId, force = false) {
+    // ============================================================
+    // MOBILE HARDWARE BACK BUTTON & IN-APP NAVIGATION STACK
+    // ============================================================
+    const inAppScreenHistory = [];
+    let lastBackPressTime = 0;
+
+    const SCREEN_PARENT_MAP = {
+      'billing': 'dashboard',
+      'products': 'dashboard',
+      'history': 'dashboard',
+      'settings': 'dashboard',
+      'premium': 'dashboard',
+      'finance': 'dashboard',
+      'receipt': 'billing',
+      'hardware': 'settings',
+      'edit-profile': 'settings'
+    };
+
+    function getCurrentVisibleScreenId() {
+      const screens = [
+        'splash', 'login', 'dashboard', 'billing', 'receipt',
+        'history', 'products', 'hardware', 'premium', 'settings',
+        'finance', 'edit-profile'
+      ];
+      for (const sId of screens) {
+        const el = document.getElementById(`screen-${sId}`);
+        if (el && !el.classList.contains('hidden')) {
+          return sId;
+        }
+      }
+      return 'dashboard';
+    }
+
+    function getActiveOpenModalInfo() {
+      // 1. Confirm & Prompt Modals (Highest z-index)
+      const confirmModal = document.getElementById('appConfirmModal');
+      if (confirmModal && !confirmModal.classList.contains('hidden') && confirmModal.style.display !== 'none') {
+        return { id: 'appConfirmModal', close: () => closeAppConfirm(false) };
+      }
+
+      const promptModal = document.getElementById('appPromptModal');
+      if (promptModal && !promptModal.classList.contains('hidden') && promptModal.style.display !== 'none') {
+        return { id: 'appPromptModal', close: () => closeAppPrompt() };
+      }
+
+      // 2. Quick Add & Add/Edit Product Modals
+      const quickAddModal = document.getElementById('quickAddScannedProductModal');
+      if (quickAddModal && !quickAddModal.classList.contains('hidden') && quickAddModal.style.display !== 'none') {
+        return { id: 'quickAddScannedProductModal', close: () => closeQuickAddScannedProductModal(true) };
+      }
+
+      const addProductModal = document.getElementById('addProductModal');
+      if (addProductModal && !addProductModal.classList.contains('hidden') && addProductModal.style.display !== 'none') {
+        return { id: 'addProductModal', close: () => closeAddProductModal() };
+      }
+
+      // 3. Payment Modal
+      const paymentModal = document.getElementById('paymentModal');
+      if (paymentModal && !paymentModal.classList.contains('hidden') && paymentModal.style.display !== 'none') {
+        return { id: 'paymentModal', close: () => closePaymentModal() };
+      }
+
+      // 4. Qty Unit Modal
+      const qtyUnitModal = document.getElementById('qtyUnitModal');
+      if (qtyUnitModal && !qtyUnitModal.classList.contains('hidden') && qtyUnitModal.style.display !== 'none') {
+        return { id: 'qtyUnitModal', close: () => closeQtyUnitModal(true) };
+      }
+
+      // 5. WhatsApp Modal
+      const whatsappModal = document.getElementById('whatsappModal');
+      if (whatsappModal && !whatsappModal.classList.contains('hidden') && whatsappModal.style.display !== 'none') {
+        return { id: 'whatsappModal', close: () => closeWhatsAppModal() };
+      }
+
+      // 6. Hardware & Connect Modals
+      const btModal = document.getElementById('bluetoothPromptModal');
+      if (btModal && !btModal.classList.contains('hidden') && btModal.style.display !== 'none') {
+        return { id: 'bluetoothPromptModal', close: () => closeBluetoothPrompt() };
+      }
+
+      const mobileConnectModal = document.getElementById('mobileConnectModal');
+      if (mobileConnectModal && !mobileConnectModal.classList.contains('hidden') && mobileConnectModal.style.display !== 'none') {
+        return { id: 'mobileConnectModal', close: () => closeMobileConnectModal() };
+      }
+
+      // 7. Auth Modals
+      const otpModal = document.getElementById('otpModal');
+      if (otpModal && !otpModal.classList.contains('hidden') && otpModal.style.display !== 'none') {
+        return { id: 'otpModal', close: () => closeOtpModal() };
+      }
+
+      const googleModal = document.getElementById('googleAccountModal');
+      if (googleModal && !googleModal.classList.contains('hidden') && googleModal.style.display !== 'none') {
+        return { id: 'googleAccountModal', close: () => closeGoogleAccountModal() };
+      }
+
+      const upiBankModal = document.getElementById('upiBankModal');
+      if (upiBankModal && !upiBankModal.classList.contains('hidden') && upiBankModal.style.display !== 'none') {
+        return { id: 'upiBankModal', close: () => closeUpiBankModal() };
+      }
+
+      // 8. Store Side Navigation Drawer
+      const drawer = document.getElementById('storeSideDrawer');
+      if (drawer && !drawer.classList.contains('hidden') && drawer.style.display !== 'none') {
+        return {
+          id: 'storeSideDrawer',
+          close: () => {
+            drawer.classList.add('hidden');
+            const overlay = document.getElementById('storeDrawerOverlay');
+            if (overlay) overlay.classList.add('hidden');
+          }
+        };
+      }
+
+      return null;
+    }
+
+    function rearmHistoryState(screenId) {
+      try {
+        const activeScreen = screenId || getCurrentVisibleScreenId();
+        window.history.pushState({ screen: activeScreen, superApp: true, ts: Date.now() }, '', window.location.pathname);
+      } catch (e) {}
+    }
+
+    function handleDoubleBackExit(contextScreen = 'dashboard') {
+      const now = Date.now();
+      if (now - lastBackPressTime < 2000) {
+        lastBackPressTime = 0;
+        if (window.navigator && window.navigator.app && typeof window.navigator.app.exitApp === 'function') {
+          window.navigator.app.exitApp();
+        } else {
+          // Allow default browser back exit
+          window.history.back();
+        }
+      } else {
+        lastBackPressTime = now;
+        showAppToast('Press back again to exit', 'info');
+        rearmHistoryState(contextScreen);
+      }
+    }
+
+    function handleMobileHardwareBackButton(e) {
+      // 1. If any modal/dialog/drawer is open, close it first without navigating screens
+      const activeModal = getActiveOpenModalInfo();
+      if (activeModal) {
+        try {
+          activeModal.close();
+        } catch (err) {
+          console.warn('Error closing modal on back press:', err);
+        }
+        rearmHistoryState();
+        return;
+      }
+
+      // 2. If billing product search dropdown is open, close it
+      const searchDropdown = document.getElementById('billingSearchResultsDropdown');
+      if (searchDropdown && !searchDropdown.classList.contains('hidden')) {
+        searchDropdown.classList.add('hidden');
+        const searchInput = document.getElementById('billingProductSearchInput');
+        if (searchInput) searchInput.blur();
+        rearmHistoryState();
+        return;
+      }
+
+      const currentScreen = getCurrentVisibleScreenId();
+
+      // 3. Splash Screen: don't exit while launching
+      if (currentScreen === 'splash') {
+        rearmHistoryState('splash');
+        return;
+      }
+
+      // 4. Login Screen:
+      if (currentScreen === 'login') {
+        if (typeof currentAuthMode !== 'undefined' && (currentAuthMode === 'signup' || currentAuthMode === 'forgot')) {
+          setAuthView('login');
+          rearmHistoryState('login');
+          return;
+        }
+        handleDoubleBackExit('login');
+        return;
+      }
+
+      // 5. Dashboard (Home Screen): double back to exit
+      if (currentScreen === 'dashboard') {
+        handleDoubleBackExit('dashboard');
+        return;
+      }
+
+      // 6. Sub-screens: navigate back to prior screen or parent
+      let targetScreen = null;
+      while (inAppScreenHistory.length > 0) {
+        const cand = inAppScreenHistory.pop();
+        if (cand && cand !== currentScreen) {
+          targetScreen = cand;
+          break;
+        }
+      }
+
+      if (!targetScreen) {
+        targetScreen = SCREEN_PARENT_MAP[currentScreen] || 'dashboard';
+      }
+
+      const switched = switchScreen(targetScreen, false, true);
+      if (switched === false) {
+        // Navigation was blocked (e.g. unsaved changes in profile)
+        inAppScreenHistory.push(targetScreen);
+        rearmHistoryState(currentScreen);
+        return;
+      }
+
+      rearmHistoryState(targetScreen);
+    }
+
+    function initMobileHistoryNavigation() {
+      try {
+        window.history.replaceState({ screen: 'root', superApp: true }, '', window.location.pathname);
+        const cur = getCurrentVisibleScreenId() || 'dashboard';
+        window.history.pushState({ screen: cur, superApp: true }, '', window.location.pathname);
+      } catch (e) {}
+    }
+    window.addEventListener('popstate', handleMobileHardwareBackButton);
+
+    function switchScreen(screenId, force = false, isBackNavigation = false) {
+      // Keep track of navigation history for mobile hardware back button
+      const previousScreen = getCurrentVisibleScreenId();
+      if (!isBackNavigation && previousScreen && previousScreen !== screenId) {
+        if (inAppScreenHistory.length === 0 || inAppScreenHistory[inAppScreenHistory.length - 1] !== previousScreen) {
+          inAppScreenHistory.push(previousScreen);
+          if (inAppScreenHistory.length > 30) inAppScreenHistory.shift();
+        }
+        try {
+          window.history.pushState({ screen: screenId, superApp: true, ts: Date.now() }, '', window.location.pathname);
+        } catch (e) {}
+      }
       // CHECK FOR UNSAVED CHANGES IN PROFILE & ADS SECTION:
       const editProfileScreen = document.getElementById('screen-edit-profile');
       const isCurrentlyInEditProfile = editProfileScreen && !editProfileScreen.classList.contains('hidden');
@@ -9749,7 +9983,7 @@
 
     async function dispatchWhatsAppInvoiceImage() {
       if (!currentReceiptBlob) {
-        await generateReceiptCanvas();
+        try { await generateReceiptCanvas(); } catch (e) {}
       }
 
       const phoneInput = document.getElementById('whatsappMobileInput');
@@ -9766,8 +10000,45 @@
       const shopName = document.getElementById('rcptShopName')?.innerText || 'Super Inventory';
       const fileName = `Invoice_${invNo}.png`;
 
-      // 1. Mobile Web Share API with Files (Android & iOS)
-      // When available, this automatically opens WhatsApp with the PNG IMAGE attached!
+      // Copy receipt image to clipboard whenever supported
+      try {
+        if (navigator.clipboard && window.ClipboardItem && currentReceiptBlob) {
+          const item = new ClipboardItem({ 'image/png': currentReceiptBlob });
+          await navigator.clipboard.write([item]);
+        }
+      } catch (clipErr) {}
+
+      // Download receipt image locally so merchant has immediate file access
+      try { downloadReceiptImage(); } catch (e) {}
+
+      // 1. IF PHONE NUMBER IS PROVIDED: AUTOMATICALLY & DIRECTLY REDIRECT TO THAT WHATSAPP NUMBER!
+      // No more tedious searching for contacts or saving to address book!
+      if (cleanPhone && cleanPhone.length >= 10) {
+        const fullBillText = currentFormattedWhatsAppText || `🧾 *TAX INVOICE - ${shopName.toUpperCase()}*\nInvoice: ${invNo}`;
+        const encodedMsg = encodeURIComponent(fullBillText);
+        const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
+
+        closeWhatsAppModal();
+        showAppToast(`Opening WhatsApp chat for +${cleanPhone}...`, 'chat');
+
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        try {
+          const link = document.createElement('a');
+          link.href = waUrl;
+          link.target = isMobile ? '_self' : '_blank';
+          link.rel = 'noopener noreferrer';
+          document.body.appendChild(link);
+          link.click();
+          setTimeout(() => {
+            try { document.body.removeChild(link); } catch (e) {}
+          }, 400);
+        } catch (navErr) {
+          window.location.href = waUrl;
+        }
+        return;
+      }
+
+      // 2. Fallback when phone number is NOT entered: use native share sheet if available
       if (navigator.share && navigator.canShare && currentReceiptBlob) {
         try {
           const file = new File([currentReceiptBlob], fileName, { type: 'image/png' });
@@ -9777,49 +10048,21 @@
               title: `Tax Invoice - ${invNo}`,
               text: `🧾 Tax Invoice from ${shopName} - Invoice #${invNo}`
             });
-            showAppToast('✓ Receipt Image sent via WhatsApp', 'check');
+            showAppToast('✓ Receipt Image shared via WhatsApp', 'check');
             closeWhatsAppModal();
             return;
           }
         } catch (shareErr) {
-          if (shareErr.name === 'AbortError') return; // User dismissed share sheet
-          console.warn('Web Share API fallback:', shareErr);
+          if (shareErr.name === 'AbortError') return;
         }
       }
 
-      // 2. Desktop WhatsApp Web / Clipboard Fallback
-      // Copy receipt image to clipboard so merchant can press Ctrl+V directly into WhatsApp
-      try {
-        if (navigator.clipboard && window.ClipboardItem && currentReceiptBlob) {
-          const item = new ClipboardItem({ 'image/png': currentReceiptBlob });
-          await navigator.clipboard.write([item]);
-          showAppToast('✓ Receipt Image copied! Press Ctrl+V in WhatsApp to send image', 'content_copy', true);
-        }
-      } catch (clipErr) {
-        console.warn('Clipboard image copy fallback:', clipErr);
-      }
-
-      // Download image so user has file on hand
-      downloadReceiptImage();
-
-      // Open WhatsApp chat directly
-      const encodedCaption = encodeURIComponent(`🧾 *TAX INVOICE - ${shopName.toUpperCase()}*\nInvoice: ${invNo}\n(Receipt image copied to clipboard & downloaded. Press Ctrl+V to paste!)`);
-      const waUrl = cleanPhone 
-        ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedCaption}`
-        : `https://api.whatsapp.com/send?text=${encodedCaption}`;
-
+      // 3. General WhatsApp share fallback if no phone number and no share sheet
+      const encodedCaption = encodeURIComponent(currentFormattedWhatsAppText || `🧾 *TAX INVOICE - ${shopName.toUpperCase()}*\nInvoice: ${invNo}`);
+      const fallbackUrl = `https://api.whatsapp.com/send?text=${encodedCaption}`;
       closeWhatsAppModal();
-      showAppToast(cleanPhone ? `Opening WhatsApp for +${cleanPhone}...` : 'Opening WhatsApp...', 'chat');
-
-      const link = document.createElement('a');
-      link.href = waUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        try { document.body.removeChild(link); } catch (e) {}
-      }, 500);
+      showAppToast('Opening WhatsApp...', 'chat');
+      window.location.href = fallbackUrl;
     }
 
     async function openWhatsAppModal() {
@@ -9926,20 +10169,21 @@ ${itemsListText}
         : `https://api.whatsapp.com/send?text=${encodedMsg}`;
 
       closeWhatsAppModal();
-      showAppToast(cleanPhone ? `Opening WhatsApp for +${cleanPhone}...` : 'Opening WhatsApp...', 'chat');
+      showAppToast(cleanPhone ? `Opening WhatsApp chat for +${cleanPhone}...` : 'Opening WhatsApp...', 'chat');
 
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       try {
         const link = document.createElement('a');
         link.href = waUrl;
-        link.target = '_blank';
+        link.target = isMobile ? '_self' : '_blank';
         link.rel = 'noopener noreferrer';
         document.body.appendChild(link);
         link.click();
         setTimeout(() => {
           try { document.body.removeChild(link); } catch (e) {}
-        }, 500);
+        }, 400);
       } catch (err) {
-        window.open(waUrl, '_blank');
+        window.location.href = waUrl;
       }
     }
 
@@ -10047,6 +10291,7 @@ ${itemsListText}
     if (!isOAuthRedirect) {
       launchAppWithSplashScreen();
     }
+    initMobileHistoryNavigation();
     // Automatically backup and sync any local accounts to Supabase Cloud
     setTimeout(() => {
       if (typeof syncLocalUsersToCloud === 'function') {
