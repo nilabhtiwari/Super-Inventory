@@ -1815,33 +1815,6 @@
             <input type="text" id="profileDirectPayeeInput" disabled value="Super Inventory Store" class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-brand-primary transition disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Store or Merchant Name" />
           </div>
 
-          <!-- Official Shop Standee QR (Optional) -->
-          <div class="p-3 bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl space-y-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="text-[10px] font-bold text-white block">Official Shop Standee QR (Optional)</label>
-                <p class="text-[9px] text-brand-muted">PhonePe / Paytm Soundbox / GPay Business standee image</p>
-              </div>
-              <span id="standeeStatusBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">Not Uploaded</span>
-            </div>
-            <div id="standeePreviewContainer" class="hidden flex items-center gap-3 pt-1">
-              <img id="standeePreviewImg" src="" alt="Standee QR" class="w-16 h-16 object-contain rounded-lg border border-slate-700 bg-white p-1 shadow-sm" />
-              <div class="space-y-1">
-                <p class="text-[9.5px] text-emerald-400 font-bold">✓ Official Standee QR Active</p>
-                <button type="button" onclick="triggerStandeeRemoveSecurity()" class="text-rose-400 hover:text-rose-300 text-[9.5px] font-bold underline flex items-center gap-0.5">
-                  <span class="material-symbols-outlined text-xs">delete</span> Remove QR Image
-                </button>
-              </div>
-            </div>
-            <div id="standeeUploadBtnContainer" class="pt-1">
-              <label onclick="return triggerStandeeUploadSecurity(event)" class="cursor-pointer w-full py-2 bg-brand-surface hover:bg-slate-700/60 border border-dashed border-emerald-500/50 rounded-xl text-emerald-300 hover:text-emerald-200 text-xs font-bold flex items-center justify-center gap-1.5 transition">
-                <span class="material-symbols-outlined text-sm">photo_camera</span>
-                <span>Upload Standee QR Photo (Owner Only)</span>
-                <input type="file" id="shopStandeeFileInput" accept="image/*" class="hidden" onchange="handleShopStandeeUpload(this.files[0], this)" />
-              </label>
-            </div>
-          </div>
-
           <div class="pt-1">
             <button id="profileUpiSaveBtn" disabled type="button" onclick="saveProfileDirectUpi()" class="w-full py-2.5 bg-gradient-to-r from-teal-500 to-emerald-600 hover:opacity-95 text-white font-black text-xs rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
               <span class="material-symbols-outlined text-sm font-bold">save</span>
@@ -2341,19 +2314,6 @@
 
       <!-- 2. UPI QR Code Preview -->
       <div id="panel-pay-upi" class="hidden p-3 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center text-center space-y-2">
-        <!-- Amount Mode Selector: Exact Amount vs Shop Standee vs Open Amount -->
-        <div class="flex items-center gap-1 w-full p-0.5 bg-slate-200/80 rounded-xl">
-          <button type="button" id="upiQrModeFixedBtn" onclick="setPaymentModalUpiMode('fixed')" class="flex-1 py-1 px-2 rounded-lg bg-emerald-600 text-white font-bold text-[10px] shadow-xs transition">
-            Exact Bill (₹<span id="upiFixedAmtPill">0</span>)
-          </button>
-          <button type="button" id="upiQrModeStandeeBtn" onclick="setPaymentModalUpiMode('standee')" class="hidden flex-1 py-1 px-2 rounded-lg bg-slate-200 text-slate-700 font-bold text-[10px] hover:bg-slate-300 transition">
-            Shop Standee
-          </button>
-          <button type="button" id="upiQrModeOpenBtn" onclick="setPaymentModalUpiMode('open')" class="flex-1 py-1 px-2 rounded-lg bg-slate-200 text-slate-700 font-bold text-[10px] hover:bg-slate-300 transition">
-            Open Amount
-          </button>
-        </div>
-
         <!-- High-Contrast QR Viewfinder -->
         <div class="p-2.5 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-center justify-center" id="paymentModalQrCanvas"></div>
 
@@ -2363,14 +2323,6 @@
           <button type="button" onclick="copyPaymentModalUpiId()" class="text-emerald-700 hover:text-emerald-800 text-[10.5px] font-black underline shrink-0 flex items-center gap-0.5">
             <span class="material-symbols-outlined text-xs">content_copy</span>
             <span>Copy</span>
-          </button>
-        </div>
-
-        <!-- Owner QR Configuration Button (Password Protected Redirection) -->
-        <div class="flex items-center justify-center pt-0.5">
-          <button type="button" onclick="redirectToSettlementAccountSecurity()" class="text-[9.5px] font-bold text-slate-500 hover:text-emerald-700 flex items-center gap-1 transition px-2 py-1 rounded-lg hover:bg-slate-100">
-            <span class="material-symbols-outlined text-xs text-amber-500">lock</span>
-            <span>Upload / Change QR in Settings (Owner Password Required)</span>
           </button>
         </div>
 
@@ -5166,16 +5118,8 @@
     function getStoredBankUpiSettings() {
       let defaultPayee = 'Super Inventory Store';
       let sellerUpi = '';
-      let customQrImage = '';
 
-      // 1. Direct standee QR storage check (ultra reliable)
-      try {
-        const directImg = localStorage.getItem(getMerchantStorageKey('super_inventory_custom_qr_image')) ||
-                          localStorage.getItem('super_inventory_custom_qr_image');
-        if (directImg) customQrImage = directImg.trim();
-      } catch (e) {}
-
-      // 2. Check current logged-in seller session
+      // 1. Check current logged-in seller session
       try {
         const sRaw = localStorage.getItem('super_inventory_seller');
         if (sRaw) {
@@ -5183,11 +5127,10 @@
           if (s.name || s.store_name) defaultPayee = s.name || s.store_name;
           if (s.upi_id) sellerUpi = String(s.upi_id).trim();
           if (s.payee_name) defaultPayee = String(s.payee_name).trim();
-          if (!customQrImage && s.custom_qr_image) customQrImage = String(s.custom_qr_image).trim();
         }
       } catch (e) {}
 
-      // 3. Check merchant-scoped saved settlement settings
+      // 2. Check merchant-scoped saved settlement settings
       try {
         const key = getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY);
         const saved = localStorage.getItem(key);
@@ -5200,15 +5143,12 @@
             if (parsed.payeeName) {
               defaultPayee = String(parsed.payeeName).trim();
             }
-            if (!customQrImage && parsed.customQrImage) {
-              customQrImage = String(parsed.customQrImage).trim();
-            }
           }
         }
       } catch (e) {}
 
-      // 4. Fallback: check profile updates cache
-      if (!sellerUpi || !customQrImage) {
+      // 3. Fallback: check profile updates cache
+      if (!sellerUpi) {
         try {
           const profKey = getMerchantStorageKey('super_inventory_profile_updates');
           const profSaved = localStorage.getItem(profKey);
@@ -5220,9 +5160,6 @@
             if (p.storeName) {
               defaultPayee = String(p.storeName).trim();
             }
-            if (!customQrImage && p.customQrImage) {
-              customQrImage = String(p.customQrImage).trim();
-            }
           }
         } catch (e) {}
       }
@@ -5230,7 +5167,6 @@
       return {
         payeeName: defaultPayee,
         vpa: sellerUpi || '',
-        customQrImage: customQrImage || '',
         accountNo: '',
         ifsc: '',
         bankName: ''
@@ -5415,178 +5351,6 @@
       showAppToast('🔒 Settlement account is locked', 'lock');
     }
 
-    function triggerStandeeUploadSecurity(event) {
-      if (!isBankUpiUnlocked) {
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        showAppToast('Owner verification required: Enter password to edit QR', 'lock');
-        openUpiBankModal();
-        return false;
-      }
-      return true;
-    }
-
-    function triggerStandeeRemoveSecurity() {
-      if (!isBankUpiUnlocked) {
-        showAppToast('Owner verification required: Enter password to edit QR', 'lock');
-        openUpiBankModal();
-        return false;
-      }
-      removeShopStandeeQr();
-    }
-
-    function redirectToSettlementAccountSecurity() {
-      closePaymentModal();
-      switchScreen('settings');
-      setTimeout(() => {
-        const card = document.getElementById('settlementAccountCard');
-        if (card) {
-          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        openUpiBankModal();
-      }, 250);
-    }
-
-    function handleShopStandeeUpload(file, inputEl) {
-      if (!file) return;
-
-      if (!isBankUpiUnlocked) {
-        showAppToast('Owner verification required: Enter password to edit QR', 'lock');
-        openUpiBankModal();
-        if (inputEl) inputEl.value = '';
-        return;
-      }
-
-      const isImage = (file.type && file.type.startsWith('image/')) || 
-                      /\.(jpe?g|png|webp|gif|bmp|svg|heic|heif)$/i.test(file.name || '');
-      if (!isImage) {
-        showAppToast('Please select a valid image file (JPG, PNG, WebP)', 'warning');
-        if (inputEl) inputEl.value = '';
-        return;
-      }
-
-      showAppToast('Processing QR photo...', 'hourglass_top');
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const rawDataUrl = e.target.result;
-        const img = new Image();
-        img.onload = function() {
-          try {
-            const canvas = document.createElement('canvas');
-            const maxDim = 600;
-            let w = img.naturalWidth || img.width;
-            let h = img.naturalHeight || img.height;
-            if (w > maxDim || h > maxDim) {
-              if (w > h) {
-                h = Math.round((h * maxDim) / w);
-                w = maxDim;
-              } else {
-                w = Math.round((w * maxDim) / h);
-                h = maxDim;
-              }
-            }
-            canvas.width = w;
-            canvas.height = h;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, w, h);
-            ctx.drawImage(img, 0, 0, w, h);
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88);
-
-            const key = getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY);
-            let current = {};
-            try {
-              current = JSON.parse(localStorage.getItem(key)) || {};
-            } catch (err) {}
-            current.customQrImage = compressedDataUrl;
-            localStorage.setItem(key, JSON.stringify(current));
-
-            try {
-              localStorage.setItem(getMerchantStorageKey('super_inventory_custom_qr_image'), compressedDataUrl);
-              localStorage.setItem('super_inventory_custom_qr_image', compressedDataUrl);
-            } catch (storeErr) {}
-
-            try {
-              const sRaw = localStorage.getItem('super_inventory_seller');
-              if (sRaw) {
-                const s = JSON.parse(sRaw);
-                s.custom_qr_image = compressedDataUrl;
-                localStorage.setItem('super_inventory_seller', JSON.stringify(s));
-              }
-            } catch (storeErr) {}
-
-            showAppToast('✓ Official Shop QR Standee Saved!', 'check_circle');
-            paymentModalUpiMode = 'standee';
-            refreshUpiDisplays();
-            if (typeof renderPaymentModalUpiQr === 'function') {
-              renderPaymentModalUpiQr();
-            }
-          } catch (canvasErr) {
-            console.error('Canvas processing error:', canvasErr);
-            try {
-              localStorage.setItem(getMerchantStorageKey('super_inventory_custom_qr_image'), rawDataUrl);
-              localStorage.setItem('super_inventory_custom_qr_image', rawDataUrl);
-              showAppToast('✓ Official Shop QR Standee Saved!', 'check_circle');
-              paymentModalUpiMode = 'standee';
-              refreshUpiDisplays();
-              if (typeof renderPaymentModalUpiQr === 'function') renderPaymentModalUpiQr();
-            } catch (storeErr) {
-              showAppToast('Image file too large for storage. Please choose a smaller photo.', 'warning');
-            }
-          }
-          if (inputEl) inputEl.value = '';
-        };
-
-        img.onerror = function() {
-          showAppToast('Failed to load image file. Try another photo.', 'error');
-          if (inputEl) inputEl.value = '';
-        };
-
-        img.src = rawDataUrl;
-      };
-
-      reader.onerror = function() {
-        showAppToast('Failed to read image file.', 'error');
-        if (inputEl) inputEl.value = '';
-      };
-
-      reader.readAsDataURL(file);
-    }
-
-    function removeShopStandeeQr() {
-      const key = getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY);
-      let current = {};
-      try {
-        current = JSON.parse(localStorage.getItem(key)) || {};
-      } catch (err) {}
-      delete current.customQrImage;
-      localStorage.setItem(key, JSON.stringify(current));
-
-      try {
-        localStorage.removeItem(getMerchantStorageKey('super_inventory_custom_qr_image'));
-        localStorage.removeItem('super_inventory_custom_qr_image');
-      } catch (err) {}
-
-      try {
-        const sRaw = localStorage.getItem('super_inventory_seller');
-        if (sRaw) {
-          const s = JSON.parse(sRaw);
-          delete s.custom_qr_image;
-          localStorage.setItem('super_inventory_seller', JSON.stringify(s));
-        }
-      } catch (err) {}
-
-      showAppToast('Shop QR removed. Using Dynamic UPI QR.', 'info');
-      paymentModalUpiMode = 'fixed';
-      refreshUpiDisplays();
-      if (typeof renderPaymentModalUpiQr === 'function') {
-        renderPaymentModalUpiQr();
-      }
-    }
-
     async function saveProfileDirectUpi() {
       if (!isBankUpiUnlocked) {
         openUpiBankModal();
@@ -5604,8 +5368,7 @@
         return false;
       }
 
-      const prevSettings = getStoredBankUpiSettings();
-      const settings = { payeeName, vpa, customQrImage: prevSettings.customQrImage || '', accountNo: '', ifsc: '', bankName: '' };
+      const settings = { payeeName, vpa, accountNo: '', ifsc: '', bankName: '' };
       localStorage.setItem(getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY), JSON.stringify(settings));
 
       // Also update active seller session cache
@@ -5994,8 +5757,7 @@
         const directUpi = (document.getElementById('profileDirectUpiInput')?.value || '').trim();
         const directPayee = (document.getElementById('profileDirectPayeeInput')?.value || '').trim() || name || 'Super Inventory Store';
         if (directUpi && directUpi.includes('@')) {
-          const prevBank = getStoredBankUpiSettings();
-          localStorage.setItem(getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY), JSON.stringify({ payeeName: directPayee, vpa: directUpi, customQrImage: prevBank.customQrImage || '', accountNo: '', ifsc: '', bankName: '' }));
+          localStorage.setItem(getMerchantStorageKey(DEFAULT_BANK_SETTINGS_KEY), JSON.stringify({ payeeName: directPayee, vpa: directUpi, accountNo: '', ifsc: '', bankName: '' }));
           if (typeof refreshUpiDisplays === 'function') refreshUpiDisplays();
         }
 
@@ -9000,8 +8762,7 @@
       document.getElementById('cashReceivedInput').value = currentPayableGrandTotal.toFixed(0);
       
       calculateCashChange();
-      const fixedAmtPill = document.getElementById('upiFixedAmtPill');
-      if (fixedAmtPill) fixedAmtPill.innerText = currentPayableGrandTotal.toFixed(2);
+
       selectPaymentTab('CASH');
 
       // Render Payment QR (displays uploaded standee QR if present, or dynamic UPI QR)
@@ -9082,92 +8843,36 @@
       }
     }
 
-    let paymentModalUpiMode = 'standee'; // 'standee' | 'fixed' | 'open'
-
-    function setPaymentModalUpiMode(mode) {
-      paymentModalUpiMode = mode;
-      renderPaymentModalUpiQr();
-    }
-
-    function renderPaymentModalUpiQr(includeAmount = null) {
-      const bankConfig = getStoredBankUpiSettings();
-      const activeVpa = (bankConfig.vpa || '').trim();
-      const activePayee = bankConfig.payeeName || 'Super Inventory';
-      const customQrImage = (bankConfig.customQrImage || '').trim();
-      const invNo = `INV${Date.now().toString().slice(-6)}`;
-
-      // Determine active mode:
-      // When custom QR image has been uploaded, ALWAYS show it as the primary payment QR!
-      if (typeof includeAmount === 'boolean') {
-        paymentModalUpiMode = includeAmount ? 'fixed' : 'open';
-      } else if (customQrImage) {
-        if (paymentModalUpiMode !== 'fixed' && paymentModalUpiMode !== 'open') {
-          paymentModalUpiMode = 'standee';
-        }
-      } else {
-        if (paymentModalUpiMode === 'standee') {
-          paymentModalUpiMode = 'fixed';
-        }
-      }
-
+    function renderPaymentModalUpiQr() {
       const qrEl = document.getElementById('paymentModalQrCanvas');
       const upiTextEl = document.getElementById('paymentModalUpiText');
-      const btnFixed = document.getElementById('upiQrModeFixedBtn');
-      const btnOpen = document.getElementById('upiQrModeOpenBtn');
-      const btnStandee = document.getElementById('upiQrModeStandeeBtn');
-      const fixedAmtPill = document.getElementById('upiFixedAmtPill');
-
-      if (fixedAmtPill) {
-        fixedAmtPill.innerText = currentPayableGrandTotal.toFixed(2);
-      }
-
-      if (btnStandee) {
-        if (customQrImage) {
-          btnStandee.classList.remove('hidden');
-        } else {
-          btnStandee.classList.add('hidden');
-        }
-      }
-
-      const activeClass = 'flex-1 py-1.5 px-2 rounded-lg bg-emerald-600 text-white font-extrabold text-[10px] shadow-xs transition';
-      const inactiveClass = 'flex-1 py-1.5 px-2 rounded-lg bg-slate-200 text-slate-700 font-bold text-[10px] hover:bg-slate-300 transition';
-
-      if (btnFixed) btnFixed.className = (paymentModalUpiMode === 'fixed') ? activeClass : inactiveClass;
-      if (btnOpen) btnOpen.className = (paymentModalUpiMode === 'open') ? activeClass : inactiveClass;
-      if (btnStandee) btnStandee.className = (paymentModalUpiMode === 'standee') ? activeClass : inactiveClass;
 
       if (!qrEl) return;
       qrEl.innerHTML = '';
 
-      if (paymentModalUpiMode === 'standee' && customQrImage) {
-        // Display the uploaded Official Shop Standee QR photo
-        qrEl.innerHTML = `
-          <div class="flex flex-col items-center">
-            <img src="${customQrImage}" alt="Official Shop Standee QR" class="w-[140px] h-[140px] object-contain rounded-xl shadow-xs border border-slate-200 bg-white p-1" />
-            <span class="mt-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300/60">Official Shop Standee QR</span>
-          </div>
-        `;
-        if (upiTextEl) {
-          upiTextEl.innerText = activeVpa || activePayee || 'Official Shop Standee QR';
-        }
-      } else if (activeVpa) {
-        const isWithAmount = (paymentModalUpiMode === 'fixed');
-        const upiUrl = generateUpiPaymentUrl(activeVpa, activePayee, currentPayableGrandTotal, invNo, isWithAmount);
+      const bankConfig = getStoredBankUpiSettings();
+      const activeVpa = (bankConfig.vpa || '').trim();
+      const activePayee = bankConfig.payeeName || 'Super Inventory Store';
+      const invNo = `INV${Date.now().toString().slice(-6)}`;
+
+      if (activeVpa) {
+        // Universal clean NPCI QR pre-filled with the exact bill amount
+        const upiUrl = generateUpiPaymentUrl(activeVpa, activePayee, currentPayableGrandTotal, invNo, true);
         if (upiTextEl) {
           upiTextEl.innerText = activeVpa;
         }
 
         new QRCode(qrEl, {
           text: upiUrl,
-          width: 135,
-          height: 135,
+          width: 140,
+          height: 140,
           colorDark: "#000000",
           colorLight: "#ffffff",
           correctLevel: QRCode.CorrectLevel.M
         });
       } else {
         qrEl.innerHTML = `
-          <div class="w-[135px] h-[135px] flex flex-col items-center justify-center p-2 text-center bg-slate-100 rounded-xl border border-dashed border-amber-500 text-slate-700">
+          <div class="w-[140px] h-[140px] flex flex-col items-center justify-center p-2 text-center bg-slate-100 rounded-xl border border-dashed border-amber-500 text-slate-700">
             <span class="material-symbols-outlined text-2xl text-amber-500">account_balance_wallet</span>
             <p class="text-[9.5px] font-bold mt-1 text-slate-800">UPI Not Set</p>
             <p class="text-[8px] text-slate-500 leading-tight">Enter UPI in Settings > Settlement</p>
