@@ -10043,10 +10043,10 @@
             if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-xs">content_copy</span> Copy Image';
           }, 2500);
         } else {
-          downloadReceiptImage();
+          showAppToast('Clipboard image copy not supported on this browser', 'info');
         }
       } catch (err) {
-        downloadReceiptImage();
+        showAppToast('Clipboard copy restricted on this browser', 'info');
       }
     }
 
@@ -10077,8 +10077,7 @@
         }
       } catch (clipErr) {}
 
-      // Download receipt image locally so merchant has immediate file access
-      try { downloadReceiptImage(); } catch (e) {}
+      // Do NOT download on seller device - redirect directly to WhatsApp chat
 
       // 1. IF PHONE NUMBER IS PROVIDED: AUTOMATICALLY & DIRECTLY REDIRECT TO THAT WHATSAPP NUMBER!
       // No more tedious searching for contacts or saving to address book!
