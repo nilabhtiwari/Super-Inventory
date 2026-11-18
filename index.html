@@ -10148,34 +10148,46 @@
       const helpline = document.getElementById('rcptHelpline')?.innerText || '9876543210';
       const timings = document.getElementById('rcptTimings')?.innerText || '8:00 AM - 10:30 PM';
 
-      // Extract item lines - strictly business & product details with zero tax/GST mentions
+      // Extract item lines - single structured readable line per product
       let itemsListText = '';
       if (lastCompletedInvoiceData && lastCompletedInvoiceData.items && lastCompletedInvoiceData.items.length > 0) {
         itemsListText = lastCompletedInvoiceData.items.map((it, idx) => {
           const lineTotal = calculateItemLineTotal(it);
-          const packInfo = it.displayNetQty ? ` (${it.displayNetQty})` : '';
-          return `${idx + 1}. *${it.name}${packInfo}*\n   ${it.quantity} pc${it.quantity > 1 ? 's' : ''} @ ₹${Number(it.price).toFixed(2)} = ₹${lineTotal.toFixed(2)}`;
-        }).join('\n\n');
+          let displayName = (it.name || 'Item').trim();
+          const packInfo = it.displayNetQty ? String(it.displayNetQty).trim() : '';
+          if (packInfo && !displayName.toLowerCase().includes(packInfo.toLowerCase())) {
+            displayName = `${displayName} (${packInfo})`;
+          }
+
+          const priceVal = Number(it.price);
+          const formattedPrice = (priceVal % 1 === 0) ? priceVal.toFixed(0) : priceVal.toFixed(2);
+          const qtyMultiplier = it.quantity > 1 
+            ? `(${it.quantity} × ₹${formattedPrice})` 
+            : `(1 pc)`;
+
+          return `${idx + 1}. *${displayName}* ${qtyMultiplier} = *₹${lineTotal.toFixed(2)}*`;
+        }).join('\n');
       } else {
-        itemsListText = '1. Store Purchase (1 pc) = ' + grandTotal;
+        itemsListText = `1. *Store Purchase* (1 pc) = *₹${grandTotal}*`;
       }
 
       currentFormattedWhatsAppText = 
-`🧾 *BILL RECEIPT - ${shopName.toUpperCase()}*
+`🧾 *RETAIL BILL RECEIPT*
+🏪 *${shopName.toUpperCase()}*
 📍 ${shopAddress}
 📞 Contact: ${helpline}
-----------------------------------------
-*Invoice No:* ${invNo}
-*Date:* ${dateStr}
-*Payment Status:* ${payMode}
-----------------------------------------
-*ITEMS PURCHASED:*
+────────────────────
+📄 *Bill No:* #${invNo}
+📅 *Date:* ${dateStr}
+💳 *Payment:* ${payMode}
+────────────────────
+🛍️ *ITEMS PURCHASED:*
 ${itemsListText}
-----------------------------------------
-💰 *TOTAL AMOUNT: ${grandTotal}*
-----------------------------------------
+────────────────────
+💰 *NET TOTAL: ${grandTotal}*
+────────────────────
 ⏱ *Store Hours:* ${timings}
-🎉 Thank you for shopping with us! Visit again.`;
+✨ _Thank you for shopping with us! Visit again._`;
 
       // Update WhatsApp Modal Summary Card values
       const amtEl = document.getElementById('waSummaryAmount');
