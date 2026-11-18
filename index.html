@@ -2403,18 +2403,13 @@
     <div class="bg-brand-surface border border-brand-surfaceBorder rounded-[28px] p-5 w-full max-w-[360px] shadow-2xl text-left space-y-4 my-auto relative animate-in fade-in zoom-in-95 duration-150">
       
       <!-- Modal Header -->
-      <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-3">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-[#25D366]/20 border border-[#25D366]/40 flex items-center justify-center text-[#25D366] shadow-sm">
-            <span class="material-symbols-outlined text-2xl">chat</span>
-          </div>
-          <div>
-            <h3 class="text-sm font-black text-white tracking-wide">Share Bill on WhatsApp</h3>
-            <p class="text-[10.5px] text-[#25D366] font-bold">Direct delivery to customer's chat</p>
-          </div>
+      <div class="flex items-start justify-between border-b border-brand-surfaceBorder pb-2.5">
+        <div>
+          <h3 class="text-sm font-black text-white tracking-wide">Send Bill to WhatsApp</h3>
+          <p class="text-[10.5px] text-emerald-400 font-bold">Direct delivery to customer's chat</p>
         </div>
-        <button type="button" onclick="closeWhatsAppModal()" class="w-8 h-8 rounded-full bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white transition flex items-center justify-center active:scale-95">
-          <span class="material-symbols-outlined text-base">close</span>
+        <button type="button" onclick="closeWhatsAppModal()" class="w-7 h-7 rounded-full bg-brand-surfaceElevated hover:bg-brand-surface border border-brand-surfaceBorder text-slate-300 hover:text-white transition flex items-center justify-center active:scale-95 text-xs font-bold">
+          ✕
         </button>
       </div>
 
@@ -2438,14 +2433,13 @@
           <span class="text-[9.5px] text-emerald-400 font-bold" id="waPhoneStatusHint">Ready</span>
         </label>
         <div class="relative flex items-center">
-          <div class="absolute left-3 flex items-center gap-1.5 pointer-events-none border-r border-brand-surfaceBorder pr-2">
-            <span class="text-xs">🇮🇳</span>
+          <div class="absolute left-3 flex items-center pointer-events-none border-r border-brand-surfaceBorder pr-2">
             <span class="text-xs font-black text-white font-mono">+91</span>
           </div>
           <input type="tel" id="whatsappMobileInput" maxlength="10" placeholder="9876543210" 
                  onkeydown="if(event.key === 'Enter') dispatchWhatsAppInvoiceImage();"
                  oninput="handleWhatsAppPhoneInput(this.value)"
-                 class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl pl-16 pr-3 py-3 text-sm font-black text-white placeholder:text-brand-muted outline-none focus:border-[#25D366] focus:ring-1 focus:ring-[#25D366] transition font-mono tracking-wider" />
+                 class="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-2xl pl-13 pr-3 py-3 text-sm font-black text-white placeholder:text-brand-muted outline-none focus:border-[#25D366] focus:ring-1 focus:ring-[#25D366] transition font-mono tracking-wider" />
         </div>
         <p class="text-[9.5px] text-brand-muted leading-tight">
           Enter 10-digit number. Opens chat directly with invoice ready to send — no saving to contacts needed.
@@ -2454,9 +2448,8 @@
 
       <!-- Single Primary Action Button -->
       <div class="pt-1 space-y-2">
-        <button type="button" onclick="dispatchWhatsAppInvoiceImage()" class="w-full py-3.5 bg-[#25D366] hover:bg-[#20ba59] active:scale-95 text-white font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/25 transition flex items-center justify-center gap-2 uppercase tracking-wider">
-          <span class="material-symbols-outlined text-lg">send</span>
-          <span>OPEN WHATSAPP & SEND BILL</span>
+        <button type="button" onclick="dispatchWhatsAppInvoiceImage()" class="w-full py-3.5 bg-[#25D366] hover:bg-[#20ba59] active:scale-95 text-white font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/25 transition text-center uppercase tracking-wider">
+          OPEN WHATSAPP & SEND BILL
         </button>
         <button type="button" onclick="closeWhatsAppModal()" class="w-full py-2 text-brand-muted hover:text-white text-xs font-bold text-center transition">
           Cancel
@@ -10148,46 +10141,109 @@
       const helpline = document.getElementById('rcptHelpline')?.innerText || '9876543210';
       const timings = document.getElementById('rcptTimings')?.innerText || '8:00 AM - 10:30 PM';
 
-      // Extract item lines - single structured readable line per product
-      let itemsListText = '';
-      if (lastCompletedInvoiceData && lastCompletedInvoiceData.items && lastCompletedInvoiceData.items.length > 0) {
-        itemsListText = lastCompletedInvoiceData.items.map((it, idx) => {
-          const lineTotal = calculateItemLineTotal(it);
-          let displayName = (it.name || 'Item').trim();
-          const packInfo = it.displayNetQty ? String(it.displayNetQty).trim() : '';
-          if (packInfo && !displayName.toLowerCase().includes(packInfo.toLowerCase())) {
-            displayName = `${displayName} (${packInfo})`;
-          }
-
-          const priceVal = Number(it.price);
-          const formattedPrice = (priceVal % 1 === 0) ? priceVal.toFixed(0) : priceVal.toFixed(2);
-          const qtyMultiplier = it.quantity > 1 
-            ? `(${it.quantity} × ₹${formattedPrice})` 
-            : `(1 pc)`;
-
-          return `${idx + 1}. *${displayName}* ${qtyMultiplier} = *₹${lineTotal.toFixed(2)}*`;
-        }).join('\n');
-      } else {
-        itemsListText = `1. *Store Purchase* (1 pc) = *₹${grandTotal}*`;
+      // Generate fully closed receipt box surrounded by clean lines with separate columns
+      function padCenter(str, len) {
+        str = String(str || '').trim().slice(0, len);
+        const totalPad = Math.max(0, len - str.length);
+        const leftPad = Math.floor(totalPad / 2);
+        const rightPad = totalPad - leftPad;
+        return ' '.repeat(leftPad) + str + ' '.repeat(rightPad);
       }
 
-      currentFormattedWhatsAppText = 
-`🧾 *RETAIL BILL RECEIPT*
-🏪 *${shopName.toUpperCase()}*
-📍 ${shopAddress}
-📞 Contact: ${helpline}
-────────────────────
-📄 *Bill No:* #${invNo}
-📅 *Date:* ${dateStr}
-💳 *Payment:* ${payMode}
-────────────────────
-🛍️ *ITEMS PURCHASED:*
-${itemsListText}
-────────────────────
-💰 *NET TOTAL: ${grandTotal}*
-────────────────────
-⏱ *Store Hours:* ${timings}
-✨ _Thank you for shopping with us! Visit again._`;
+      function padLeft(str, len) {
+        str = String(str || '').trim().slice(0, len);
+        return str + ' '.repeat(Math.max(0, len - str.length));
+      }
+
+      function padRight(str, len) {
+        str = String(str || '').trim().slice(0, len);
+        return ' '.repeat(Math.max(0, len - str.length)) + str;
+      }
+
+      function wrapItemName(name, maxLen) {
+        name = (name || 'Item').trim();
+        if (name.length <= maxLen) return [name];
+        const words = name.split(/\s+/);
+        let line1 = '';
+        let line2 = '';
+        for (const w of words) {
+          if (!line1 || (line1 + ' ' + w).length <= maxLen) {
+            line1 = line1 ? (line1 + ' ' + w) : w;
+          } else {
+            line2 = line2 ? (line2 + ' ' + w) : w;
+          }
+        }
+        if (line2.length > maxLen) {
+          line2 = line2.slice(0, maxLen - 2) + '..';
+        }
+        return [line1, line2];
+      }
+
+      const WIDTH = 35;
+      const W_ITEM = 15;
+      const W_QTY = 4;
+      const W_PRICE = 6;
+      const W_TOTAL = 7;
+
+      const billLines = [];
+      billLines.push('┌' + '─'.repeat(WIDTH) + '┐');
+      billLines.push('│' + padCenter((shopName || 'SUPER INVENTORY').toUpperCase(), WIDTH) + '│');
+      if (shopAddress) {
+        const addr = shopAddress.length > WIDTH ? shopAddress.slice(0, WIDTH - 3) + '...' : shopAddress;
+        billLines.push('│' + padCenter(addr, WIDTH) + '│');
+      }
+      if (helpline) {
+        billLines.push('│' + padCenter('Phone: ' + helpline, WIDTH) + '│');
+      }
+      billLines.push('├' + '─'.repeat(WIDTH) + '┤');
+
+      const cleanInvNo = String(invNo).replace(/^(INV-)+/i, 'INV-');
+      const metaLeft = 'Bill: #' + cleanInvNo.slice(-8);
+      const metaRight = String(dateStr).slice(0, 10);
+      const metaSpace = Math.max(1, WIDTH - metaLeft.length - metaRight.length);
+      billLines.push('│' + padLeft(metaLeft + ' '.repeat(metaSpace) + metaRight, WIDTH) + '│');
+
+      const payRow = 'Mode: ' + String(payMode).toUpperCase();
+      billLines.push('│' + padLeft(payRow, WIDTH) + '│');
+
+      billLines.push('├' + '─'.repeat(W_ITEM) + '┬' + '─'.repeat(W_QTY) + '┬' + '─'.repeat(W_PRICE) + '┬' + '─'.repeat(W_TOTAL) + '┤');
+      billLines.push('│' + padLeft(' ITEM', W_ITEM) + '│' + padCenter('QTY', W_QTY) + '│' + padRight('PRICE ', W_PRICE) + '│' + padRight('TOTAL ', W_TOTAL) + '│');
+      billLines.push('├' + '─'.repeat(W_ITEM) + '┼' + '─'.repeat(W_QTY) + '┼' + '─'.repeat(W_PRICE) + '┼' + '─'.repeat(W_TOTAL) + '┤');
+
+      const invoiceItems = (lastCompletedInvoiceData && lastCompletedInvoiceData.items && lastCompletedInvoiceData.items.length > 0)
+        ? lastCompletedInvoiceData.items
+        : [{ name: 'Store Purchase', quantity: 1, price: parseFloat(String(grandTotal).replace(/[^0-9.]/g, '')) || 0 }];
+
+      invoiceItems.forEach(it => {
+        let name = String(it.name || 'Item').trim();
+        const qty = Number(it.quantity) || 1;
+        const priceNum = Number(it.price) || 0;
+        const priceStr = (priceNum % 1 === 0 ? priceNum.toFixed(0) : priceNum.toFixed(2));
+        const lineTotal = (priceNum * qty).toFixed(2);
+
+        let pack = String(it.displayNetQty || '').trim();
+        if (pack && !name.toLowerCase().includes(pack.toLowerCase())) {
+          name = name + ' ' + pack;
+        }
+
+        const maxChars = W_ITEM - 1;
+        const [part1, part2] = wrapItemName(name, maxChars);
+
+        billLines.push('│ ' + padLeft(part1, maxChars) + '│' + padCenter(qty, W_QTY) + '│' + padRight(priceStr + ' ', W_PRICE) + '│' + padRight(lineTotal + ' ', W_TOTAL) + '│');
+        if (part2) {
+          billLines.push('│ ' + padLeft(part2, maxChars) + '│' + ' '.repeat(W_QTY) + '│' + ' '.repeat(W_PRICE) + '│' + ' '.repeat(W_TOTAL) + '│');
+        }
+      });
+
+      billLines.push('├' + '─'.repeat(W_ITEM) + '┴' + '─'.repeat(W_QTY) + '┴' + '─'.repeat(W_PRICE) + '┴' + '─'.repeat(W_TOTAL) + '┤');
+
+      const cleanTotal = '₹ ' + parseFloat(String(grandTotal).replace(/[^0-9.]/g, '') || 0).toFixed(2);
+      const totalLabel = ' NET TOTAL:';
+      const totalSpace = Math.max(1, WIDTH - totalLabel.length - cleanTotal.length - 1);
+      billLines.push('│' + totalLabel + ' '.repeat(totalSpace) + cleanTotal + ' │');
+      billLines.push('└' + '─'.repeat(WIDTH) + '┘');
+
+      currentFormattedWhatsAppText = '```\n' + billLines.join('\n') + '\n```';
 
       // Update WhatsApp Modal Summary Card values
       const amtEl = document.getElementById('waSummaryAmount');
